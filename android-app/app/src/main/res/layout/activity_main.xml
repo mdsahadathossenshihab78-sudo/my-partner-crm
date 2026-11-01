@@ -53,7 +53,14 @@
                 android:textColor="@color/white" />
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:paddingHorizontal="16dp">
+            android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
+            <com.google.android.material.button.MaterialButton android:id="@+id/reportBtn"
+                android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="Report" app:backgroundTint="@null"
+                android:background="@drawable/glass_field" android:textColor="@color/white" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
                 android:background="@drawable/stat_violet" android:padding="14dp"
@@ -118,4 +125,143 @@
             android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:padding="8dp" android:clipToPadding="false" />
     </LinearLayout>
+    <!-- Report view -->
+    <ScrollView android:id="@+id/reportView"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical">
+                <com.google.android.material.button.MaterialButton android:id="@+id/reportBackBtn"
+                    android:layout_width="wrap_content" android:layout_height="48dp"
+                    android:text="← List" app:backgroundTint="@null"
+                    android:background="@drawable/glass_field" android:textColor="@color/white" />
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Report" android:textSize="20sp"
+                    android:textStyle="bold" android:textColor="@color/white"
+                    android:paddingStart="12dp" />
+            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="সারাদিন এন্ট্রি যোগ করুন, রাতে Generate করে কপি করুন"
+                android:textSize="13sp" android:textColor="@color/lavender" android:layout_marginTop="6dp" />
+            <TextView android:id="@+id/reportStatus" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textSize="13sp"
+                android:textColor="@color/muted_light" android:layout_marginTop="8dp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/glass_card"
+                android:padding="16dp" android:layout_marginTop="14dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="REGISTRATION" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/white" />
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/regNumber"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:hint="নাম্বার" android:inputType="phone"
+                    android:background="@drawable/glass_field" android:padding="12dp"
+                    android:layout_marginTop="10dp" android:textColor="@color/white"
+                    android:textColorHint="@color/muted_light" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/regAddBtn"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:layout_marginTop="10dp" android:text="Add"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                    android:textColor="@color/white" />
+                <TextView android:id="@+id/regList" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="14sp"
+                    android:textColor="@color/white" android:layout_marginTop="10dp" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/glass_card"
+                android:padding="16dp" android:layout_marginTop="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="FTD" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/white" />
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/ftdNumber"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:hint="নাম্বার" android:inputType="phone"
+                    android:background="@drawable/glass_field" android:padding="12dp"
+                    android:layout_marginTop="10dp" android:textColor="@color/white"
+                    android:textColorHint="@color/muted_light" />
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/ftdAmount"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:hint="টাকার পরিমাণ" android:inputType="numberDecimal"
+                    android:background="@drawable/glass_field" android:padding="12dp"
+                    android:layout_marginTop="10dp" android:textColor="@color/white"
+                    android:textColorHint="@color/muted_light" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/ftdAddBtn"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:layout_marginTop="10dp" android:text="Add"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                    android:textColor="@color/white" />
+                <TextView android:id="@+id/ftdList" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="14sp"
+                    android:textColor="@color/white" android:layout_marginTop="10dp" />
+                <TextView android:id="@+id/ftdTotal" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="14sp" android:textStyle="bold"
+                    android:textColor="@color/white" android:layout_marginTop="6dp" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/glass_card"
+                android:padding="16dp" android:layout_marginTop="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="INVALID NUMBER" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/white" />
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/invNumber"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:hint="নাম্বার" android:inputType="phone"
+                    android:background="@drawable/glass_field" android:padding="12dp"
+                    android:layout_marginTop="10dp" android:textColor="@color/white"
+                    android:textColorHint="@color/muted_light" />
+                <Spinner android:id="@+id/invReason" android:layout_width="match_parent"
+                    android:layout_height="52dp" android:background="@drawable/glass_field"
+                    android:layout_marginTop="10dp" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/invAddBtn"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:layout_marginTop="10dp" android:text="Add"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                    android:textColor="@color/white" />
+                <TextView android:id="@+id/invList" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="14sp"
+                    android:textColor="@color/white" android:layout_marginTop="10dp" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@drawable/glass_card"
+                android:padding="16dp" android:layout_marginTop="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="PROBLEMS" android:textSize="12sp" android:textStyle="bold"
+                    android:textColor="@color/white" />
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/probText"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:hint="সমস্যাটা লিখুন"
+                    android:background="@drawable/glass_field" android:padding="12dp"
+                    android:layout_marginTop="10dp" android:textColor="@color/white"
+                    android:textColorHint="@color/muted_light" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/probAddBtn"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:layout_marginTop="10dp" android:text="Add"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                    android:textColor="@color/white" />
+                <TextView android:id="@+id/probList" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="14sp"
+                    android:textColor="@color/white" android:layout_marginTop="10dp" />
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton android:id="@+id/generateBtn"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="16dp" android:text="Generate Report"
+                app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                android:textColor="@color/white" android:textStyle="bold" />
+            <LinearLayout android:id="@+id/reportOutputCard" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical"
+                android:background="@drawable/glass_card" android:padding="16dp"
+                android:layout_marginTop="12dp" android:visibility="gone">
+                <TextView android:id="@+id/reportOutput" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="14sp"
+                    android:textColor="@color/white" android:textIsSelectable="true" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/copyBtn"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:layout_marginTop="12dp" android:text="Copy korun"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>
