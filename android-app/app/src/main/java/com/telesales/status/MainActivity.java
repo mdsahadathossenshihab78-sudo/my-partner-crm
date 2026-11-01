@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private String token;
     private RowAdapter adapter;
     private View loginView, mainView;
-    private TextView loginError, userEmail, summary, statusText;
+    private TextView loginError, avatarView, statTotal, statConnected, statNotConnected, statValid, statusText;
     private TextInputEditText searchBox;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +43,11 @@ public class MainActivity extends AppCompatActivity {
         loginView = findViewById(R.id.loginView);
         mainView = findViewById(R.id.mainView);
         loginError = findViewById(R.id.loginError);
-        userEmail = findViewById(R.id.userEmail);
-        summary = findViewById(R.id.summary);
+        avatarView = findViewById(R.id.avatarView);
+        statTotal = findViewById(R.id.statTotal);
+        statConnected = findViewById(R.id.statConnected);
+        statNotConnected = findViewById(R.id.statNotConnected);
+        statValid = findViewById(R.id.statValid);
         statusText = findViewById(R.id.statusText);
         searchBox = findViewById(R.id.searchBox);
 
@@ -59,9 +62,10 @@ public class MainActivity extends AppCompatActivity {
             loginError.setText("");
             startActivityForResult(signInClient.getSignInIntent(), RC_SIGN_IN);
         });
-        findViewById(R.id.logoutBtn).setOnClickListener(v -> {
+        avatarView.setOnClickListener(v -> {
             signInClient.signOut().addOnCompleteListener(t -> {
                 token = null; showLogin();
+                Toast.makeText(this, "Logout hoyeche", Toast.LENGTH_SHORT).show();
             });
         });
         findViewById(R.id.refreshBtn).setOnClickListener(v -> loadRows());
@@ -96,11 +100,17 @@ public class MainActivity extends AppCompatActivity {
 
         GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(this);
         if (acct != null) {
-            userEmail.setText(acct.getEmail());
+            setAvatar(acct.getEmail());
             fetchToken(acct);
         } else {
             showLogin();
         }
+    }
+
+    private void setAvatar(String email) {
+        if (avatarView == null) return;
+        if (email != null && !email.isEmpty()) avatarView.setText(email.substring(0, 1).toUpperCase());
+        else avatarView.setText("S");
     }
 
     private void showLogin() {
@@ -118,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 token = GoogleAuthUtil.getToken(this, acct.getAccount(), "oauth2:" + SHEET_SCOPE);
-                runOnUiThread(() -> { userEmail.setText(acct.getEmail()); loadRows(); });
+                runOnUiThread(() -> { setAvatar(acct.getEmail()); loadRows(); });
             } catch (UserRecoverableAuthException e) {
                 runOnUiThread(() -> startActivityForResult(e.getIntent(), RC_AUTH));
             } catch (Exception e) {
@@ -163,13 +173,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateSummary() {
         List<Row> rows = adapter.getAll();
-        int c = 0, n = 0, b = 0, vy = 0;
+        int c = 0, n = 0, vy = 0;
         for (Row r : rows) {
             if ("call connected".equals(r.status)) c++;
             else if ("not connected".equals(r.status)) n++;
-            else b++;
             if ("Yes".equals(r.valid)) vy++;
         }
-        summary.setText("মোট: " + rows.size() + "টি • call connected: " + c + " • not connected: " + n + " • খালি: " + b + " • Valid Yes: " + vy);
+        statTotal.setText(String.valueOf(rows.size()));
+        statConnected.setText(String.valueOf(c));
+        statNotConnected.setText(String.valueOf(n));
+        statValid.setText(String.valueOf(vy));
     }
 }

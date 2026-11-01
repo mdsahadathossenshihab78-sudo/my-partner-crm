@@ -23,7 +23,9 @@ public class SheetsClient {
     }
 
     public static List<Row> getRows(String token, String sheetId) throws Exception {
-        String range = URLEncoder.encode(TAB + "!A6:F55", "UTF-8");
+        // Open-ended range: 55 row-e atke thakbe na — notun number jog hole
+        // (56, 57, ...) setao asbe. Sheet joto boro hobe list toto boro hobe.
+        String range = URLEncoder.encode(TAB + "!A6:F", "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
         c.setRequestProperty("Authorization", "Bearer " + token);
@@ -41,13 +43,39 @@ public class SheetsClient {
                 String d = v.length() > 3 ? v.optString(3) : "";
                 String e = v.length() > 4 ? v.optString(4) : "";
                 String f = v.length() > 5 ? v.optString(5) : "";
+                // Puro khali row (number delete/clear hoye gele) app-e dekhabe na.
+                // Row number index theke hisab hoy, tai porer row-gulor number thik thakbe.
+                if (a.isEmpty() && b.isEmpty() && cc.isEmpty() && d.isEmpty() && e.isEmpty() && f.isEmpty()) continue;
                 out.add(new Row(6 + i, a, b, cc, d, e, f));
             }
         }
         return out;
     }
 
+    /** Save-er age check: sheet-e oi row-er number ekhono eki ache kina.
+     *  Team-er keu majhkhane row delete korle row sore jay — tokhon vul row-e
+     *  save na hoye user-ke Refresh korte bola hobe. */
+    private static void checkRowStillMatches(String token, String sheetId, Row row) throws Exception {
+        String range = URLEncoder.encode(TAB + "!A" + row.row, "UTF-8");
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setRequestProperty("Authorization", "Bearer " + token);
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Sheet check failed: " + code);
+        JSONObject j = new JSONObject(readAll(c.getInputStream()));
+        JSONArray values = j.optJSONArray("values");
+        String current = "";
+        if (values != null && values.length() > 0) {
+            JSONArray v = values.getJSONArray(0);
+            if (v.length() > 0) current = v.optString(0);
+        }
+        if (!current.trim().equals(row.number.trim())) {
+            throw new Exception("Sheet-e row bodle geche — Refresh kore abar save korun");
+        }
+    }
+
     public static void updateRow(String token, String sheetId, Row row) throws Exception {
+        checkRowStillMatches(token, sheetId, row);
         String range = URLEncoder.encode(TAB + "!B" + row.row + ":F" + row.row, "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range + "?valueInputOption=USER_ENTERED");
         HttpURLConnection c = (HttpURLConnection) url.openConnection();

@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Spinner;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,10 +31,21 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     public void setRows(List<Row> rows) {
         all = new ArrayList<>(rows); shown = new ArrayList<>(rows); notifyDataSetChanged();
     }
+    /** Sheet-e number jemon ache temon thakbe; app-e dekhano + call korar somoy
+     *  samne 0 na thakle 0 jog hobe. 0 ba + diye suru hole kichu bodlabe na. */
+    public static String dialNumber(String raw) {
+        if (raw == null) return "";
+        String n = raw.trim().replaceAll("[\\s\\-]", "");
+        if (n.isEmpty() || n.startsWith("0") || n.startsWith("+")) return n;
+        return "0" + n;
+    }
     public void filter(String q) {
         shown.clear();
         if (q == null || q.trim().isEmpty()) shown.addAll(all);
-        else for (Row r : all) if (r.number.contains(q.trim())) shown.add(r);
+        else {
+            String qn = q.trim().replaceAll("[\\s\\-]", "");
+            for (Row r : all) if (r.number.contains(qn) || dialNumber(r.number).contains(qn)) shown.add(r);
+        }
         notifyDataSetChanged();
     }
     public List<Row> getAll() { return all; }
@@ -43,24 +55,57 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         return 0;
     }
 
+    private void refreshStatusChip(Holder h, String status) {
+        if ("call connected".equals(status)) {
+            h.tvChipStatus.setText("● call connected");
+            h.tvChipStatus.setBackgroundResource(R.drawable.chip_green);
+        } else if ("not connected".equals(status)) {
+            h.tvChipStatus.setText("● not connected");
+            h.tvChipStatus.setBackgroundResource(R.drawable.chip_rose);
+        } else {
+            h.tvChipStatus.setText("● খালি");
+            h.tvChipStatus.setBackgroundResource(R.drawable.chip_grey);
+        }
+    }
+    private void refreshValidChip(Holder h, String valid) {
+        if (valid == null || valid.isEmpty()) {
+            h.tvChipValid.setVisibility(View.GONE);
+        } else {
+            h.tvChipValid.setVisibility(View.VISIBLE);
+            h.tvChipValid.setText("Valid: " + valid);
+            h.tvChipValid.setBackgroundResource("Yes".equals(valid) ? R.drawable.chip_blue : R.drawable.chip_grey);
+        }
+    }
+
     @NonNull @Override public Holder onCreateViewHolder(@NonNull ViewGroup p, int t) {
         View v = LayoutInflater.from(p.getContext()).inflate(R.layout.item_row, p, false);
         return new Holder(v);
     }
     @Override public void onBindViewHolder(@NonNull Holder h, int pos) {
         Row r = shown.get(pos);
-        h.tvNumber.setText(r.number);
+        h.tvNumber.setText(dialNumber(r.number));
         h.tvRow.setText("রো " + r.row);
-        ArrayAdapter<String> sa = new ArrayAdapter<>(h.itemView.getContext(), android.R.layout.simple_spinner_item, statusLabels);
-        sa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> sa = new ArrayAdapter<>(h.itemView.getContext(), R.layout.spinner_item, statusLabels);
+        sa.setDropDownViewResource(R.layout.spinner_dropdown_item);
         h.spStatus.setAdapter(sa); h.spStatus.setSelection(indexOf(statusOpts, r.status));
-        ArrayAdapter<String> va = new ArrayAdapter<>(h.itemView.getContext(), android.R.layout.simple_spinner_item, validLabels);
-        va.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> va = new ArrayAdapter<>(h.itemView.getContext(), R.layout.spinner_item, validLabels);
+        va.setDropDownViewResource(R.layout.spinner_dropdown_item);
         h.spValid.setAdapter(va); h.spValid.setSelection(indexOf(validOpts, r.valid));
+        refreshStatusChip(h, r.status);
+        refreshValidChip(h, r.valid);
+        h.spStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> p, View v, int p2, long id) { refreshStatusChip(h, statusOpts[p2]); }
+            public void onNothingSelected(AdapterView<?> p) {}
+        });
+        h.spValid.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> p, View v, int p2, long id) { refreshValidChip(h, validOpts[p2]); }
+            public void onNothingSelected(AdapterView<?> p) {}
+        });
         h.etRemark1.setText(r.remark1); h.etRemark2.setText(r.remark2); h.etOthers.setText(r.others);
         h.btnCall.setOnClickListener(v -> {
-            Intent i = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + r.number));
-            h.itemView.getContext().startActivity(i);
+            Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + dialNumber(r.number)));
+            Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+            h.itemView.getContext().startActivity(chooser);
         });
         h.btnSave.setOnClickListener(v -> {
             r.status = statusOpts[h.spStatus.getSelectedItemPosition()];
@@ -74,12 +119,13 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     @Override public int getItemCount() { return shown.size(); }
 
     static class Holder extends RecyclerView.ViewHolder {
-        TextView tvNumber, tvRow; Spinner spStatus, spValid;
+        TextView tvNumber, tvRow, tvChipStatus, tvChipValid; Spinner spStatus, spValid;
         TextInputEditText etRemark1, etRemark2, etOthers;
         android.widget.Button btnCall; MaterialButton btnSave;
         Holder(View v) {
             super(v);
             tvNumber = v.findViewById(R.id.tvNumber); tvRow = v.findViewById(R.id.tvRow);
+            tvChipStatus = v.findViewById(R.id.tvChipStatus); tvChipValid = v.findViewById(R.id.tvChipValid);
             spStatus = v.findViewById(R.id.spStatus); spValid = v.findViewById(R.id.spValid);
             etRemark1 = v.findViewById(R.id.etRemark1); etRemark2 = v.findViewById(R.id.etRemark2);
             etOthers = v.findViewById(R.id.etOthers); btnCall = v.findViewById(R.id.btnCall);
