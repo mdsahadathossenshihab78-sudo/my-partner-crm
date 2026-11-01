@@ -1,40 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:layout_margin="6dp" app:cardCornerRadius="16dp" app:cardElevation="3dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:orientation="vertical" android:background="@drawable/glass_card"
+    android:layout_margin="6dp" android:padding="16dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:padding="14dp">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:gravity="center_vertical">
-            <TextView android:id="@+id/tvNumber" android:layout_width="0dp" android:layout_height="wrap_content"
-                android:layout_weight="1" android:textSize="16sp" android:textStyle="bold" />
-            <TextView android:id="@+id/tvRow" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textSize="12sp" android:textColor="@color/muted" />
-            <android.widget.Button android:id="@+id/btnCall" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:text="Call" android:layout_marginStart="8dp" />
-        </LinearLayout>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="CALLING STATUS" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="10dp" />
-        <Spinner android:id="@+id/spStatus" android:layout_width="match_parent" android:layout_height="48dp" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Valid Conversation" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="8dp" />
-        <Spinner android:id="@+id/spValid" android:layout_width="match_parent" android:layout_height="48dp" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="1ST CALL REMARK" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="8dp" />
-        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etRemark1"
-            android:layout_width="match_parent" android:layout_height="52dp" android:hint="1st call remark" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="2ND CALL REMARK" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="8dp" />
-        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etRemark2"
-            android:layout_width="match_parent" android:layout_height="52dp" android:hint="2nd call remark" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Others number" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="8dp" />
-        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etOthers"
-            android:layout_width="match_parent" android:layout_height="52dp" android:hint="Others number"
-            android:inputType="phone" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnSave"
-            android:layout_width="match_parent" android:layout_height="48dp"
-            android:layout_marginTop="12dp" android:text="Save korun" />
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/tvNumber" android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:textSize="19sp" android:textStyle="bold"
+            android:textColor="@color/white" />
+        <TextView android:id="@+id/tvRow" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textSize="12sp" android:textColor="@color/lavender" />
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:layout_marginTop="10dp">
+        <TextView android:id="@+id/tvChipStatus" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:background="@drawable/chip_grey"
+            android:paddingHorizontal="11dp" android:paddingVertical="4dp"
+            android:textSize="12sp" android:textStyle="bold" android:textColor="@color/white" />
+        <TextView android:id="@+id/tvChipValid" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:background="@drawable/chip_blue"
+            android:paddingHorizontal="11dp" android:paddingVertical="4dp"
+            android:layout_marginStart="8dp" android:textSize="12sp" android:textStyle="bold"
+            android:textColor="@color/white" android:visibility="gone" />
+    </LinearLayout>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="CALLING STATUS" android:textSize="11sp" android:textStyle="bold"
+        android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="12dp" />
+    <Spinner android:id="@+id/spStatus" android:layout_width="match_parent" android:layout_height="52dp"
+        android:background="@drawable/glass_field" android:layout_marginTop="6dp" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="VALID CONVERSATION" android:textSize="11sp" android:textStyle="bold"
+        android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="10dp" />
+    <Spinner android:id="@+id/spValid" android:layout_width="match_parent" android:layout_height="52dp"
+        android:background="@drawable/glass_field" android:layout_marginTop="6dp" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="1ST CALL REMARK" android:textSize="11sp" android:textStyle="bold"
+        android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="10dp" />
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etRemark1"
+        android:layout_width="match_parent" android:layout_height="52dp" android:hint="1st call remark"
+        android:background="@drawable/glass_field" android:padding="12dp" android:layout_marginTop="6dp"
+        android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="2ND CALL REMARK" android:textSize="11sp" android:textStyle="bold"
+        android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="10dp" />
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etRemark2"
+        android:layout_width="match_parent" android:layout_height="52dp" android:hint="2nd call remark"
+        android:background="@drawable/glass_field" android:padding="12dp" android:layout_marginTop="6dp"
+        android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="OTHERS NUMBER" android:textSize="11sp" android:textStyle="bold"
+        android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="10dp" />
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etOthers"
+        android:layout_width="match_parent" android:layout_height="52dp" android:hint="Others number"
+        android:inputType="phone" android:background="@drawable/glass_field" android:padding="12dp"
+        android:layout_marginTop="6dp" android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:layout_marginTop="14dp">
+        <android.widget.Button android:id="@+id/btnCall" android:layout_width="0dp"
+            android:layout_height="52dp" android:layout_weight="1" android:text="Call"
+            android:background="@drawable/glass_field" android:textColor="@color/white" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSave"
+            android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1.4"
+            android:layout_marginStart="10dp" android:text="Save korun"
+            app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+            android:textColor="@color/white" />
+    </LinearLayout>
+</LinearLayout>
