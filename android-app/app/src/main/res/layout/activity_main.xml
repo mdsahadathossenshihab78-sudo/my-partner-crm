@@ -107,6 +107,18 @@
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnTabPending"
+                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+                android:text="কল বাকি" app:backgroundTint="@null"
+                android:background="@drawable/btn_gradient" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnTabDone"
+                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+                android:layout_marginStart="10dp" android:text="কল করা হয়েছে"
+                app:backgroundTint="@null" android:background="@drawable/glass_field"
+                android:textColor="@color/white" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/searchBox"
                 android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
                 android:hint="Number diye khujun" android:inputType="text"
