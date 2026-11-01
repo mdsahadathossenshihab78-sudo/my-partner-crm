@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telesales Status — bdxsukuna30</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+:root{--indigo:#4f46e5;--violet:#7c3aed;--bg:#eef2ff;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif;background:var(--bg);color:var(--text)}
+.top{background:linear-gradient(135deg,#4f46e5,#7c3aed 55%,#db2777);color:#fff;padding:22px 16px}
+.top-inner{max-width:900px;margin:0 auto}.top h1{margin:0;font-size:24px}.top p{margin:4px 0 0;opacity:.9;font-size:14px}
+.wrap{max-width:900px;margin:-14px auto 0;padding:0 14px 30px}
+.card{background:var(--card);border-radius:18px;padding:20px;margin-top:16px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-primary{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff}
+.btn-light{background:#eef2ff;color:#111827}.btn-sm{padding:8px 12px;font-size:13px}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:15px}
+label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}.muted{color:var(--muted);font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.report{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
+.badge{display:inline-block;background:#eef2ff;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700}
+.badge-ok{background:#dcfce7}.badge-no{background:#fee2e2}.badge-blank{background:#fef3c7}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 18px;border-radius:12px;display:none;z-index:99}
+</style></head><body>
+<div class="top"><div class="top-inner"><h1>📞 Telesales Status</h1><p>শুধু ট্যাব: bdxsukuna30 • Telesales (Team-03) • স্ট্যাটাস বদলালেই শিটে আপডেট হবে</p></div></div>
+<div class="wrap">
+<div class="card" id="loginCard"><h2>🔐 লগইন করুন</h2><p class="muted">Continue with Google দিয়ে লগইন করুন। শিটে লেখার জন্য Google Sheets অনুমতি চাওয়া হবে — এটা ছাড়া স্ট্যাটাস আপডেট হবে না।</p>
+<button class="btn btn-primary" id="googleBtn">▶ Continue with Google</button><p class="muted" id="loginMsg"></p>
+<div style="margin-top:12px"><label for="sheetId">Spreadsheet ID (প্রথমবার শুধু, পরে মনে থাকবে)</label><input id="sheetId" placeholder="Telesales শিটের ID এখানে পেস্ট করুন"></div></div>
+<div class="card" id="appCard" style="display:none">
+<div class="row" style="justify-content:space-between"><span>👤 লগইন: <b id="userEmail"></b></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
+<p class="muted" id="syncStatus">লোড হচ্ছে...</p>
+<div class="row"><input id="search" placeholder="নাম্বার দিয়ে খুঁজুন (শেষের ডিজিট)" style="flex:1"><button class="btn btn-light" id="refreshBtn">↻ রিফ্রেশ</button></div>
+<p class="muted" id="summary"></p>
+<div id="list"></div>
+<p class="muted">💡 শুধু CALLING STATUS বদলানো যাবে। ড্রপডাউন বদলে “সেভ করুন” চাপলেই ওই রোর স্ট্যাটাস শিটে লেখা হবে। অন্য কলামগুলো শুধু দেখার জন্য।</p>
+</div></div>
+<div class="toast" id="toast"></div>
+<script>
+const TAB='bdxsukuna30';
+const firebaseConfig={apiKey:"<redacted>",authDomain:"fir-a-topup-bazar.firebaseapp.com",databaseURL:"https://fir-a-topup-bazar-default-rtdb.firebaseio.com",projectId:"fir-a-topup-bazar",storageBucket:"fir-a-topup-bazar.firebasestorage.app",messagingSenderId:"928168996366",appId:"1:928168996366:web:fd879d795202891ee9965f",measurementId:"G-9QBLYHR817"};
+let auth=null, token=null, rows=[], dirty={};
+const $=id=>document.getElementById(id);
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
+function sheetId(){return ($('sheetId').value||'').trim() || localStorage.getItem('telesales_sheet_id') || '10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE'}
+try{if(window.firebase){firebase.initializeApp(firebaseConfig);auth=firebase.auth();}}catch(e){}
+$('sheetId').value=localStorage.getItem('telesales_sheet_id')||'';
+$('sheetId').addEventListener('change',()=>localStorage.setItem('telesales_sheet_id',$('sheetId').value.trim()));
+$('googleBtn').onclick=async()=>{
+  const id=sheetId(); if(!id){$('loginMsg').textContent='প্রথমে Spreadsheet ID দিন।';$('sheetId').focus();return;}
+  localStorage.setItem('telesales_sheet_id',id);
+  try{
+    const provider=new firebase.auth.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/spreadsheets');
+    const res=await auth.signInWithPopup(provider);
+    token=res.credential && res.credential.accessToken;
+    if(!token){$('loginMsg').textContent='Sheets অনুমতি পাওয়া যায়নি, আবার লগইন করুন।';return;}
+    $('loginCard').style.display='none';$('appCard').style.display='block';$('userEmail').textContent=res.user.email;
+    await loadRows();
+  }catch(e){$('loginMsg').textContent='লগইন হয়নি: '+(e.message||e);}
+};
+$('logoutBtn').onclick=()=>{if(auth)auth.signOut();location.reload();};
+$('refreshBtn').onclick=loadRows;
+$('search').addEventListener('input',render);
+async function api(path,method,body){
+  const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId()+'/values/'+path,{method:method||'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  if(!r.ok){const t=await r.text();throw new Error(r.status+' '+t.slice(0,200));}
+  return r.json();
+}
+async function loadRows(){
+  try{
+    $('syncStatus').textContent='🔄 শিট থেকে লোড হচ্ছে...';
+    const data=await api(encodeURIComponent(TAB)+'!A6:F55');
+    rows=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||'',status:v[1]||'',valid:v[2]||'',remark1:v[3]||'',remark2:v[4]||'',others:v[5]||''}));
+    dirty={}; render();
+    $('syncStatus').textContent='✅ শিটের সাথে সংযুক্ত — '+rows.length+'টি রো';
+  }catch(e){$('syncStatus').textContent='⚠️ লোড হয়নি: '+e.message; }
+}
+function render(){
+  const q=$('search').value.trim();
+  const list=q?rows.filter(r=>r.number.includes(q)):rows;
+  const c=list.filter(r=>r.status==='call connected').length, n=list.filter(r=>r.status==='not connected').length, b=list.filter(r=>!r.status).length;
+  $('summary').textContent='মোট: '+list.length+'টি • call connected: '+c+' • not connected: '+n+' • খালি: '+b;
+  $('list').innerHTML=list.length?list.map(r=>{
+    const badge=r.status==='call connected'?'badge-ok':r.status==='not connected'?'badge-no':'badge-blank';
+    return `<div class="report"><div class="row"><b>${r.number}</b><span class="badge ${badge}">${r.status||'খালি'}</span><span class="badge">রো ${r.row}</span><a class="btn btn-light btn-sm" href="tel:${r.number}" style="text-decoration:none">📞 কল করুন</a></div>
+    <p class="muted" style="margin:8px 0">Valid: ${r.valid||'-'} • 1st: ${r.remark1||'-'} • 2nd: ${r.remark2||'-'} • Others: ${r.others||'-'}</p>
+    <div class="row"><select id="st-${r.row}" style="flex:1"><option value="" ${!r.status?'selected':''}>— খালি —</option><option value="call connected" ${r.status==='call connected'?'selected':''}>call connected</option><option value="not connected" ${r.status==='not connected'?'selected':''}>not connected</option></select>
+    <button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})">💾 সেভ করুন</button></div></div>`;
+  }).join(''):'<p class="muted">কোনো রো পাওয়া যায়নি।</p>';
+}
+window.saveRow=async (rowNum)=>{
+  const r=rows.find(x=>x.row===rowNum); if(!r)return;
+  const val=$('st-'+rowNum).value;
+  try{
+    await api(encodeURIComponent(TAB)+'!B'+rowNum+'?valueInputOption=USER_ENTERED','PUT',{values:[[val]]});
+    r.status=val; render(); toast('✅ রো '+rowNum+' স্ট্যাটাস শিটে আপডেট হয়েছে');
+  }catch(e){toast('❌ সেভ হয়নি: '+e.message);}
+};
+if(auth){auth.onAuthStateChanged(u=>{if(u && token){$('loginCard').style.display='none';$('appCard').style.display='block';$('userEmail').textContent=u.email;}});}
+</script></body></html>
