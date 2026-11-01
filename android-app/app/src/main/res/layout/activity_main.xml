@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg">
+    <!-- Login view -->
+    <LinearLayout android:id="@+id/loginView"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:gravity="center" android:padding="24dp">
+        <ImageView android:layout_width="96dp" android:layout_height="96dp"
+            android:layout_gravity="center" android:src="@drawable/ic_launcher" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center" android:layout_marginTop="16dp"
+            android:text="@string/login_title" android:textSize="26sp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center" android:layout_marginTop="6dp"
+            android:text="@string/login_sub" android:textSize="14sp" android:textColor="@color/muted" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center" android:layout_marginTop="12dp"
+            android:text="Native app — website khulbe na, sob kichu app-er moddhei hobe."
+            android:textSize="13sp" android:textColor="@color/muted" android:gravity="center" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/googleBtn"
+            android:layout_width="match_parent" android:layout_height="56dp"
+            android:layout_marginTop="24dp" android:text="@string/continue_google"
+            android:textSize="15sp" />
+        <TextView android:id="@+id/loginError" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="12dp"
+            android:textColor="#B91C1C" android:textSize="13sp" />
+    </LinearLayout>
+    <!-- Main view -->
+    <LinearLayout android:id="@+id/mainView"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:padding="14dp" android:gravity="center_vertical">
+            <TextView android:id="@+id/userEmail" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:textSize="13sp" android:textStyle="bold" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/logoutBtn"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Logout" style="@style/Widget.Material3.Button.OutlinedButton" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:paddingHorizontal="14dp" android:paddingBottom="8dp">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/searchBox"
+                android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                android:hint="Number diye khujun" android:inputType="text" android:background="@android:color/white"
+                android:padding="12dp" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/refreshBtn"
+                android:layout_width="wrap_content" android:layout_height="56dp"
+                android:layout_marginStart="8dp" android:text="Refresh" />
+        </LinearLayout>
+        <TextView android:id="@+id/summary" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:paddingHorizontal="14dp"
+            android:textSize="13sp" android:textColor="@color/muted" />
+        <TextView android:id="@+id/statusText" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:padding="14dp"
+            android:textSize="13sp" android:textColor="@color/muted" />
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/recycler"
+            android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+            android:padding="8dp" android:clipToPadding="false" />
+    </LinearLayout>
+</LinearLayout>
