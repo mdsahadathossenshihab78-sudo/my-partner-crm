@@ -21,7 +21,7 @@ label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}.muted{colo
 .badge-ok{background:#dcfce7}.badge-no{background:#fee2e2}.badge-blank{background:#fef3c7}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 18px;border-radius:12px;display:none;z-index:99}
 </style></head><body>
-<div class="top"><div class="top-inner"><h1>📞 Telesales Status</h1><p>শুধু ট্যাব: bdxsukuna30 • Telesales (Team-03) • স্ট্যাটাস বদলালেই শিটে আপডেট হবে</p></div></div>
+<div class="top"><div class="top-inner"><h1>📞 Telesales Status</h1><p>শুধু ট্যাব: bdxsukuna30 • Telesales (Team-03) • সব কলাম বদলালেই শিটে আপডেট হবে</p></div></div>
 <div class="wrap">
 <div class="card" id="loginCard"><h2>🔐 লগইন করুন</h2><p class="muted">Continue with Google দিয়ে লগইন করুন। শিটে লেখার জন্য Google Sheets অনুমতি চাওয়া হবে — এটা ছাড়া স্ট্যাটাস আপডেট হবে না।</p>
 <button class="btn btn-primary" id="googleBtn">▶ Continue with Google</button><p class="muted" id="loginMsg"></p>
@@ -32,7 +32,7 @@ label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}.muted{colo
 <div class="row"><input id="search" placeholder="নাম্বার দিয়ে খুঁজুন (শেষের ডিজিট)" style="flex:1"><button class="btn btn-light" id="refreshBtn">↻ রিফ্রেশ</button></div>
 <p class="muted" id="summary"></p>
 <div id="list"></div>
-<p class="muted">💡 শুধু CALLING STATUS বদলানো যাবে। ড্রপডাউন বদলে “সেভ করুন” চাপলেই ওই রোর স্ট্যাটাস শিটে লেখা হবে। অন্য কলামগুলো শুধু দেখার জন্য।</p>
+<p class="muted">💡 CALLING STATUS, Valid Conversation, 1st Call Remark, 2nd Call Remark, Others number — সব বদলানো যাবে। ফিল্ড বদলে “সেভ করুন” চাপলেই ওই রোর সব ফিল্ড শিটে লেখা হবে। নম্বর বদলানো যাবে না।</p>
 </div></div>
 <div class="toast" id="toast"></div>
 <script>
@@ -78,22 +78,26 @@ async function loadRows(){
 function render(){
   const q=$('search').value.trim();
   const list=q?rows.filter(r=>r.number.includes(q)):rows;
-  const c=list.filter(r=>r.status==='call connected').length, n=list.filter(r=>r.status==='not connected').length, b=list.filter(r=>!r.status).length;
-  $('summary').textContent='মোট: '+list.length+'টি • call connected: '+c+' • not connected: '+n+' • খালি: '+b;
+  const c=list.filter(r=>r.status==='call connected').length, n=list.filter(r=>r.status==='not connected').length, b=list.filter(r=>!r.status).length, vy=list.filter(r=>r.valid==='Yes').length;
+  $('summary').textContent='মোট: '+list.length+'টি • call connected: '+c+' • not connected: '+n+' • খালি: '+b+' • Valid Yes: '+vy;
   $('list').innerHTML=list.length?list.map(r=>{
     const badge=r.status==='call connected'?'badge-ok':r.status==='not connected'?'badge-no':'badge-blank';
+    const esc=v=>(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     return `<div class="report"><div class="row"><b>${r.number}</b><span class="badge ${badge}">${r.status||'খালি'}</span><span class="badge">রো ${r.row}</span><a class="btn btn-light btn-sm" href="tel:${r.number}" style="text-decoration:none">📞 কল করুন</a></div>
-    <p class="muted" style="margin:8px 0">Valid: ${r.valid||'-'} • 1st: ${r.remark1||'-'} • 2nd: ${r.remark2||'-'} • Others: ${r.others||'-'}</p>
-    <div class="row"><select id="st-${r.row}" style="flex:1"><option value="" ${!r.status?'selected':''}>— খালি —</option><option value="call connected" ${r.status==='call connected'?'selected':''}>call connected</option><option value="not connected" ${r.status==='not connected'?'selected':''}>not connected</option></select>
-    <button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})">💾 সেভ করুন</button></div></div>`;
+    <div style="margin-top:10px"><label>CALLING STATUS</label><select id="st-${r.row}"><option value="" ${!r.status?'selected':''}>— খালি —</option><option value="call connected" ${r.status==='call connected'?'selected':''}>call connected</option><option value="not connected" ${r.status==='not connected'?'selected':''}>not connected</option></select></div>
+    <div style="margin-top:8px"><label>Valid Conversation</label><select id="vc-${r.row}"><option value="" ${!r.valid?'selected':''}>— খালি —</option><option value="Yes" ${r.valid==='Yes'?'selected':''}>Yes</option><option value="No" ${r.valid==='No'?'selected':''}>No</option></select></div>
+    <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-${r.row}" value="${esc(r.remark1)}" placeholder="1st call remark লিখুন"></div>
+    <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-${r.row}" value="${esc(r.remark2)}" placeholder="2nd call remark লিখুন"></div>
+    <div style="margin-top:8px"><label>Others number</label><input id="ot-${r.row}" value="${esc(r.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
+    <div class="row" style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})">💾 সেভ করুন</button></div></div>`;
   }).join(''):'<p class="muted">কোনো রো পাওয়া যায়নি।</p>';
 }
 window.saveRow=async (rowNum)=>{
   const r=rows.find(x=>x.row===rowNum); if(!r)return;
-  const val=$('st-'+rowNum).value;
+  const val=$('st-'+rowNum).value, vc=$('vc-'+rowNum).value, r1=$('r1-'+rowNum).value.trim(), r2=$('r2-'+rowNum).value.trim(), ot=$('ot-'+rowNum).value.trim();
   try{
-    await api(encodeURIComponent(TAB)+'!B'+rowNum+'?valueInputOption=USER_ENTERED','PUT',{values:[[val]]});
-    r.status=val; render(); toast('✅ রো '+rowNum+' স্ট্যাটাস শিটে আপডেট হয়েছে');
+    await api(encodeURIComponent(TAB)+'!B'+rowNum+':F'+rowNum+'?valueInputOption=USER_ENTERED','PUT',{values:[[val,vc,r1,r2,ot]]});
+    r.status=val; r.valid=vc; r.remark1=r1; r.remark2=r2; r.others=ot; render(); toast('✅ রো '+rowNum+' সব ফিল্ড শিটে আপডেট হয়েছে');
   }catch(e){toast('❌ সেভ হয়নি: '+e.message);}
 };
 if(auth){auth.onAuthStateChanged(u=>{if(u && token){$('loginCard').style.display='none';$('appCard').style.display='block';$('userEmail').textContent=u.email;}});}
