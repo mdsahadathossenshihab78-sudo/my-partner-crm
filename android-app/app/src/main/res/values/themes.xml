@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Telesales" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/indigo</item>
+        <item name="colorPrimaryVariant">@color/violet</item>
+        <item name="android:textColorPrimary">@color/text</item>
+    </style>
+</resources>

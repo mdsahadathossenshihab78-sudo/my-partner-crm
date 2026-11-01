@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="indigo">#4F46E5</color>
+    <color name="violet">#7C3AED</color>
+    <color name="bg">#EEF2FF</color>
+    <color name="text">#111827</color>
+    <color name="muted">#6B7280</color>
+    <color name="green_bg">#DCFCE7</color>
+    <color name="red_bg">#FEE2E2</color>
+    <color name="yellow_bg">#FEF3C7</color>
+</resources>
