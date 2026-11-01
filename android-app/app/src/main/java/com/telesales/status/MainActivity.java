@@ -109,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.reportBtn).setOnClickListener(v -> showReport());
         findViewById(R.id.reportBackBtn).setOnClickListener(v -> showMain());
+        findViewById(R.id.btnTabPending).setOnClickListener(v -> { adapter.setTab(0); setTabUI(); });
+        findViewById(R.id.btnTabDone).setOnClickListener(v -> { adapter.setTab(1); setTabUI(); });
+        setTabUI();
         findViewById(R.id.regAddBtn).setOnClickListener(v -> {
             String n = txt(regNumber);
             if (n.isEmpty()) { Toast.makeText(this, "Number din", Toast.LENGTH_SHORT).show(); return; }
@@ -152,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         btn.setEnabled(true); btn.setText("Save korun");
                         Toast.makeText(this, "রো " + row.row + " শিটে আপডেট হয়েছে", Toast.LENGTH_SHORT).show();
+                        adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
                         updateSummary();
                     });
                 } catch (Exception e) {
@@ -194,6 +198,11 @@ public class MainActivity extends AppCompatActivity {
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.VISIBLE);
         reportView.setVisibility(View.GONE);
+    }
+    private void setTabUI() {
+        boolean pending = adapter.getTab() == 0;
+        findViewById(R.id.btnTabPending).setBackgroundResource(pending ? R.drawable.btn_gradient : R.drawable.glass_field);
+        findViewById(R.id.btnTabDone).setBackgroundResource(pending ? R.drawable.glass_field : R.drawable.btn_gradient);
     }
     private void showReport() {
         if (token == null) { showLogin(); return; }

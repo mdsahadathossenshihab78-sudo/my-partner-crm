@@ -29,8 +29,13 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     public RowAdapter(OnSave onSave) { this.onSave = onSave; }
 
     public void setRows(List<Row> rows) {
-        all = new ArrayList<>(rows); shown = new ArrayList<>(rows); notifyDataSetChanged();
+        all = new ArrayList<>(rows); filter(lastQ);
     }
+    /** Tab: 0 = কল বাকি (status khali), 1 = কল করা হয়েছে (status deya ache). */
+    private int tab = 0;
+    private String lastQ = "";
+    public void setTab(int t) { tab = t; filter(lastQ); }
+    public int getTab() { return tab; }
     /** Sheet-e number jemon ache temon thakbe; app-e dekhano + call korar somoy
      *  samne 0 na thakle 0 jog hobe. 0 ba + diye suru hole kichu bodlabe na. */
     public static String dialNumber(String raw) {
@@ -40,11 +45,14 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         return "0" + n;
     }
     public void filter(String q) {
+        lastQ = q == null ? "" : q;
         shown.clear();
-        if (q == null || q.trim().isEmpty()) shown.addAll(all);
-        else {
-            String qn = q.trim().replaceAll("[\\s\\-]", "");
-            for (Row r : all) if (r.number.contains(qn) || dialNumber(r.number).contains(qn)) shown.add(r);
+        String qn = lastQ.trim().replaceAll("[\\s\\-]", "");
+        for (Row r : all) {
+            boolean inTab = (tab == 0) ? (r.status == null || r.status.isEmpty())
+                                       : (r.status != null && !r.status.isEmpty());
+            if (!inTab) continue;
+            if (qn.isEmpty() || r.number.contains(qn) || dialNumber(r.number).contains(qn)) shown.add(r);
         }
         notifyDataSetChanged();
     }
