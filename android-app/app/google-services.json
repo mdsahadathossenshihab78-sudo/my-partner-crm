@@ -1,0 +1,106 @@
+{
+  "project_info": {
+    "project_number": "928168996366",
+    "firebase_url": "https://fir-a-topup-bazar-default-rtdb.firebaseio.com",
+    "project_id": "fir-a-topup-bazar",
+    "storage_bucket": "fir-a-topup-bazar.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928168996366:android:c061cf3d5bdb30b1e9965f",
+        "android_client_info": {
+          "package_name": "Com.satopupbazar.shihab"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "928168996366-mip08g6bkngqhqvvk4b60l8rdkd6n907.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzPedmCSOLPOXFoRHmXEMwCSjwYifsia0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "928168996366-mip08g6bkngqhqvvk4b60l8rdkd6n907.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928168996366:android:0ad2c0611aa0870ee9965f",
+        "android_client_info": {
+          "package_name": "Com.satopupbazaradmin.shihab"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "928168996366-mip08g6bkngqhqvvk4b60l8rdkd6n907.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzPedmCSOLPOXFoRHmXEMwCSjwYifsia0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "928168996366-mip08g6bkngqhqvvk4b60l8rdkd6n907.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928168996366:android:48000ee258611792e9965f",
+        "android_client_info": {
+          "package_name": "com.telesales.status"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "928168996366-tfq1de9fe4msh958db0n2f8nebal1frp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.telesales.status",
+            "certificate_hash": "936a40d1ca413fbffc080205bbab836a9f018de1"
+          }
+        },
+        {
+          "client_id": "928168996366-mip08g6bkngqhqvvk4b60l8rdkd6n907.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzPedmCSOLPOXFoRHmXEMwCSjwYifsia0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "928168996366-mip08g6bkngqhqvvk4b60l8rdkd6n907.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
