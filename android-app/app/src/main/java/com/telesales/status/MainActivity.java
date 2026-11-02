@@ -73,9 +73,9 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton dateBtn;
     private TextInputEditText searchBox;
     private View reportView, reportOutputCard;
-    private TextView reportStatus, reportOutput, ftdTotal;
-    private LinearLayout regList, ftdList, invList, probList;
-    private TextInputEditText regCount, ftdCount, ftdAmount, invNumber, probText;
+    private TextView reportStatus, reportOutput, ftdTotal, ftdStepCount;
+    private LinearLayout regList, invList, probList, ftdStepAmountRow;
+    private TextInputEditText regCount, ftdStepAmount, invNumber, probText;
     private boolean updateChecked = false;
     private long updateDownloadId = -1;
     private BroadcastReceiver updateReceiver;
@@ -109,13 +109,15 @@ public class MainActivity extends AppCompatActivity {
         reportStatus = findViewById(R.id.reportStatus);
         reportOutput = findViewById(R.id.reportOutput);
         regCount = findViewById(R.id.regCount);
-        ftdCount = findViewById(R.id.ftdCount);
-        ftdAmount = findViewById(R.id.ftdAmount);
+
+
         invNumber = findViewById(R.id.invNumber);
         invReason = findViewById(R.id.invReason);
         probText = findViewById(R.id.probText);
         regList = findViewById(R.id.regList);
-        ftdList = findViewById(R.id.ftdList);
+        ftdStepCount = findViewById(R.id.ftdStepCount);
+        ftdStepAmountRow = findViewById(R.id.ftdStepAmountRow);
+        ftdStepAmount = findViewById(R.id.ftdStepAmount);
         ftdTotal = findViewById(R.id.ftdTotal);
         invList = findViewById(R.id.invList);
         probList = findViewById(R.id.probList);
@@ -181,14 +183,29 @@ public class MainActivity extends AppCompatActivity {
             if (cnt <= 0) { Toast.makeText(this, "Registration সংখ্যা দিন", Toast.LENGTH_SHORT).show(); return; }
             addReportEntry("Registration", new String[]{dhakaDate(), String.valueOf(cnt)}, () -> regCount.setText(""));
         });
-        findViewById(R.id.ftdAddBtn).setOnClickListener(v -> {
-            String c = txt(ftdCount);
-            String a = txt(ftdAmount);
-            int cnt; double amt;
-            try { cnt = Integer.parseInt(c); } catch (Exception e) { cnt = -1; }
+        findViewById(R.id.ftdPlusBtn).setOnClickListener(v -> {
+            if (ftdStepAmountRow.getVisibility() == View.VISIBLE) { ftdStepAmount.requestFocus(); return; }
+            int cur = ftdToday == null ? 0 : ftdTotalCount(ftdToday);
+            ftdStepAmount.setHint((cur + 1) + " নম্বর FTD কত টাকার?");
+            ftdStepAmountRow.setVisibility(View.VISIBLE);
+            ftdStepAmount.requestFocus();
+        });
+        findViewById(R.id.ftdStepAddBtn).setOnClickListener(v -> {
+            String a = txt(ftdStepAmount);
+            double amt;
             try { amt = Double.parseDouble(a); } catch (Exception e) { amt = -1; }
-            if (cnt <= 0 || amt <= 0) { Toast.makeText(this, "FTD সংখ্যা আর মোট টাকা দিন", Toast.LENGTH_SHORT).show(); return; }
-            addReportEntry("FTD", new String[]{dhakaDate(), String.valueOf(cnt), fmtAmount(amt)}, () -> { ftdCount.setText(""); ftdAmount.setText(""); });
+            if (amt <= 0) { Toast.makeText(this, "ঠিক টাকা দিন", Toast.LENGTH_SHORT).show(); return; }
+            addReportEntry("FTD", new String[]{dhakaDate(), "1", fmtAmount(amt)}, () -> {
+                ftdStepAmount.setText("");
+                ftdStepAmountRow.setVisibility(View.GONE);
+                loadDayStats();
+            });
+        });
+        findViewById(R.id.ftdMinusBtn).setOnClickListener(v -> {
+            REntry last = null;
+            if (ftdToday != null) for (REntry e : ftdToday) if (last == null || e.sheetRow > last.sheetRow) last = e;
+            if (last == null) { Toast.makeText(this, "আজ কোনো FTD নেই", Toast.LENGTH_SHORT).show(); return; }
+            deleteReportEntry("FTD", last);
         });
         findViewById(R.id.invAddBtn).setOnClickListener(v -> {
             String n = txt(invNumber);
@@ -679,14 +696,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void refreshReportLists() {
         fillList(regList, regToday, "Registration");
-        fillList(ftdList, ftdToday, "FTD");
         fillList(invList, invToday, "Invalid");
         fillList(probList, probToday, "Problems");
         double sum = 0;
         for (REntry r : ftdToday) {
             try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}
         }
-        ftdTotal.setText("Total Amount: " + fmtAmount(sum));
+        ftdStepCount.setText(String.valueOf(ftdTotalCount(ftdToday)));
+        ftdTotal.setText("আজ মোট: " + ftdTotalCount(ftdToday) + "টা • ৳" + fmtAmount(sum));
     }
 
     /** Ekta list-er prottek entry-r pase ✕ delete button bosay. */
@@ -738,7 +755,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 ensureReportSheet();
                 SheetsClient.deleteReportRow(token, reportSheetId, tab, e.sheetRow);
-                runOnUiThread(() -> { reportOutputCard.setVisibility(View.GONE); loadReportData(); });
+                runOnUiThread(() -> { reportOutputCard.setVisibility(View.GONE); loadReportData(); loadDayStats(); });
             } catch (Exception ex) {
                 runOnUiThread(() -> reportStatus.setText("Delete hoyni: " + ex.getMessage()));
             }
@@ -752,7 +769,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 ensureReportSheet();
                 SheetsClient.appendReportRow(token, reportSheetId, tab, vals);
-                runOnUiThread(() -> { if (clear != null) clear.run(); loadReportData(); });
+                runOnUiThread(() -> { if (clear != null) clear.run(); loadReportData(); loadDayStats(); });
             } catch (Exception e) {
                 runOnUiThread(() -> reportStatus.setText("Add hoyni: " + e.getMessage()));
             }
@@ -799,18 +816,6 @@ public class MainActivity extends AppCompatActivity {
                     sb.append("\n");
                 }
                 sb.append("FTD: ").append(ftdTotalCount(ftdToday)).append("\n");
-                if (!ftdToday.isEmpty()) {
-                    sb.append("FTD Details: ");
-                    for (int i = 0; i < ftdToday.size(); i++) {
-                        if (i > 0) sb.append(", ");
-                        REntry fe = ftdToday.get(i);
-                        String ftdNum = cellE(fe, 1);
-                        if (isFtdCountRow(fe)) sb.append(ftdNum).append("টা - ").append(cellE(fe, 2));
-                        else if (ftdNum.isEmpty()) sb.append(cellE(fe, 2));
-                        else sb.append(ftdNum).append(" - ").append(cellE(fe, 2));
-                    }
-                    sb.append("\n");
-                }
                 sb.append("Total Amount Recharged: ").append(fmtAmount(sum)).append("\n");
                 sb.append("Invalid Number:\n");
                 if (invToday.isEmpty()) sb.append("-\n");
