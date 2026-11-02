@@ -1,5 +1,6 @@
 package com.telesales.status;
 
+import android.app.DatePickerDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -34,9 +35,12 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
@@ -48,12 +52,17 @@ public class MainActivity extends AppCompatActivity {
     private GoogleSignInClient signInClient;
     private String token;
     private String agentId;
+    private String statusLogSheetId;
+    private String selectedDate = dhakaDate();
+    private Map<String,String> lastStatusMap = new HashMap<>();
     private RowAdapter adapter;
     private View loginView, mainView;
     private View agentView;
     private TextView agentError, agentSubtitle;
     private TextInputEditText agentInput;
-    private TextView loginError, avatarView, statTotal, statConnected, statNotConnected, statValid, statusText;
+    private TextView loginError, avatarView, statusText, weekSummary;
+    private TextView statConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
+    private MaterialButton dateBtn;
     private TextInputEditText searchBox;
     private View reportView, reportOutputCard;
     private TextView reportStatus, reportOutput, ftdTotal;
@@ -73,10 +82,14 @@ public class MainActivity extends AppCompatActivity {
         mainView = findViewById(R.id.mainView);
         loginError = findViewById(R.id.loginError);
         avatarView = findViewById(R.id.avatarView);
-        statTotal = findViewById(R.id.statTotal);
-        statConnected = findViewById(R.id.statConnected);
-        statNotConnected = findViewById(R.id.statNotConnected);
-        statValid = findViewById(R.id.statValid);
+        statConnDay = findViewById(R.id.statConnDay);
+        statValidDay = findViewById(R.id.statValidDay);
+        statInvDay = findViewById(R.id.statInvDay);
+        statRegDay = findViewById(R.id.statRegDay);
+        statFtdDay = findViewById(R.id.statFtdDay);
+        statFtdAmtDay = findViewById(R.id.statFtdAmtDay);
+        weekSummary = findViewById(R.id.weekSummary);
+        dateBtn = findViewById(R.id.btnDate);
         statusText = findViewById(R.id.statusText);
         searchBox = findViewById(R.id.searchBox);
         reportView = findViewById(R.id.reportView);
@@ -112,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
         });
         avatarView.setOnClickListener(v -> {
             signInClient.signOut().addOnCompleteListener(t -> {
-                token = null; agentId = null; reportSheetId = null;
+                token = null; agentId = null; reportSheetId = null; statusLogSheetId = null;
                 getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").apply();
                 showLogin();
                 Toast.makeText(this, "Logout hoyeche", Toast.LENGTH_SHORT).show();
@@ -126,6 +139,23 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.reportBtn).setOnClickListener(v -> showReport());
         findViewById(R.id.reportBackBtn).setOnClickListener(v -> showMain());
+        findViewById(R.id.btnPrevDay).setOnClickListener(v -> shiftDay(-1));
+        findViewById(R.id.btnNextDay).setOnClickListener(v -> shiftDay(1));
+        dateBtn.setOnClickListener(v -> {
+            try {
+                Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                c.setTime(parseDay(selectedDate));
+                new DatePickerDialog(this, (view, y, m, day) -> {
+                    Calendar nc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                    nc.set(y, m, day, 0, 0, 0);
+                    nc.set(Calendar.MILLISECOND, 0);
+                    String nd = fmtDay(nc.getTime());
+                    if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate();
+                    selectedDate = nd; updateDateBtn(); loadDayStats();
+                }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+            } catch (Exception ignored) {}
+        });
+        updateDateBtn();
         findViewById(R.id.agentContinueBtn).setOnClickListener(v -> submitAgent());
         findViewById(R.id.agentBackBtn).setOnClickListener(v -> {
             signInClient.signOut().addOnCompleteListener(t -> showLogin());
@@ -172,11 +202,26 @@ public class MainActivity extends AppCompatActivity {
             new Thread(() -> {
                 try {
                     SheetsClient.updateRow(token, SHEET_ID, agentId, row);
+                    String key = row.number == null ? "" : row.number.trim();
+                    String now = (row.status == null ? "" : row.status) + "|" + (row.valid == null ? "" : row.valid);
+                    String old = lastStatusMap.get(key);
+                    String logError = null;
+                    if (!now.equals(old)) {
+                        try {
+                            ensureStatusLogSheet();
+                            SheetsClient.appendReportRow(token, statusLogSheetId, "Status Log", new String[]{dhakaDate(), RowAdapter.dialNumber(row.number), row.status == null ? "" : row.status, row.valid == null ? "" : row.valid});
+                            lastStatusMap.put(key, now);
+                            SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                            if (p.getString("log_anchor_date_" + agentId, null) == null)
+                                p.edit().putString("log_anchor_date_" + agentId, dhakaDate()).apply();
+                        } catch (Exception le) { logError = le.getMessage(); }
+                    }
+                    String finalLogError = logError;
                     runOnUiThread(() -> {
                         btn.setEnabled(true); btn.setText("Save korun");
-                        Toast.makeText(this, "রো " + row.row + " শিটে আপডেট হয়েছে", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (log-e joma hoyni: " + finalLogError + ")" : ""), Toast.LENGTH_LONG).show();
                         adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
-                        updateSummary();
+                        loadDayStats();
                     });
                 } catch (Exception e) {
                     runOnUiThread(() -> {
@@ -191,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
 
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
-            public void onTextChanged(CharSequence s, int a, int b, int c) { adapter.filter(s.toString()); updateSummary(); }
+            public void onTextChanged(CharSequence s, int a, int b, int c) { adapter.filter(s.toString()); }
             public void afterTextChanged(Editable s) {}
         });
 
@@ -222,6 +267,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         setAgentSubtitle();
+        loadDayStats();
     }
     private void showAgent() {
         loginView.setVisibility(View.GONE);
@@ -248,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
                 if (match == null) throw new Exception("Ei Agent ID-te kono list pai ni — ID ta abar miliye dekhun");
                 String finalMatch = match;
                 getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().putString("agent_id", finalMatch).apply();
-                runOnUiThread(() -> { agentId = finalMatch; reportSheetId = null; setAgentSubtitle(); showMain(); loadRows(); });
+                runOnUiThread(() -> { agentId = finalMatch; reportSheetId = null; statusLogSheetId = null; setAgentSubtitle(); showMain(); loadRows(); });
             } catch (Exception e) {
                 runOnUiThread(() -> agentError.setText("Hoyni: " + e.getMessage()));
             }
@@ -318,7 +364,9 @@ public class MainActivity extends AppCompatActivity {
                     adapter.setRows(rows);
                     adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
                     statusText.setText("শিটের সাথে সংযুক্ত — " + rows.size() + "টি রো");
-                    updateSummary();
+                    lastStatusMap.clear();
+                    for (Row r : rows) lastStatusMap.put(r.number == null ? "" : r.number.trim(), (r.status == null ? "" : r.status) + "|" + (r.valid == null ? "" : r.valid));
+                    loadDayStats();
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> statusText.setText("লোড হয়নি: " + e.getMessage()));
@@ -326,18 +374,117 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void updateSummary() {
-        List<Row> rows = adapter.getAll();
-        int c = 0, n = 0, vy = 0;
-        for (Row r : rows) {
-            if ("call connected".equals(r.status)) c++;
-            else if ("not connected".equals(r.status)) n++;
-            if ("Yes".equals(r.valid)) vy++;
+    private void ensureStatusLogSheet() throws Exception {
+        if (statusLogSheetId != null) return;
+        SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+        statusLogSheetId = p.getString("status_log_sheet_id_" + agentId, null);
+        if (statusLogSheetId == null) {
+            statusLogSheetId = SheetsClient.createStatusLogSpreadsheet(token, agentId);
+            p.edit().putString("status_log_sheet_id_" + agentId, statusLogSheetId).apply();
         }
-        statTotal.setText(String.valueOf(rows.size()));
-        statConnected.setText(String.valueOf(c));
-        statNotConnected.setText(String.valueOf(n));
-        statValid.setText(String.valueOf(vy));
+    }
+
+    private static java.util.Date parseDay(String s) throws Exception {
+        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        f.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return f.parse(s);
+    }
+    private static String fmtDay(java.util.Date d) {
+        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        f.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return f.format(d);
+    }
+    private static String displayDay(String s) {
+        try {
+            SimpleDateFormat out = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
+            out.setTimeZone(TimeZone.getTimeZone("Asia/Dhaka"));
+            return out.format(parseDay(s));
+        } catch (Exception e) { return s; }
+    }
+    private static String addDays(String day, int n) {
+        try {
+            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            c.setTime(parseDay(day));
+            c.add(Calendar.DAY_OF_YEAR, n);
+            return fmtDay(c.getTime());
+        } catch (Exception e) { return day; }
+    }
+    private static long daysBetween(String from, String to) {
+        try {
+            return (parseDay(to).getTime() - parseDay(from).getTime()) / 86400000L;
+        } catch (Exception e) { return 0; }
+    }
+    private static List<REntry> filterRange(List<REntry> rows, String from, String to) {
+        List<REntry> out = new ArrayList<>();
+        for (REntry r : rows) if (r.cells.length > 0 && r.cells[0].compareTo(from) >= 0 && r.cells[0].compareTo(to) <= 0) out.add(r);
+        return out;
+    }
+    private void updateDateBtn() {
+        dateBtn.setText(displayDay(selectedDate) + (selectedDate.equals(dhakaDate()) ? " • আজ" : ""));
+    }
+    private void shiftDay(int delta) {
+        String nd = addDays(selectedDate, delta);
+        if (nd.compareTo(dhakaDate()) > 0) return;
+        selectedDate = nd; updateDateBtn(); loadDayStats();
+    }
+
+    /** Nirbachito diner + oi diner 7-diner block-er hisab (log + report file theke). */
+    private void loadDayStats() {
+        if (token == null || agentId == null) return;
+        String day = selectedDate;
+        new Thread(() -> {
+            try {
+                SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                String logId = p.getString("status_log_sheet_id_" + agentId, null);
+                String repId = p.getString("report_sheet_id_" + agentId, null);
+                if (repId == null && "bdxsukuna30".equals(agentId)) repId = p.getString("report_sheet_id", null);
+                List<REntry> logs = logId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, logId, "Status Log"));
+                List<REntry> invs = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "Invalid"));
+                List<REntry> regs = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "Registration"));
+                List<REntry> ftds = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "FTD"));
+                int conn = 0, valid = 0;
+                for (REntry e : logs) if (day.equals(cellE(e, 0))) {
+                    if ("call connected".equals(cellE(e, 2))) conn++;
+                    if ("Yes".equals(cellE(e, 3))) valid++;
+                }
+                int inv = filterTodayE(invs, day).size();
+                int reg = filterTodayE(regs, day).size();
+                List<REntry> ftdToday = filterTodayE(ftds, day);
+                int ftdN = ftdToday.size();
+                double ftdSum = 0;
+                for (REntry e : ftdToday) { try { ftdSum += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
+                String anchor = p.getString("log_anchor_date_" + agentId, null);
+                if (anchor == null) {
+                    String min = null;
+                    for (REntry e : logs) if (e.cells.length > 0 && (min == null || e.cells[0].compareTo(min) < 0)) min = e.cells[0];
+                    anchor = min == null ? day : min;
+                }
+                long diff = daysBetween(anchor, day);
+                long idx = diff >= 0 ? diff / 7 : 0;
+                String blockStart = addDays(anchor, (int) (idx * 7));
+                String blockEnd = addDays(blockStart, 6);
+                int connW = 0;
+                for (REntry e : filterRange(logs, blockStart, blockEnd)) if ("call connected".equals(cellE(e, 2))) connW++;
+                List<REntry> ftdWeek = filterRange(ftds, blockStart, blockEnd);
+                int ftdNW = ftdWeek.size();
+                double ftdSumW = 0;
+                for (REntry e : ftdWeek) { try { ftdSumW += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
+                String finalBlockStart = blockStart, finalBlockEnd = blockEnd;
+                int finalConn = conn, finalValid = valid, finalInv = inv, finalReg = reg, finalFtdN = ftdN, finalConnW = connW, finalFtdNW = ftdNW;
+                double finalFtdSum = ftdSum, finalFtdSumW = ftdSumW;
+                runOnUiThread(() -> {
+                    statConnDay.setText(String.valueOf(finalConn));
+                    statValidDay.setText(String.valueOf(finalValid));
+                    statInvDay.setText(String.valueOf(finalInv));
+                    statRegDay.setText(String.valueOf(finalReg));
+                    statFtdDay.setText(String.valueOf(finalFtdN));
+                    statFtdAmtDay.setText("৳" + fmtAmount(finalFtdSum));
+                    weekSummary.setText("Ei 7 din (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • FTD " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")");
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> weekSummary.setText("Hisab load hoyni: " + e.getMessage()));
+            }
+        }).start();
     }
 
     // ---------- Report ----------
