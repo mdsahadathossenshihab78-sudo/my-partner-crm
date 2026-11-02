@@ -114,7 +114,7 @@
                 android:text="▶" app:backgroundTint="@null"
                 android:background="@drawable/glass_field" android:textColor="@color/white" />
         </LinearLayout>
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp"><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_blue" android:padding="10dp" android:layout_marginEnd="5dp"><TextView android:id="@+id/statTotalCallDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/white"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট কল" android:textSize="11sp" android:textColor="#E6FFFFFF"/></LinearLayout><LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_violet" android:padding="10dp" android:layout_marginStart="5dp"><TextView android:id="@+id/statTotalNumDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/white"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট নাম্বার" android:textSize="11sp" android:textColor="#E6FFFFFF"/></LinearLayout></LinearLayout> <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
@@ -238,36 +238,7 @@
             android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:padding="8dp" android:clipToPadding="false" />
         </LinearLayout>
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_gravity="bottom" android:orientation="horizontal"
-            android:background="#CC0B1026" android:padding="10dp">
-            <com.google.android.material.button.MaterialButton android:id="@+id/menuDashboardBtn"
-                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
-                android:text="ড্যাশবোর্ড" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
-                app:icon="@android:drawable/ic_menu_view" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
-                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
-            <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuHomeBtn"
-                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
-                android:text="কল লিস্ট" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
-                app:icon="@android:drawable/ic_menu_agenda" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
-                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
-            <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuReportBtn"
-                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
-                android:text="Report" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
-                app:icon="@android:drawable/ic_menu_edit" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
-                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
-            <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuWebsiteBtn"
-                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
-                android:text="Website" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
-                app:icon="@android:drawable/ic_menu_compass" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
-                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
-            <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuGuideBtn"
-                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
-                android:text="ইউজার গাইড" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
-                app:icon="@android:drawable/ic_menu_help" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
-                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
-        </LinearLayout>
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+                </androidx.coordinatorlayout.widget.CoordinatorLayout>
     <!-- Report view -->
     <ScrollView android:id="@+id/reportView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
         android:visibility="gone">
@@ -483,5 +454,4 @@
                 app:backgroundTint="@null" android:background="@drawable/glass_field"
                 android:textColor="@color/white" />
         </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+    </ScrollView> <FrameLayout android:id="@+id/websiteView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:visibility="gone"><WebView android:id="@+id/websiteWeb" android:layout_width="match_parent" android:layout_height="match_parent" /></FrameLayout> <LinearLayout android:id="@+id/bottomMenuBar" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="#CC0B1026" android:padding="10dp" android:visibility="gone"><com.google.android.material.button.MaterialButton android:id="@+id/menuDashboardBtn" android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1" android:text="ড্যাশবোর্ড" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp" app:icon="@android:drawable/ic_menu_view" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" /><com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuHomeBtn" android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1" android:text="কল লিস্ট" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp" app:icon="@android:drawable/ic_menu_agenda" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" /><com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuReportBtn" android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1" android:text="Report" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp" app:icon="@android:drawable/ic_menu_edit" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" /><com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuWebsiteBtn" android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1" android:text="Website" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp" app:icon="@android:drawable/ic_menu_compass" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" /><com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuGuideBtn" android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1" android:text="ইউজার গাইড" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp" app:icon="@android:drawable/ic_menu_help" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" /></LinearLayout> </LinearLayout>
