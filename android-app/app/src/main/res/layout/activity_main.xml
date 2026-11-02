@@ -92,20 +92,6 @@
                 android:textColor="@color/white" />
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
-            <com.google.android.material.button.MaterialButton android:id="@+id/reportBtn"
-                android:layout_width="match_parent" android:layout_height="52dp"
-                android:text="Report" app:backgroundTint="@null"
-                android:background="@drawable/glass_field" android:textColor="@color/white" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
-            <com.google.android.material.button.MaterialButton android:id="@+id/websiteBtn"
-                android:layout_width="match_parent" android:layout_height="52dp"
-                android:text="Website" app:backgroundTint="@null"
-                android:background="@drawable/glass_field" android:textColor="@color/white" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
@@ -193,7 +179,7 @@
         </LinearLayout>
         </com.google.android.material.appbar.AppBarLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
-            android:orientation="vertical"
+            android:orientation="vertical" android:layout_marginBottom="72dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
@@ -242,6 +228,22 @@
         <androidx.recyclerview.widget.RecyclerView android:id="@+id/recycler"
             android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:padding="8dp" android:clipToPadding="false" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_gravity="bottom" android:orientation="horizontal"
+            android:background="#CC0B1026" android:padding="10dp">
+            <com.google.android.material.button.MaterialButton android:id="@+id/menuReportBtn"
+                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+                android:text="Report" app:backgroundTint="@null"
+                android:background="@drawable/glass_field" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/menuWebsiteBtn"
+                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+                android:layout_marginStart="8dp" android:text="Website" app:backgroundTint="@null"
+                android:background="@drawable/glass_field" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/menuGuideBtn"
+                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+                android:layout_marginStart="8dp" android:text="ইউজার গাইড" app:backgroundTint="@null"
+                android:background="@drawable/glass_field" android:textColor="@color/white" />
         </LinearLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
     <!-- Report view -->
@@ -394,6 +396,31 @@
                     app:backgroundTint="@null" android:background="@drawable/btn_gradient"
                     android:textColor="@color/white" />
             </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+    <!-- Guide view: Bangla user manual -->
+    <ScrollView android:id="@+id/guideView"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="28dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="ইউজার গাইড" android:textSize="26sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center" android:layout_marginTop="8dp"
+                android:text="অ্যাপ ব্যবহারের নিয়ম" android:textSize="13sp"
+                android:textColor="@color/lavender" />
+            <TextView android:id="@+id/guideText" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="20dp"
+                android:textSize="15sp" android:lineSpacingMultiplier="1.25"
+                android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/guideBackBtn"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="20dp" android:text="ফিরে যান"
+                android:textSize="15sp" android:textStyle="bold" android:textColor="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
         </LinearLayout>
     </ScrollView>
     <!-- Admin view: number paste kore Agent-er list-e jog kora -->
