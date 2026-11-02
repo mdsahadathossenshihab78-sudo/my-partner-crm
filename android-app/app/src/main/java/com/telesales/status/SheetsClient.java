@@ -211,4 +211,50 @@ public class SheetsClient {
         int code = c.getResponseCode();
         if (code != 200) throw new Exception("Report add failed: " + code + " " + readAll(c.getErrorStream()));
     }
+
+    /** Tab-er numeric sheetId (deleteDimension-er jonno lage). */
+    public static int getSheetNumericId(String token, String spreadsheetId, String tab) throws Exception {
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + "?fields=sheets.properties");
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setRequestProperty("Authorization", "Bearer " + token);
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Sheet info load failed: " + code + " " + readAll(c.getErrorStream()));
+        JSONObject j = new JSONObject(readAll(c.getInputStream()));
+        JSONArray sheets = j.optJSONArray("sheets");
+        if (sheets != null) {
+            for (int i = 0; i < sheets.length(); i++) {
+                JSONObject p = sheets.getJSONObject(i).optJSONObject("properties");
+                if (p != null && tab.equals(p.optString("title"))) return p.optInt("sheetId");
+            }
+        }
+        throw new Exception("Tab pai ni: " + tab);
+    }
+
+    /** Report sheet-er ekta row puropuri delete kore (nicher row-gulo upore sore ashe). */
+    public static void deleteReportRow(String token, String spreadsheetId, String tab, int sheetRow) throws Exception {
+        int gid = getSheetNumericId(token, spreadsheetId, tab);
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate");
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Authorization", "Bearer " + token);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray reqs = new JSONArray();
+        JSONObject req = new JSONObject();
+        JSONObject del = new JSONObject();
+        JSONObject range = new JSONObject();
+        range.put("sheetId", gid);
+        range.put("dimension", "ROWS");
+        range.put("startIndex", sheetRow - 1);
+        range.put("endIndex", sheetRow);
+        del.put("range", range);
+        req.put("deleteDimension", del);
+        reqs.put(req);
+        body.put("requests", reqs);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Report delete failed: " + code + " " + readAll(c.getErrorStream()));
+    }
 }

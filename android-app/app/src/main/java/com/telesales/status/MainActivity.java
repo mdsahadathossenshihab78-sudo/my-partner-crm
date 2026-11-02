@@ -5,11 +5,15 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,11 +56,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView loginError, avatarView, statTotal, statConnected, statNotConnected, statValid, statusText;
     private TextInputEditText searchBox;
     private View reportView, reportOutputCard;
-    private TextView reportStatus, reportOutput, regList, ftdList, ftdTotal, invList, probList;
+    private TextView reportStatus, reportOutput, ftdTotal;
+    private LinearLayout regList, ftdList, invList, probList;
     private TextInputEditText regNumber, ftdNumber, ftdAmount, invNumber, probText;
     private Spinner invReason;
     private String reportSheetId;
-    private List<String[]> regToday = new ArrayList<>(), ftdToday = new ArrayList<>(), invToday = new ArrayList<>(), probToday = new ArrayList<>();
+    /** Report sheet-er ekta row: cells + sheet-er row number (delete korar jonno). */
+    static class REntry { final String[] cells; final int sheetRow; REntry(String[] c, int r) { cells = c; sheetRow = r; } }
+    private List<REntry> regToday = new ArrayList<>(), ftdToday = new ArrayList<>(), invToday = new ArrayList<>(), probToday = new ArrayList<>();
     private final String[] reasons = {"কল ধরেনি", "Not connected", "বন্ধ", "ভুল নাম্বার"};
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -347,13 +354,18 @@ public class MainActivity extends AppCompatActivity {
         if (v == Math.floor(v)) return String.valueOf((long) v);
         return String.valueOf(v);
     }
-    private static List<String[]> filterToday(List<String[]> rows, String today) {
-        List<String[]> out = new ArrayList<>();
-        for (String[] r : rows) if (r.length > 0 && today.equals(r[0])) out.add(r);
+    private static List<REntry> withRows(List<String[]> rows) {
+        List<REntry> out = new ArrayList<>();
+        for (int i = 0; i < rows.size(); i++) out.add(new REntry(rows.get(i), i + 2)); // A2:Z pora hoy, tai i-tomo row = sheet row i+2
         return out;
     }
-    private static String cell(String[] r, int i) {
-        return r.length > i ? r[i] : "";
+    private static List<REntry> filterTodayE(List<REntry> rows, String today) {
+        List<REntry> out = new ArrayList<>();
+        for (REntry r : rows) if (r.cells.length > 0 && today.equals(r.cells[0])) out.add(r);
+        return out;
+    }
+    private static String cellE(REntry r, int i) {
+        return r.cells.length > i ? r.cells[i] : "";
     }
 
     private void ensureReportSheet() throws Exception {
@@ -375,10 +387,10 @@ public class MainActivity extends AppCompatActivity {
             try {
                 ensureReportSheet();
                 String today = dhakaDate();
-                regToday = filterToday(SheetsClient.getReportRows(token, reportSheetId, "Registration"), today);
-                ftdToday = filterToday(SheetsClient.getReportRows(token, reportSheetId, "FTD"), today);
-                invToday = filterToday(SheetsClient.getReportRows(token, reportSheetId, "Invalid"), today);
-                probToday = filterToday(SheetsClient.getReportRows(token, reportSheetId, "Problems"), today);
+                regToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Registration")), today);
+                ftdToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "FTD")), today);
+                invToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Invalid")), today);
+                probToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Problems")), today);
                 runOnUiThread(() -> { refreshReportLists(); reportStatus.setText(""); });
             } catch (Exception e) {
                 runOnUiThread(() -> reportStatus.setText("Report load hoyni: " + e.getMessage()));
@@ -387,35 +399,67 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshReportLists() {
-        if (regToday.isEmpty()) regList.setText("ekhono kichu add hoyni");
-        else {
-            StringBuilder sb = new StringBuilder();
-            for (String[] r : regToday) sb.append(cell(r, 1)).append("\n");
-            regList.setText(sb.toString().trim());
-        }
+        fillList(regList, regToday, "Registration");
+        fillList(ftdList, ftdToday, "FTD");
+        fillList(invList, invToday, "Invalid");
+        fillList(probList, probToday, "Problems");
         double sum = 0;
-        if (ftdToday.isEmpty()) ftdList.setText("ekhono kichu add hoyni");
-        else {
-            StringBuilder sb = new StringBuilder();
-            for (String[] r : ftdToday) {
-                sb.append(cell(r, 1)).append(" - ").append(cell(r, 2)).append("\n");
-                try { sum += Double.parseDouble(cell(r, 2)); } catch (Exception ignored) {}
-            }
-            ftdList.setText(sb.toString().trim());
+        for (REntry r : ftdToday) {
+            try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}
         }
         ftdTotal.setText("Total Amount: " + fmtAmount(sum));
-        if (invToday.isEmpty()) invList.setText("ekhono kichu add hoyni");
-        else {
-            StringBuilder sb = new StringBuilder();
-            for (String[] r : invToday) sb.append(cell(r, 1)).append(" - ").append(cell(r, 2)).append("\n");
-            invList.setText(sb.toString().trim());
+    }
+
+    /** Ekta list-er prottek entry-r pase ✕ delete button bosay. */
+    private void fillList(LinearLayout parent, List<REntry> list, String tab) {
+        parent.removeAllViews();
+        if (list.isEmpty()) {
+            TextView t = new TextView(this);
+            t.setText("ekhono kichu add hoyni");
+            t.setTextSize(14);
+            t.setTextColor(Color.WHITE);
+            parent.addView(t);
+            return;
         }
-        if (probToday.isEmpty()) probList.setText("ekhono kichu add hoyni");
-        else {
-            StringBuilder sb = new StringBuilder();
-            for (String[] r : probToday) sb.append(cell(r, 1)).append("\n");
-            probList.setText(sb.toString().trim());
+        for (REntry e : list) {
+            String text = ("FTD".equals(tab) || "Invalid".equals(tab))
+                    ? cellE(e, 1) + " - " + cellE(e, 2) : cellE(e, 1);
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            TextView t = new TextView(this);
+            t.setText(text);
+            t.setTextSize(14);
+            t.setTextColor(Color.WHITE);
+            t.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            Button del = new Button(this);
+            del.setText("✕");
+            del.setTextSize(14);
+            del.setTextColor(Color.WHITE);
+            del.setBackgroundResource(R.drawable.glass_field);
+            del.setMinWidth(0);
+            del.setMinimumWidth(0);
+            del.setPadding(20, 8, 20, 8);
+            del.setOnClickListener(v -> deleteReportEntry(tab, e));
+            row.addView(t);
+            row.addView(del);
+            parent.addView(row);
         }
+    }
+
+    /** Sheet thekeo row-ta muche fele, tarpor list abar load kore. */
+    private void deleteReportEntry(String tab, REntry e) {
+        if (token == null) { showLogin(); return; }
+        reportStatus.setText("Delete hocche...");
+        new Thread(() -> {
+            try {
+                ensureReportSheet();
+                SheetsClient.deleteReportRow(token, reportSheetId, tab, e.sheetRow);
+                runOnUiThread(() -> { reportOutputCard.setVisibility(View.GONE); loadReportData(); });
+            } catch (Exception ex) {
+                runOnUiThread(() -> reportStatus.setText("Delete hoyni: " + ex.getMessage()));
+            }
+        }).start();
     }
 
     private void addReportEntry(String tab, String[] vals, Runnable clear) {
@@ -447,13 +491,13 @@ public class MainActivity extends AppCompatActivity {
                 }
                 ensureReportSheet();
                 String today = dhakaDate();
-                regToday = filterToday(SheetsClient.getReportRows(token, reportSheetId, "Registration"), today);
-                ftdToday = filterToday(SheetsClient.getReportRows(token, reportSheetId, "FTD"), today);
-                invToday = filterToday(SheetsClient.getReportRows(token, reportSheetId, "Invalid"), today);
-                probToday = filterToday(SheetsClient.getReportRows(token, reportSheetId, "Problems"), today);
+                regToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Registration")), today);
+                ftdToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "FTD")), today);
+                invToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Invalid")), today);
+                probToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Problems")), today);
                 double sum = 0;
-                for (String[] r : ftdToday) {
-                    try { sum += Double.parseDouble(cell(r, 2)); } catch (Exception ignored) {}
+                for (REntry r : ftdToday) {
+                    try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}
                 }
                 StringBuilder sb = new StringBuilder();
                 sb.append("Date: ").append(dhaka("dd-MM-yyyy")).append("\n");
@@ -466,7 +510,7 @@ public class MainActivity extends AppCompatActivity {
                     sb.append("Registration Numbers: ");
                     for (int i = 0; i < regToday.size(); i++) {
                         if (i > 0) sb.append(", ");
-                        sb.append(cell(regToday.get(i), 1));
+                        sb.append(cellE(regToday.get(i), 1));
                     }
                     sb.append("\n");
                 }
@@ -475,17 +519,17 @@ public class MainActivity extends AppCompatActivity {
                     sb.append("FTD Details: ");
                     for (int i = 0; i < ftdToday.size(); i++) {
                         if (i > 0) sb.append(", ");
-                        sb.append(cell(ftdToday.get(i), 1)).append(" - ").append(cell(ftdToday.get(i), 2));
+                        sb.append(cellE(ftdToday.get(i), 1)).append(" - ").append(cellE(ftdToday.get(i), 2));
                     }
                     sb.append("\n");
                 }
                 sb.append("Total Amount Recharged: ").append(fmtAmount(sum)).append("\n");
                 sb.append("Invalid Number:\n");
                 if (invToday.isEmpty()) sb.append("-\n");
-                else for (String[] r : invToday) sb.append(cell(r, 1)).append(" - ").append(cell(r, 2)).append("\n");
+                else for (REntry r : invToday) sb.append(cellE(r, 1)).append(" - ").append(cellE(r, 2)).append("\n");
                 sb.append("Problems:\n");
                 if (probToday.isEmpty()) sb.append("-\n");
-                else for (String[] r : probToday) sb.append(cell(r, 1)).append("\n");
+                else for (REntry r : probToday) sb.append(cellE(r, 1)).append("\n");
                 String text = sb.toString().trim();
                 runOnUiThread(() -> {
                     refreshReportLists();
