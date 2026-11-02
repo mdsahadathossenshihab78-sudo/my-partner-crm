@@ -192,9 +192,18 @@ function render(){
   }).join(''):'<p class="muted">কোনো রো পাওয়া যায়নি।</p>';
 }
 async function copyNum(n){
-  try{await navigator.clipboard.writeText(n);toast('Copy হয়েছে');}
-  catch(e){const t=document.createElement('textarea');t.value=n;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Copy হয়েছে');}
+  try{await navigator.clipboard.writeText(n);toast('Copy হয়েছে');return;}catch(e){}
+  try{
+    const t=document.createElement('textarea');
+    t.value=n;t.readOnly=true;
+    t.style.position='fixed';t.style.top='0';t.style.opacity='0';
+    document.body.appendChild(t);t.focus();t.setSelectionRange(0,t.value.length);
+    const ok=document.execCommand('copy');t.remove();
+    if(ok){toast('Copy হয়েছে');return;}
+  }catch(e){}
+  toast('কপি হয়নি — নাম্বার: '+n);
 }
+window.copyNum=copyNum;
 window.saveRow=async (rowNum)=>{
   const r=rows.find(x=>x.row===rowNum); if(!r)return;
   const val=$('st-'+rowNum).value, vc=$('vc-'+rowNum).value, r1=$('r1-'+rowNum).value.trim(), r2=$('r2-'+rowNum).value.trim(), ot=$('ot-'+rowNum).value.trim();
