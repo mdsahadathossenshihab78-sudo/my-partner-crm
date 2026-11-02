@@ -111,7 +111,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.reportBackBtn).setOnClickListener(v -> showMain());
         findViewById(R.id.btnTabPending).setOnClickListener(v -> { adapter.setTab(0); setTabUI(); });
         findViewById(R.id.btnTabDone).setOnClickListener(v -> { adapter.setTab(1); setTabUI(); });
-        setTabUI();
         findViewById(R.id.regAddBtn).setOnClickListener(v -> {
             String n = txt(regNumber);
             if (n.isEmpty()) { Toast.makeText(this, "Number din", Toast.LENGTH_SHORT).show(); return; }
@@ -167,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
             }).start();
         });
         recycler.setAdapter(adapter);
+        setTabUI();
 
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
     }
     private void setTabUI() {
-        boolean pending = adapter.getTab() == 0;
+        boolean pending = adapter == null || adapter.getTab() == 0;
         findViewById(R.id.btnTabPending).setBackgroundResource(pending ? R.drawable.btn_gradient : R.drawable.glass_field);
         findViewById(R.id.btnTabDone).setBackgroundResource(pending ? R.drawable.glass_field : R.drawable.btn_gradient);
     }
