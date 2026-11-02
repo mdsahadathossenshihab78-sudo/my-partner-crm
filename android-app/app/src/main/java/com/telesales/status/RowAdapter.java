@@ -67,6 +67,17 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         return 0;
     }
 
+    /** Sheet-e hate-lekha ochena value (jemon "Connected") thakle seta spinner-e dekhabe ar
+     *  Save-e ager motoi thakbe — ager bug-e ochena value khali hoye jeto (silent data loss). */
+    private static String[] withUnknown(String[] opts, String v) {
+        if (v == null || v.isEmpty()) return opts;
+        for (String o : opts) if (o.equals(v)) return opts;
+        String[] out = new String[opts.length + 1];
+        System.arraycopy(opts, 0, out, 0, opts.length);
+        out[opts.length] = v;
+        return out;
+    }
+
     private void refreshStatusChip(Holder h, String status) {
         if ("call connected".equals(status)) {
             h.tvChipStatus.setText("● call connected");
@@ -97,20 +108,24 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         Row r = shown.get(pos);
         h.tvNumber.setText(dialNumber(r.number));
         h.tvRow.setText("রো " + r.row);
-        ArrayAdapter<String> sa = new ArrayAdapter<>(h.itemView.getContext(), R.layout.spinner_item, statusLabels);
+        final String[] sOpts = withUnknown(statusOpts, r.status);
+        final String[] sLabels = withUnknown(statusLabels, r.status);
+        final String[] vOpts = withUnknown(validOpts, r.valid);
+        final String[] vLabels = withUnknown(validLabels, r.valid);
+        ArrayAdapter<String> sa = new ArrayAdapter<>(h.itemView.getContext(), R.layout.spinner_item, sLabels);
         sa.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        h.spStatus.setAdapter(sa); h.spStatus.setSelection(indexOf(statusOpts, r.status));
-        ArrayAdapter<String> va = new ArrayAdapter<>(h.itemView.getContext(), R.layout.spinner_item, validLabels);
+        h.spStatus.setAdapter(sa); h.spStatus.setSelection(indexOf(sOpts, r.status));
+        ArrayAdapter<String> va = new ArrayAdapter<>(h.itemView.getContext(), R.layout.spinner_item, vLabels);
         va.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        h.spValid.setAdapter(va); h.spValid.setSelection(indexOf(validOpts, r.valid));
+        h.spValid.setAdapter(va); h.spValid.setSelection(indexOf(vOpts, r.valid));
         refreshStatusChip(h, r.status);
         refreshValidChip(h, r.valid);
         h.spStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> p, View v, int p2, long id) { refreshStatusChip(h, statusOpts[p2]); }
+            public void onItemSelected(AdapterView<?> p, View v, int p2, long id) { refreshStatusChip(h, sOpts[p2]); }
             public void onNothingSelected(AdapterView<?> p) {}
         });
         h.spValid.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> p, View v, int p2, long id) { refreshValidChip(h, validOpts[p2]); }
+            public void onItemSelected(AdapterView<?> p, View v, int p2, long id) { refreshValidChip(h, vOpts[p2]); }
             public void onNothingSelected(AdapterView<?> p) {}
         });
         h.etRemark1.setText(r.remark1); h.etRemark2.setText(r.remark2); h.etOthers.setText(r.others);
@@ -131,8 +146,8 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             }
         });
         h.btnSave.setOnClickListener(v -> {
-            r.status = statusOpts[h.spStatus.getSelectedItemPosition()];
-            r.valid = validOpts[h.spValid.getSelectedItemPosition()];
+            r.status = sOpts[h.spStatus.getSelectedItemPosition()];
+            r.valid = vOpts[h.spValid.getSelectedItemPosition()];
             r.remark1 = h.etRemark1.getText() == null ? "" : h.etRemark1.getText().toString().trim();
             r.remark2 = h.etRemark2.getText() == null ? "" : h.etRemark2.getText().toString().trim();
             r.others = h.etOthers.getText() == null ? "" : h.etOthers.getText().toString().trim();
