@@ -87,7 +87,7 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 <script>
 const SHEET_ID='10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE';
 const firebaseConfig={apiKey:"AIzaSyB03sx0s65ycG3MYcSbB2HfGMigs9DI-r4",authDomain:"fir-a-topup-bazar.firebaseapp.com",databaseURL:"https://fir-a-topup-bazar-default-rtdb.firebaseio.com",projectId:"fir-a-topup-bazar",storageBucket:"fir-a-topup-bazar.firebasestorage.app",messagingSenderId:"928168996366",appId:"1:928168996366:web:fd879d795202891ee9965f",measurementId:"G-9QBLYHR817"};
-let auth=null, token=null, agentId=null, rows=[], tab='pending', lastStatusMap={};
+let auth=null, token=null, agentId=null, userEmail=null, rows=[], tab='pending', lastStatusMap={};
 let selectedDate=dhakaToday();
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
@@ -117,13 +117,14 @@ $('googleBtn').onclick=async()=>{
     const res=await auth.signInWithPopup(provider);
     token=res.credential && res.credential.accessToken;
     if(!token){$('loginMsg').textContent='Sheets অনুমতি পাওয়া যায়নি, আবার লগইন করুন।';return;}
-    $('userEmail').textContent=res.user.email;
+    $('userEmail').textContent=res.user.email; userEmail=res.user.email;
     const saved=localStorage.getItem('agent_id');
-    if(saved){agentId=saved;showMain();loadRows();}
+    const savedEmail=localStorage.getItem('agent_email');
+    if(saved && savedEmail && savedEmail.toLowerCase()===res.user.email.toLowerCase()){agentId=saved;showMain();loadRows();}
     else showAgent();
   }catch(e){$('loginMsg').textContent='লগইন হয়নি, আবার চেষ্টা করুন।';}
 };
-$('logoutBtn').onclick=()=>{if(auth)auth.signOut();token=null;agentId=null;localStorage.removeItem('agent_id');showLogin();};
+$('logoutBtn').onclick=()=>{if(auth)auth.signOut();token=null;agentId=null;localStorage.removeItem('agent_id');localStorage.removeItem('agent_email');showLogin();};
 $('agentBackBtn').onclick=()=>{if(auth)auth.signOut();token=null;agentId=null;showLogin();};
 $('agentBtn').onclick=async()=>{
   const id=$('agentInput').value.trim(); if(!id){$('agentMsg').textContent='Agent ID লিখুন।';return;}
@@ -132,7 +133,7 @@ $('agentBtn').onclick=async()=>{
     const titles=await getTabs();
     let match=titles.find(t=>t===id)||titles.find(t=>t.toLowerCase()===id.toLowerCase());
     if(!match){$('agentMsg').textContent='এই Agent ID-তে কোনো লিস্ট পাইনি।';return;}
-    agentId=match; localStorage.setItem('agent_id',match); showMain(); loadRows();
+    agentId=match; localStorage.setItem('agent_id',match); if(userEmail) localStorage.setItem('agent_email',userEmail); showMain(); loadRows();
   }catch(e){$('agentMsg').textContent='যাচাই হয়নি, আবার চেষ্টা করুন।';}
 };
 $('reportBtn').onclick=showReport;
