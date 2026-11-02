@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         avatarView.setOnClickListener(v -> {
             signInClient.signOut().addOnCompleteListener(t -> {
                 token = null; agentId = null; reportSheetId = null; statusLogSheetId = null;
-                getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").apply();
+                getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").remove("agent_email").apply();
                 showLogin();
                 Toast.makeText(this, "Logout hoyeche", Toast.LENGTH_SHORT).show();
             });
@@ -295,7 +295,8 @@ public class MainActivity extends AppCompatActivity {
                 if (match == null) for (String t : tabs) if (t.equalsIgnoreCase(id)) { match = t; break; }
                 if (match == null) throw new Exception("Ei Agent ID-te kono list pai ni — ID ta abar miliye dekhun");
                 String finalMatch = match;
-                getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().putString("agent_id", finalMatch).apply();
+                SharedPreferences prefs1 = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                prefs1.edit().putString("agent_id", finalMatch).putString("agent_email", prefs1.getString("current_email", null)).apply();
                 runOnUiThread(() -> { agentId = finalMatch; reportSheetId = null; statusLogSheetId = null; setAgentSubtitle(); showMain(); loadRows(); });
             } catch (Exception e) {
                 runOnUiThread(() -> agentError.setText("Hoyni: " + e.getMessage()));
@@ -323,8 +324,13 @@ public class MainActivity extends AppCompatActivity {
                 token = GoogleAuthUtil.getToken(this, acct.getAccount(), "oauth2:" + SHEET_SCOPE + " " + DRIVE_SCOPE);
                 runOnUiThread(() -> {
                     setAvatar(acct.getEmail());
-                    String saved = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).getString("agent_id", null);
-                    if (saved != null && !saved.isEmpty()) {
+                    SharedPreferences prefs0 = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                    prefs0.edit().putString("current_email", acct.getEmail()).apply();
+                    String saved = prefs0.getString("agent_id", null);
+                    String savedEmail = prefs0.getString("agent_email", null);
+                    // Agent ID sudhu tokhon-i reuse hobe jokhon seta EI Gmail-er — onno Gmail-e
+                    // dhukle ager joner agent list ar khulbe na, agent screen asbe (mix-up fix).
+                    if (saved != null && !saved.isEmpty() && savedEmail != null && acct.getEmail() != null && savedEmail.equalsIgnoreCase(acct.getEmail())) {
                         agentId = saved; reportSheetId = null; setAgentSubtitle(); showMain(); loadRows();
                     } else {
                         showAgent();
