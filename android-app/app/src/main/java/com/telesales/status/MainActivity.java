@@ -43,8 +43,12 @@ public class MainActivity extends AppCompatActivity {
 
     private GoogleSignInClient signInClient;
     private String token;
+    private String agentId;
     private RowAdapter adapter;
     private View loginView, mainView;
+    private View agentView;
+    private TextView agentError, agentSubtitle;
+    private TextInputEditText agentInput;
     private TextView loginError, avatarView, statTotal, statConnected, statNotConnected, statValid, statusText;
     private TextInputEditText searchBox;
     private View reportView, reportOutputCard;
@@ -83,6 +87,10 @@ public class MainActivity extends AppCompatActivity {
         ftdTotal = findViewById(R.id.ftdTotal);
         invList = findViewById(R.id.invList);
         probList = findViewById(R.id.probList);
+        agentView = findViewById(R.id.agentView);
+        agentInput = findViewById(R.id.agentInput);
+        agentError = findViewById(R.id.agentError);
+        agentSubtitle = findViewById(R.id.agentSubtitle);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
@@ -97,7 +105,9 @@ public class MainActivity extends AppCompatActivity {
         });
         avatarView.setOnClickListener(v -> {
             signInClient.signOut().addOnCompleteListener(t -> {
-                token = null; showLogin();
+                token = null; agentId = null; reportSheetId = null;
+                getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").apply();
+                showLogin();
                 Toast.makeText(this, "Logout hoyeche", Toast.LENGTH_SHORT).show();
             });
         });
@@ -109,6 +119,10 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.reportBtn).setOnClickListener(v -> showReport());
         findViewById(R.id.reportBackBtn).setOnClickListener(v -> showMain());
+        findViewById(R.id.agentContinueBtn).setOnClickListener(v -> submitAgent());
+        findViewById(R.id.agentBackBtn).setOnClickListener(v -> {
+            signInClient.signOut().addOnCompleteListener(t -> showLogin());
+        });
         findViewById(R.id.btnTabPending).setOnClickListener(v -> { adapter.setTab(0); setTabUI(); });
         findViewById(R.id.btnTabDone).setOnClickListener(v -> { adapter.setTab(1); setTabUI(); });
         findViewById(R.id.regAddBtn).setOnClickListener(v -> {
@@ -150,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
             btn.setEnabled(false); btn.setText("সেভ হচ্ছে...");
             new Thread(() -> {
                 try {
-                    SheetsClient.updateRow(token, SHEET_ID, row);
+                    SheetsClient.updateRow(token, SHEET_ID, agentId, row);
                     runOnUiThread(() -> {
                         btn.setEnabled(true); btn.setText("Save korun");
                         Toast.makeText(this, "রো " + row.row + " শিটে আপডেট হয়েছে", Toast.LENGTH_SHORT).show();
@@ -193,11 +207,45 @@ public class MainActivity extends AppCompatActivity {
         loginView.setVisibility(View.VISIBLE);
         mainView.setVisibility(View.GONE);
         reportView.setVisibility(View.GONE);
+        agentView.setVisibility(View.GONE);
     }
     private void showMain() {
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.VISIBLE);
         reportView.setVisibility(View.GONE);
+        agentView.setVisibility(View.GONE);
+        setAgentSubtitle();
+    }
+    private void showAgent() {
+        loginView.setVisibility(View.GONE);
+        mainView.setVisibility(View.GONE);
+        reportView.setVisibility(View.GONE);
+        agentView.setVisibility(View.VISIBLE);
+        agentError.setText("");
+    }
+    private void setAgentSubtitle() {
+        if (agentSubtitle != null && agentId != null) agentSubtitle.setText("Agent: " + agentId);
+    }
+    /** Agent ID jachai: sheet-e oi nam-e tab ache kina dekhbe, thakle save kore list khulbe. */
+    private void submitAgent() {
+        String id = txt(agentInput);
+        if (id.isEmpty()) { agentError.setText("Agent ID likhun"); return; }
+        if (token == null) { showLogin(); return; }
+        agentError.setText("List check kora hocche...");
+        new Thread(() -> {
+            try {
+                List<String> tabs = SheetsClient.getTabs(token, SHEET_ID);
+                String match = null;
+                for (String t : tabs) if (t.equals(id)) { match = t; break; }
+                if (match == null) for (String t : tabs) if (t.equalsIgnoreCase(id)) { match = t; break; }
+                if (match == null) throw new Exception("Ei Agent ID-te kono list pai ni — ID ta abar miliye dekhun");
+                String finalMatch = match;
+                getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().putString("agent_id", finalMatch).apply();
+                runOnUiThread(() -> { agentId = finalMatch; reportSheetId = null; setAgentSubtitle(); showMain(); loadRows(); });
+            } catch (Exception e) {
+                runOnUiThread(() -> agentError.setText("Hoyni: " + e.getMessage()));
+            }
+        }).start();
     }
     private void setTabUI() {
         boolean pending = adapter == null || adapter.getTab() == 0;
@@ -209,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.GONE);
         reportView.setVisibility(View.VISIBLE);
+        agentView.setVisibility(View.GONE);
         loadReportData();
     }
 
@@ -218,7 +267,15 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 token = GoogleAuthUtil.getToken(this, acct.getAccount(), "oauth2:" + SHEET_SCOPE);
-                runOnUiThread(() -> { setAvatar(acct.getEmail()); loadRows(); });
+                runOnUiThread(() -> {
+                    setAvatar(acct.getEmail());
+                    String saved = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).getString("agent_id", null);
+                    if (saved != null && !saved.isEmpty()) {
+                        agentId = saved; reportSheetId = null; setAgentSubtitle(); loadRows();
+                    } else {
+                        showAgent();
+                    }
+                });
             } catch (UserRecoverableAuthException e) {
                 runOnUiThread(() -> startActivityForResult(e.getIntent(), RC_AUTH));
             } catch (Exception e) {
@@ -245,10 +302,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadRows() {
         if (token == null) { showLogin(); return; }
+        if (agentId == null) { showAgent(); return; }
         statusText.setText("শিট থেকে লোড হচ্ছে...");
         new Thread(() -> {
             try {
-                List<Row> rows = SheetsClient.getRows(token, SHEET_ID);
+                List<Row> rows = SheetsClient.getRows(token, SHEET_ID, agentId);
                 runOnUiThread(() -> {
                     adapter.setRows(rows);
                     adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
@@ -301,10 +359,12 @@ public class MainActivity extends AppCompatActivity {
     private void ensureReportSheet() throws Exception {
         if (reportSheetId != null) return;
         SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
-        reportSheetId = p.getString("report_sheet_id", null);
+        reportSheetId = p.getString("report_sheet_id_" + agentId, null);
+        if (reportSheetId == null && "bdxsukuna30".equals(agentId))
+            reportSheetId = p.getString("report_sheet_id", null); // purono v3.1–v3.4 sheet, thakle setai use hobe
         if (reportSheetId == null) {
-            reportSheetId = SheetsClient.createReportSpreadsheet(token);
-            p.edit().putString("report_sheet_id", reportSheetId).apply();
+            reportSheetId = SheetsClient.createReportSpreadsheet(token, agentId);
+            p.edit().putString("report_sheet_id_" + agentId, reportSheetId).apply();
         }
     }
 
@@ -377,7 +437,7 @@ public class MainActivity extends AppCompatActivity {
         reportStatus.setText("Report banano hocche...");
         new Thread(() -> {
             try {
-                List<Row> rows = SheetsClient.getRows(token, SHEET_ID);
+                List<Row> rows = SheetsClient.getRows(token, SHEET_ID, agentId);
                 int total = 0, conn = 0;
                 for (Row r : rows) {
                     if (r.status != null && !r.status.isEmpty()) {
@@ -398,7 +458,7 @@ public class MainActivity extends AppCompatActivity {
                 StringBuilder sb = new StringBuilder();
                 sb.append("Date: ").append(dhaka("dd-MM-yyyy")).append("\n");
                 sb.append("Time: ").append(dhaka("hh:mm a")).append("\n");
-                sb.append("Agent ID: bdxsukuna30\n");
+                sb.append("Agent ID: ").append(agentId).append("\n");
                 sb.append("Total Calls: ").append(total).append("\n");
                 sb.append("Connected: ").append(conn).append("\n");
                 sb.append("Registration: ").append(regToday.size()).append("\n");

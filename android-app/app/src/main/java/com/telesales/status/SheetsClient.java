@@ -13,7 +13,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SheetsClient {
-    public static final String TAB = "bdxsukuna30";
+    /** Tab nam-e single-quote thakle API range-e escape korte hoy. */
+    private static String q(String tab) {
+        return "'" + tab.replace("'", "''") + "'";
+    }
+
+    /** Sheet-er sob tab-er nam ferot dey (Agent ID check korar jonno). */
+    public static List<String> getTabs(String token, String sheetId) throws Exception {
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "?fields=sheets.properties.title");
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setRequestProperty("Authorization", "Bearer " + token);
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Sheet list load failed: " + code + " " + readAll(c.getErrorStream()));
+        JSONObject j = new JSONObject(readAll(c.getInputStream()));
+        List<String> out = new ArrayList<>();
+        JSONArray sheets = j.optJSONArray("sheets");
+        if (sheets != null) {
+            for (int i = 0; i < sheets.length(); i++) {
+                JSONObject p = sheets.getJSONObject(i).optJSONObject("properties");
+                if (p != null) out.add(p.optString("title"));
+            }
+        }
+        return out;
+    }
 
     private static String readAll(InputStream in) throws Exception {
         BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
@@ -22,10 +44,10 @@ public class SheetsClient {
         return sb.toString();
     }
 
-    public static List<Row> getRows(String token, String sheetId) throws Exception {
+    public static List<Row> getRows(String token, String sheetId, String tab) throws Exception {
         // Open-ended range: 55 row-e atke thakbe na — notun number jog hole
         // (56, 57, ...) setao asbe. Sheet joto boro hobe list toto boro hobe.
-        String range = URLEncoder.encode(TAB + "!A6:F", "UTF-8");
+        String range = URLEncoder.encode(q(tab) + "!A6:F", "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
         c.setRequestProperty("Authorization", "Bearer " + token);
@@ -55,8 +77,8 @@ public class SheetsClient {
     /** Save-er age check: sheet-e oi row-er number ekhono eki ache kina.
      *  Team-er keu majhkhane row delete korle row sore jay — tokhon vul row-e
      *  save na hoye user-ke Refresh korte bola hobe. */
-    private static void checkRowStillMatches(String token, String sheetId, Row row) throws Exception {
-        String range = URLEncoder.encode(TAB + "!A" + row.row, "UTF-8");
+    private static void checkRowStillMatches(String token, String sheetId, String tab, Row row) throws Exception {
+        String range = URLEncoder.encode(q(tab) + "!A" + row.row, "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
         c.setRequestProperty("Authorization", "Bearer " + token);
@@ -74,9 +96,9 @@ public class SheetsClient {
         }
     }
 
-    public static void updateRow(String token, String sheetId, Row row) throws Exception {
-        checkRowStillMatches(token, sheetId, row);
-        String range = URLEncoder.encode(TAB + "!B" + row.row + ":F" + row.row, "UTF-8");
+    public static void updateRow(String token, String sheetId, String tab, Row row) throws Exception {
+        checkRowStillMatches(token, sheetId, tab, row);
+        String range = URLEncoder.encode(q(tab) + "!B" + row.row + ":F" + row.row, "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range + "?valueInputOption=USER_ENTERED");
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
         c.setRequestMethod("PUT");
@@ -95,10 +117,8 @@ public class SheetsClient {
     }
 
     // ---------- Report feature: SEPARATE spreadsheet (numbers sheet-e kono tab khola hobe na) ----------
-    public static final String REPORT_TITLE = "Telesales Report - bdxsukuna30";
-
     /** Notun spreadsheet banay + 4 ta tab-e header bosay, tar ID ferot dey. */
-    public static String createReportSpreadsheet(String token) throws Exception {
+    public static String createReportSpreadsheet(String token, String agentId) throws Exception {
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets");
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
         c.setRequestMethod("POST");
@@ -107,7 +127,7 @@ public class SheetsClient {
         c.setRequestProperty("Content-Type", "application/json");
         JSONObject body = new JSONObject();
         JSONObject props = new JSONObject();
-        props.put("title", REPORT_TITLE);
+        props.put("title", "Telesales Report - " + agentId);
         body.put("properties", props);
         JSONArray sheets = new JSONArray();
         for (String t : new String[]{"Registration", "FTD", "Invalid", "Problems"}) {
