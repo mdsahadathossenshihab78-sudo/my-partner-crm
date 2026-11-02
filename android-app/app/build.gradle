@@ -6,8 +6,8 @@ android {
         applicationId 'com.telesales.status'
         minSdk 24
         targetSdk 34
-        versionCode 32
-        versionName '4.18'
+        versionCode 33
+        versionName '4.19'
     }
     signingConfigs {
         debug {
@@ -16,10 +16,16 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file(System.getenv('RELEASE_STORE_FILE') ?: 'release.keystore')
+            storePassword System.getenv('RELEASE_STORE_PASSWORD')
+            keyAlias System.getenv('RELEASE_KEY_ALIAS')
+            keyPassword System.getenv('RELEASE_KEY_PASSWORD')
+        }
     }
     buildTypes {
         debug { signingConfig signingConfigs.debug; minifyEnabled false }
-        release { signingConfig signingConfigs.debug; minifyEnabled false }
+        release { signingConfig signingConfigs.release; minifyEnabled false }
     }
     compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
 }
