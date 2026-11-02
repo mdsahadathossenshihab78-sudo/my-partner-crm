@@ -126,6 +126,8 @@ public class SheetsClient {
         checkRowStillMatches(token, sheetId, tab, row);
         String range = URLEncoder.encode(q(tab) + "!B" + row.row + ":F" + row.row, "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range + "?valueInputOption=RAW");
+        HttpURLConnection c = open(url, token);
+        c.setRequestMethod("PUT");
         c.setDoOutput(true);
         c.setRequestProperty("Content-Type", "application/json");
         JSONObject body = new JSONObject();
