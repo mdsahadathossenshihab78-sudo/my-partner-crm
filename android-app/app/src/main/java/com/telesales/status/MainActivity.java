@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private View reportView, reportOutputCard;
     private TextView reportStatus, reportOutput, ftdTotal;
     private LinearLayout regList, ftdList, invList, probList;
-    private TextInputEditText regNumber, ftdAmount, invNumber, probText;
+    private TextInputEditText regNumber, ftdCount, ftdAmount, invNumber, probText;
     private Spinner invReason;
     private String reportSheetId;
     /** Report sheet-er ekta row: cells + sheet-er row number (delete korar jonno). */
@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
         reportStatus = findViewById(R.id.reportStatus);
         reportOutput = findViewById(R.id.reportOutput);
         regNumber = findViewById(R.id.regNumber);
+        ftdCount = findViewById(R.id.ftdCount);
         ftdAmount = findViewById(R.id.ftdAmount);
         invNumber = findViewById(R.id.invNumber);
         invReason = findViewById(R.id.invReason);
@@ -169,11 +170,13 @@ public class MainActivity extends AppCompatActivity {
             addReportEntry("Registration", new String[]{dhakaDate(), RowAdapter.dialNumber(n)}, () -> regNumber.setText(""));
         });
         findViewById(R.id.ftdAddBtn).setOnClickListener(v -> {
+            String c = txt(ftdCount);
             String a = txt(ftdAmount);
-            double amt;
+            int cnt; double amt;
+            try { cnt = Integer.parseInt(c); } catch (Exception e) { cnt = -1; }
             try { amt = Double.parseDouble(a); } catch (Exception e) { amt = -1; }
-            if (amt <= 0) { Toast.makeText(this, "Thik amount din", Toast.LENGTH_SHORT).show(); return; }
-            addReportEntry("FTD", new String[]{dhakaDate(), "", fmtAmount(amt)}, () -> { ftdAmount.setText(""); });
+            if (cnt <= 0 || amt <= 0) { Toast.makeText(this, "FTD সংখ্যা আর মোট টাকা দিন", Toast.LENGTH_SHORT).show(); return; }
+            addReportEntry("FTD", new String[]{dhakaDate(), String.valueOf(cnt), fmtAmount(amt)}, () -> { ftdCount.setText(""); ftdAmount.setText(""); });
         });
         findViewById(R.id.invAddBtn).setOnClickListener(v -> {
             String n = txt(invNumber);
@@ -469,7 +472,7 @@ public class MainActivity extends AppCompatActivity {
                 int inv = filterTodayE(invs, day).size();
                 int reg = filterTodayE(regs, day).size();
                 List<REntry> ftdToday = filterTodayE(ftds, day);
-                int ftdN = ftdToday.size();
+                int ftdN = ftdTotalCount(ftdToday);
                 double ftdSum = 0;
                 for (REntry e : ftdToday) { try { ftdSum += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
                 String anchor = p.getString("log_anchor_date_" + agentId, null);
@@ -486,7 +489,7 @@ public class MainActivity extends AppCompatActivity {
                 int notConnW = 0;
                 for (REntry e : filterRange(logs, blockStart, blockEnd)) if ("not connected".equals(cellE(e, 2))) notConnW++;
                 List<REntry> ftdWeek = filterRange(ftds, blockStart, blockEnd);
-                int ftdNW = ftdWeek.size();
+                int ftdNW = ftdTotalCount(ftdWeek);
                 double ftdSumW = 0;
                 for (REntry e : ftdWeek) { try { ftdSumW += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
                 String finalBlockStart = blockStart, finalBlockEnd = blockEnd;
@@ -534,6 +537,22 @@ public class MainActivity extends AppCompatActivity {
     }
     private static String cellE(REntry r, int i) {
         return r.cells.length > i ? r.cells[i] : "";
+    }
+
+    /** FTD row-r Number cell-e phone number na count: 0/+ diye suru hole phone, na hole count. */
+    private static boolean isFtdCountRow(REntry e) {
+        String n = cellE(e, 1);
+        if (n.isEmpty() || n.startsWith("0") || n.startsWith("+")) return false;
+        for (int i = 0; i < n.length(); i++) if (!Character.isDigit(n.charAt(i))) return false;
+        return true;
+    }
+    /** Ekta FTD row kotota FTD bojhay: count row hole tar count, phone row hole 1. */
+    private static int ftdCountOf(REntry e) {
+        if (!isFtdCountRow(e)) return 1;
+        try { return Integer.parseInt(cellE(e, 1)); } catch (Exception ex) { return 1; }
+    }
+    private static int ftdTotalCount(List<REntry> list) {
+        int t = 0; for (REntry e : list) t += ftdCountOf(e); return t;
     }
 
     private void ensureReportSheet() throws Exception {
@@ -589,10 +608,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         for (REntry e : list) {
-            String text = ("FTD".equals(tab) && cellE(e, 1).isEmpty())
-                    ? cellE(e, 2)
-                    : (("FTD".equals(tab) || "Invalid".equals(tab))
-                    ? cellE(e, 1) + " - " + cellE(e, 2) : cellE(e, 1));
+            String text;
+            if ("FTD".equals(tab) && isFtdCountRow(e)) text = cellE(e, 1) + "টা - " + cellE(e, 2);
+            else if ("FTD".equals(tab) && cellE(e, 1).isEmpty()) text = cellE(e, 2);
+            else if ("FTD".equals(tab) || "Invalid".equals(tab)) text = cellE(e, 1) + " - " + cellE(e, 2);
+            else text = cellE(e, 1);
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
@@ -683,14 +703,16 @@ public class MainActivity extends AppCompatActivity {
                     }
                     sb.append("\n");
                 }
-                sb.append("FTD: ").append(ftdToday.size()).append("\n");
+                sb.append("FTD: ").append(ftdTotalCount(ftdToday)).append("\n");
                 if (!ftdToday.isEmpty()) {
                     sb.append("FTD Details: ");
                     for (int i = 0; i < ftdToday.size(); i++) {
                         if (i > 0) sb.append(", ");
-                        String ftdNum = cellE(ftdToday.get(i), 1);
-                        if (ftdNum.isEmpty()) sb.append(cellE(ftdToday.get(i), 2));
-                        else sb.append(ftdNum).append(" - ").append(cellE(ftdToday.get(i), 2));
+                        REntry fe = ftdToday.get(i);
+                        String ftdNum = cellE(fe, 1);
+                        if (isFtdCountRow(fe)) sb.append(ftdNum).append("টা - ").append(cellE(fe, 2));
+                        else if (ftdNum.isEmpty()) sb.append(cellE(fe, 2));
+                        else sb.append(ftdNum).append(" - ").append(cellE(fe, 2));
                     }
                     sb.append("\n");
                 }
