@@ -953,7 +953,7 @@ public class MainActivity extends AppCompatActivity {
                 StatusLogTarget logTarget = resolveStatusLogTarget(); List<REntry> logs = logTarget == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, logTarget.sheetId, logTarget.tab));
                 int total = 0, conn = 0;
                 for (REntry e : logs) {
-                    if (today.equals(cellE(e, 0))) {
+                    if (reportDate.equals(cellE(e, 0))) {
                         total++;
                         if ("call connected".equals(cellE(e, 2))) conn++;
                     }
