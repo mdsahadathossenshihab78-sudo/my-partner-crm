@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView reportStatus, reportOutput, ftdTotal, ftdStepCount;
     private LinearLayout regList, invList, probList, ftdStepAmountRow;
     private TextInputEditText regCount, ftdStepAmount, invNumber, probText;
-    private boolean updateChecked = false;
+    
     private long updateDownloadId = -1;
     private BroadcastReceiver updateReceiver;
     private Spinner invReason;
@@ -365,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
         adminView.setVisibility(View.GONE);
         guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
     }
-    private void showMain() {
+    @Override protected void onResume() { super.onResume(); if (mainView != null && mainView.getVisibility() == View.VISIBLE && token != null) { checkForUpdate(); } } private void showMain() {
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.VISIBLE);
         applySection(currentSection);
@@ -711,30 +711,30 @@ public class MainActivity extends AppCompatActivity {
     private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
 
     /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
-    private void checkForUpdate() {
-        if (updateChecked) return;
-        updateChecked = true;
+    private JSONObject fetchVersionJson() throws Exception { String[] urls = { "https://raw.githubusercontent.com/mdsahadathossenshihab1-lgtm/telesales-status-app/main/version.json", "https://telesales-status-app.vercel.app/version.json" }; Exception lastError = null; for (String urlString : urls) { try { java.net.URL url = new java.net.URL(urlString); java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection(); c.setConnectTimeout(15000); c.setReadTimeout(15000); java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream())); StringBuilder sb = new StringBuilder(); String line; while ((line = br.readLine()) != null) sb.append(line); br.close(); return new JSONObject(sb.toString()); } catch (Exception e) { lastError = e; } } if (lastError != null) throw lastError; throw new Exception("version fetch failed"); } private void checkForUpdate() {
+        
+        
         new Thread(() -> {
             try {
-                java.net.URL url = new java.net.URL("https://raw.githubusercontent.com/mdsahadathossenshihab1-lgtm/telesales-status-app/main/version.json");
-                java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection();
-                c.setConnectTimeout(5000); c.setReadTimeout(5000);
-                java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream()));
-                StringBuilder sb = new StringBuilder(); String line;
-                while ((line = br.readLine()) != null) sb.append(line);
-                br.close();
-                JSONObject j = new JSONObject(sb.toString());
+                JSONObject j = fetchVersionJson();
+                
+                
+                
+                
+                
+                
+                
                 int remoteCode = j.getInt("versionCode");
                 String remoteName = j.optString("versionName", "");
                 String apkUrl = j.optString("apkUrl", "");
                 int myCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
                 if (remoteCode > myCode && !apkUrl.isEmpty()) {
-                    runOnUiThread(() -> new AlertDialog.Builder(MainActivity.this)
+                    runOnUiThread(() -> { if (isFinishing()) return; new AlertDialog.Builder(MainActivity.this)
                             .setTitle("অ্যাপ আপডেট করুন")
                             .setMessage("নতুন ভার্সন " + remoteName + " এসেছে। আপডেট করলে নতুন সুবিধা পাবেন।")
                             .setPositiveButton("আপডেট", (d, w) -> startUpdateDownload(apkUrl))
                             .setNegativeButton("পরে", null)
-                            .show());
+                            .show(); });
                 }
             } catch (Exception ignored) { /* net/file na pele purono version choltei thakbe, kono error noy */ }
         }).start();
