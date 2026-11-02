@@ -357,7 +357,7 @@ public class MainActivity extends AppCompatActivity {
         else avatarView.setText("S");
     }
 
-    private void showLogin() {
+    @Override public void onBackPressed() { if (websiteView != null && websiteView.getVisibility() == View.VISIBLE && websiteWeb != null && websiteWeb.canGoBack()) { websiteWeb.goBack(); } else { super.onBackPressed(); } } private void showLogin() {
         loginView.setVisibility(View.VISIBLE);
         mainView.setVisibility(View.GONE);
         reportView.setVisibility(View.GONE);
