@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
     private View reportView, reportOutputCard;
     private View guideView;
     private TextView guideText;
+    private View dashboardView, listContent;
+    private int currentSection = 0;
     private TextView reportStatus, reportOutput, ftdTotal, ftdStepCount;
     private LinearLayout regList, invList, probList, ftdStepAmountRow;
     private TextInputEditText regCount, ftdStepAmount, invNumber, probText;
@@ -98,8 +100,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String GUIDE_TEXT =
         "১. লগইন\n" +
         "Continue with Google চাপুন, আপনার Gmail দিয়ে লগইন করুন। প্রথমবার Agent ID চাইবে — আপনার ট্যাবের নাম (যেমন bdxsukuna30) লিখুন। এরপর থেকে ওই Gmail-এ লগইন করলেই সরাসরি আপনার লিস্ট খুলবে। উপরের অক্ষরে চাপ দিলে Logout হবে।\n\n" +
-        "২. কল লিস্ট\n" +
-        "কল বাকি ট্যাবে যেসব নাম্বারে এখনো কল করা হয়নি, সেগুলো থাকে। কল করে স্ট্যাটাস দিলে সেটা কল করা হয়েছে ট্যাবে চলে যাবে। উপরে তারিখ বদলে ওই দিনের হিসাব দেখতে পারবেন। Search বক্সে নাম্বার লিখে খুঁজতে পারবেন। Refresh চাপলে শিট থেকে নতুন লিস্ট আসবে।\n\n" +
+        "২. কল লিস্ট (হোম)\n" +
+        "হোমে গেলে নাম্বার লিস্ট দেখায়। কল বাকি ট্যাবে যেসব নাম্বারে এখনো কল করা হয়নি, সেগুলো থাকে। কল করে স্ট্যাটাস দিলে সেটা কল করা হয়েছে ট্যাবে চলে যাবে। ড্যাশবোর্ডে তারিখ বদলে ওই দিনের হিসাব দেখতে পারবেন। Search বক্সে নাম্বার লিখে খুঁজতে পারবেন। Refresh চাপলে শিট থেকে নতুন লিস্ট আসবে।\n\n" +
         "৩. কল করা ও স্ট্যাটাস দেওয়া\n" +
         "Call চাপলে কল যাবে। Copy চাপলে নাম্বার কপি হবে। কল করার পর স্ট্যাটাস দিন, তারপর Save চাপুন। Save না চাপলে শিটে কিছু বদলাবে না।\n\n" +
         "কল Connected কখন দিবেন:\n" +
@@ -125,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
         "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। Generate Report চাপলে আজকের তারিখ, সময়, Agent ID, মোট কল, Connected, Registration, FTD, মোট টাকা, Invalid আর Problems দিয়ে রিপোর্ট তৈরি হবে। Copy চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
         "৫. Website বাটন\n" +
         "নিচের মেনু থেকে Website চাপলে আপনার সাইটটা অ্যাপের ভিতরেই Chrome-এর মতো খুলবে। Chrome-এর সেভ করা পাসওয়ার্ড/লগইন চলবে। ব্যাক চাপলে আবার অ্যাপে ফিরে আসবেন।\n\n" +
-        "৬. দিনের হিসাব\n" +
-        "উপরের বক্সে ওই দিনের Connected, Not Connected, Valid, Invalid, FTD, FTD টাকা আর Registration দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।";
+        "৬. দিনের হিসাব (ড্যাশবোর্ড)\n" +
+        "ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, FTD, FTD টাকা আর Registration দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।";
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -150,6 +152,8 @@ public class MainActivity extends AppCompatActivity {
         guideView = findViewById(R.id.guideView);
         guideText = findViewById(R.id.guideText);
         guideText.setText(GUIDE_TEXT);
+        dashboardView = findViewById(R.id.dashboardView);
+        listContent = findViewById(R.id.listContent);
         reportOutputCard = findViewById(R.id.reportOutputCard);
         reportStatus = findViewById(R.id.reportStatus);
         reportOutput = findViewById(R.id.reportOutput);
@@ -200,6 +204,8 @@ public class MainActivity extends AppCompatActivity {
         ra.setDropDownViewResource(R.layout.spinner_dropdown_item);
         invReason.setAdapter(ra);
 
+        findViewById(R.id.menuDashboardBtn).setOnClickListener(v -> { applySection(0); loadDayStats(); });
+        findViewById(R.id.menuHomeBtn).setOnClickListener(v -> applySection(1));
         findViewById(R.id.menuReportBtn).setOnClickListener(v -> showReport());
         findViewById(R.id.menuWebsiteBtn).setOnClickListener(v -> openWebsite());
         findViewById(R.id.menuGuideBtn).setOnClickListener(v -> showGuide());
@@ -359,6 +365,7 @@ public class MainActivity extends AppCompatActivity {
     private void showMain() {
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.VISIBLE);
+        applySection(currentSection);
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
@@ -366,6 +373,14 @@ public class MainActivity extends AppCompatActivity {
         setAgentSubtitle();
         loadDayStats();
         checkForUpdate();
+    }
+    /** Niche menu: 0 = Dashboard (date + sob hisab), 1 = Home (number list). */
+    private void applySection(int sec) {
+        currentSection = sec;
+        dashboardView.setVisibility(sec == 0 ? View.VISIBLE : View.GONE);
+        listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE);
+        findViewById(R.id.menuDashboardBtn).setBackgroundResource(sec == 0 ? R.drawable.btn_gradient : R.drawable.glass_field);
+        findViewById(R.id.menuHomeBtn).setBackgroundResource(sec == 1 ? R.drawable.btn_gradient : R.drawable.glass_field);
     }
     private void showAgent() {
         loginView.setVisibility(View.GONE);
