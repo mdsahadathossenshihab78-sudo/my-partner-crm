@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 1001;
     private static final int RC_AUTH = 1002;
     private static final String SHEET_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+    private static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
     private static final String SHEET_ID = "10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE";
 
     private GoogleSignInClient signInClient;
@@ -114,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
-                .requestScopes(new Scope(SHEET_SCOPE))
+                .requestScopes(new Scope(SHEET_SCOPE), new Scope(DRIVE_SCOPE))
                 .build();
         signInClient = GoogleSignIn.getClient(this, gso);
 
@@ -318,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
         loginError.setText("লগইন হচ্ছে...");
         new Thread(() -> {
             try {
-                token = GoogleAuthUtil.getToken(this, acct.getAccount(), "oauth2:" + SHEET_SCOPE);
+                token = GoogleAuthUtil.getToken(this, acct.getAccount(), "oauth2:" + SHEET_SCOPE + " " + DRIVE_SCOPE);
                 runOnUiThread(() -> {
                     setAvatar(acct.getEmail());
                     String saved = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).getString("agent_id", null);
@@ -373,10 +374,23 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    /** Shared Report/Log file-er ID: age local, na thakle Drive-e nam diye khunja (peye gele local-e save).
+     *  App ar website — duijon-e ektai file use korbe, tai app-er update website-e dekhabe. */
+    private String resolveSharedId(String prefsKey, String legacyKey, String title) {
+        SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+        String id = p.getString(prefsKey, null);
+        if (id == null && legacyKey != null) id = p.getString(legacyKey, null);
+        if (id == null) {
+            id = SheetsClient.findSpreadsheetByName(token, title);
+            if (id != null) p.edit().putString(prefsKey, id).apply();
+        }
+        return id;
+    }
+
     private void ensureStatusLogSheet() throws Exception {
         if (statusLogSheetId != null) return;
         SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
-        statusLogSheetId = p.getString("status_log_sheet_id_" + agentId, null);
+        statusLogSheetId = resolveSharedId("status_log_sheet_id_" + agentId, null, "Telesales Status Log - " + agentId);
         if (statusLogSheetId == null) {
             statusLogSheetId = SheetsClient.createStatusLogSpreadsheet(token, agentId);
             p.edit().putString("status_log_sheet_id_" + agentId, statusLogSheetId).apply();
@@ -434,9 +448,9 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
-                String logId = p.getString("status_log_sheet_id_" + agentId, null);
-                String repId = p.getString("report_sheet_id_" + agentId, null);
-                if (repId == null && "bdxsukuna30".equals(agentId)) repId = p.getString("report_sheet_id", null);
+                String logId = resolveSharedId("status_log_sheet_id_" + agentId, null, "Telesales Status Log - " + agentId);
+                String repId = resolveSharedId("report_sheet_id_" + agentId,
+                        "bdxsukuna30".equals(agentId) ? "report_sheet_id" : null, "Telesales Report - " + agentId);
                 List<REntry> logs = logId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, logId, "Status Log"));
                 List<REntry> invs = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "Invalid"));
                 List<REntry> regs = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "Registration"));
@@ -453,11 +467,10 @@ public class MainActivity extends AppCompatActivity {
                 double ftdSum = 0;
                 for (REntry e : ftdToday) { try { ftdSum += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
                 String anchor = p.getString("log_anchor_date_" + agentId, null);
-                if (anchor == null) {
-                    String min = null;
-                    for (REntry e : logs) if (e.cells.length > 0 && (min == null || e.cells[0].compareTo(min) < 0)) min = e.cells[0];
-                    anchor = min == null ? day : min;
-                }
+                String min = null;
+                for (REntry e : logs) if (e.cells.length > 0 && (min == null || e.cells[0].compareTo(min) < 0)) min = e.cells[0];
+                if (min != null) anchor = min;
+                else if (anchor == null) anchor = day;
                 long diff = daysBetween(anchor, day);
                 long idx = diff >= 0 ? diff / 7 : 0;
                 String blockStart = addDays(anchor, (int) (idx * 7));
@@ -517,9 +530,8 @@ public class MainActivity extends AppCompatActivity {
     private void ensureReportSheet() throws Exception {
         if (reportSheetId != null) return;
         SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
-        reportSheetId = p.getString("report_sheet_id_" + agentId, null);
-        if (reportSheetId == null && "bdxsukuna30".equals(agentId))
-            reportSheetId = p.getString("report_sheet_id", null); // purono v3.1–v3.4 sheet, thakle setai use hobe
+        reportSheetId = resolveSharedId("report_sheet_id_" + agentId,
+                "bdxsukuna30".equals(agentId) ? "report_sheet_id" : null, "Telesales Report - " + agentId);
         if (reportSheetId == null) {
             reportSheetId = SheetsClient.createReportSpreadsheet(token, agentId);
             p.edit().putString("report_sheet_id_" + agentId, reportSheetId).apply();
