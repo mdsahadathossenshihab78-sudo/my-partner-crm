@@ -58,11 +58,12 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 <div class="row" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn">◀</button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn">▶</button></div>
 <div class="row" style="margin-top:12px">
 <div class="stat s-blue"><b id="stConn">0</b><span>Connected</span></div>
+<div class="stat s-violet"><b id="stNotConn">0</b><span>Not Connected</span></div>
 <div class="stat s-green"><b id="stValid">0</b><span>Valid</span></div>
 <div class="stat s-rose"><b id="stInv">0</b><span>Invalid</span></div>
-<div class="stat s-violet"><b id="stReg">0</b><span>Registration</span></div>
 <div class="stat s-blue"><b id="stFtd">0</b><span>FTD</span></div>
 <div class="stat s-green"><b id="stFtdAmt">৳0</b><span>FTD টাকা</span></div>
+<div class="stat s-violet"><b id="stReg">0</b><span>Registration</span></div>
 </div>
 <p class="muted" id="weekSummary"></p>
 <div class="row" style="margin-top:8px"><button class="btn tab-on" id="tabPendingBtn" style="flex:1">কল বাকি</button><button class="btn btn-light" id="tabDoneBtn" style="flex:1">কল করা হয়েছে</button></div>
@@ -298,8 +299,8 @@ async function loadDayStats(){
     const invs=rid?await getTabRows(rid,'Invalid'):[];
     const regs=rid?await getTabRows(rid,'Registration'):[];
     const ftds=rid?await getTabRows(rid,'FTD'):[];
-    let conn=0, valid=0;
-    logs.forEach(e=>{if(cellE(e,0)===day){if(cellE(e,2)==='call connected')conn++;if(cellE(e,3)==='Yes')valid++;}});
+    let conn=0, valid=0, notConn=0;
+    logs.forEach(e=>{if(cellE(e,0)===day){if(cellE(e,2)==='call connected')conn++;if(cellE(e,2)==='not connected')notConn++;if(cellE(e,3)==='Yes')valid++;}});
     const inv=filterTodayE(invs,day).length, reg=filterTodayE(regs,day).length;
     const ftdToday=filterTodayE(ftds,day); let ftdSum=0;
     ftdToday.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSum+=v;});
@@ -307,12 +308,12 @@ async function loadDayStats(){
     let anchor=minLog||localStorage.getItem('log_anchor_date_'+agentId)||day;
     const diff=daysBetween(anchor,day), idx=diff>=0?Math.floor(diff/7):0;
     const blockStart=addDays(anchor,idx*7), blockEnd=addDays(blockStart,6);
-    let connW=0; filterRangeE(logs,blockStart,blockEnd).forEach(e=>{if(cellE(e,2)==='call connected')connW++;});
+    let connW=0, notConnW=0; filterRangeE(logs,blockStart,blockEnd).forEach(e=>{if(cellE(e,2)==='call connected')connW++;if(cellE(e,2)==='not connected')notConnW++;});
     const ftdWeek=filterRangeE(ftds,blockStart,blockEnd); let ftdSumW=0;
     ftdWeek.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSumW+=v;});
-    $('stConn').textContent=conn; $('stValid').textContent=valid; $('stInv').textContent=inv; $('stReg').textContent=reg;
+    $('stConn').textContent=conn; $('stNotConn').textContent=notConn; $('stValid').textContent=valid; $('stInv').textContent=inv; $('stReg').textContent=reg;
     $('stFtd').textContent=ftdToday.length; $('stFtdAmt').textContent='৳'+fmtAmt(ftdSum);
-    $('weekSummary').textContent='Ei 7 din ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • FTD '+ftdWeek.length+' (৳'+fmtAmt(ftdSumW)+')';
+    $('weekSummary').textContent='Ei 7 din ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • FTD '+ftdWeek.length+' (৳'+fmtAmt(ftdSumW)+')';
   }catch(e){$('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।';}
 }
 async function loadReportData(){
