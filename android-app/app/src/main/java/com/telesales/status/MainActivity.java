@@ -381,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
     private void applySection(int sec) {
         currentSection = sec;
         dashboardView.setVisibility(sec == 0 ? View.VISIBLE : View.GONE);
-        listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE);
+        listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); mainView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE);
         findViewById(R.id.menuDashboardBtn).setBackgroundResource(sec == 0 ? R.drawable.btn_gradient : R.drawable.glass_field);
         findViewById(R.id.menuHomeBtn).setBackgroundResource(sec == 1 ? R.drawable.btn_gradient : R.drawable.glass_field);
     }
