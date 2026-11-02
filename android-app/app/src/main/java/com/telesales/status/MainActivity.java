@@ -163,15 +163,15 @@ public class MainActivity extends AppCompatActivity {
         regStepCount = findViewById(R.id.regStepCount); invAutoText = findViewById(R.id.invAutoText);
 
 
-        invNumber = findViewById(R.id.invNumber);
-        invReason = findViewById(R.id.invReason);
+        // v4.18: removed view.
+        // v4.18: removed view.
         probText = findViewById(R.id.probText);
-        regList = findViewById(R.id.regList);
+        // v4.18: removed view.
         ftdStepCount = findViewById(R.id.ftdStepCount);
         ftdStepAmountRow = findViewById(R.id.ftdStepAmountRow);
         ftdStepAmount = findViewById(R.id.ftdStepAmount);
         ftdTotal = findViewById(R.id.ftdTotal);
-        invList = findViewById(R.id.invList);
+        // v4.18: removed view.
         probList = findViewById(R.id.probList);
         agentView = findViewById(R.id.agentView);
         agentInput = findViewById(R.id.agentInput);
