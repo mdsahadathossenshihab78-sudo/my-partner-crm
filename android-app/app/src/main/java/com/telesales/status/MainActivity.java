@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView agentError, agentSubtitle;
     private TextInputEditText agentInput;
     private TextView loginError, avatarView, statusText, weekSummary;
-    private TextView statConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
+    private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
     private MaterialButton dateBtn;
     private TextInputEditText searchBox;
     private View reportView, reportOutputCard;
@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         loginError = findViewById(R.id.loginError);
         avatarView = findViewById(R.id.avatarView);
         statConnDay = findViewById(R.id.statConnDay);
+        statNotConnDay = findViewById(R.id.statNotConnDay);
         statValidDay = findViewById(R.id.statValidDay);
         statInvDay = findViewById(R.id.statInvDay);
         statRegDay = findViewById(R.id.statRegDay);
@@ -455,10 +456,11 @@ public class MainActivity extends AppCompatActivity {
                 List<REntry> invs = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "Invalid"));
                 List<REntry> regs = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "Registration"));
                 List<REntry> ftds = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "FTD"));
-                int conn = 0, valid = 0;
+                int conn = 0, valid = 0, notConn = 0;
                 for (REntry e : logs) if (day.equals(cellE(e, 0))) {
                     if ("call connected".equals(cellE(e, 2))) conn++;
                     if ("Yes".equals(cellE(e, 3))) valid++;
+                    if ("not connected".equals(cellE(e, 2))) notConn++;
                 }
                 int inv = filterTodayE(invs, day).size();
                 int reg = filterTodayE(regs, day).size();
@@ -477,21 +479,24 @@ public class MainActivity extends AppCompatActivity {
                 String blockEnd = addDays(blockStart, 6);
                 int connW = 0;
                 for (REntry e : filterRange(logs, blockStart, blockEnd)) if ("call connected".equals(cellE(e, 2))) connW++;
+                int notConnW = 0;
+                for (REntry e : filterRange(logs, blockStart, blockEnd)) if ("not connected".equals(cellE(e, 2))) notConnW++;
                 List<REntry> ftdWeek = filterRange(ftds, blockStart, blockEnd);
                 int ftdNW = ftdWeek.size();
                 double ftdSumW = 0;
                 for (REntry e : ftdWeek) { try { ftdSumW += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
                 String finalBlockStart = blockStart, finalBlockEnd = blockEnd;
-                int finalConn = conn, finalValid = valid, finalInv = inv, finalReg = reg, finalFtdN = ftdN, finalConnW = connW, finalFtdNW = ftdNW;
+                int finalConn = conn, finalValid = valid, finalInv = inv, finalReg = reg, finalFtdN = ftdN, finalConnW = connW, finalFtdNW = ftdNW, finalNotConn = notConn, finalNotConnW = notConnW;
                 double finalFtdSum = ftdSum, finalFtdSumW = ftdSumW;
                 runOnUiThread(() -> {
                     statConnDay.setText(String.valueOf(finalConn));
+                    statNotConnDay.setText(String.valueOf(finalNotConn));
                     statValidDay.setText(String.valueOf(finalValid));
                     statInvDay.setText(String.valueOf(finalInv));
                     statRegDay.setText(String.valueOf(finalReg));
                     statFtdDay.setText(String.valueOf(finalFtdN));
                     statFtdAmtDay.setText("৳" + fmtAmount(finalFtdSum));
-                    weekSummary.setText("Ei 7 din (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • FTD " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")");
+                    weekSummary.setText("Ei 7 din (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • FTD " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")");
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> weekSummary.setText("Hisab load hoyni: " + e.getMessage()));
