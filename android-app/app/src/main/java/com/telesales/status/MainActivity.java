@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String SHEET_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
     private static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
     private static final String SHEET_ID = "10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE";
+    /** Admin Gmail: ei Gmail-e login korlei Admin Panel khulbe, Agent ID lagbe na. */
+    private static final String ADMIN_EMAIL = "shihabno.18@gmail.com";
 
     private GoogleSignInClient signInClient;
     private String token;
@@ -69,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
     private View agentView;
     private TextView agentError, agentSubtitle;
     private TextInputEditText agentInput;
+    private View adminView;
+    private TextView adminStatus;
+    private TextInputEditText adminAgentInput, adminNumbersInput;
     private TextView loginError, avatarView, statusText, weekSummary;
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
     private MaterialButton dateBtn;
@@ -124,6 +129,10 @@ public class MainActivity extends AppCompatActivity {
         probList = findViewById(R.id.probList);
         agentView = findViewById(R.id.agentView);
         agentInput = findViewById(R.id.agentInput);
+        adminView = findViewById(R.id.adminView);
+        adminAgentInput = findViewById(R.id.adminAgentInput);
+        adminNumbersInput = findViewById(R.id.adminNumbersInput);
+        adminStatus = findViewById(R.id.adminStatus);
         agentError = findViewById(R.id.agentError);
         agentSubtitle = findViewById(R.id.agentSubtitle);
 
@@ -175,6 +184,15 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.agentContinueBtn).setOnClickListener(v -> submitAgent());
         findViewById(R.id.agentBackBtn).setOnClickListener(v -> {
             signInClient.signOut().addOnCompleteListener(t -> showLogin());
+        });
+        findViewById(R.id.adminAddBtn).setOnClickListener(v -> submitAdminNumbers());
+        findViewById(R.id.adminLogoutBtn).setOnClickListener(v -> {
+            signInClient.signOut().addOnCompleteListener(t -> {
+                token = null; agentId = null; reportSheetId = null; statusLogSheetId = null;
+                getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").remove("agent_email").apply();
+                showLogin();
+                Toast.makeText(this, "Logout hoyeche", Toast.LENGTH_SHORT).show();
+            });
         });
         findViewById(R.id.btnTabPending).setOnClickListener(v -> { adapter.setTab(0); setTabUI(); });
         findViewById(R.id.btnTabDone).setOnClickListener(v -> { adapter.setTab(1); setTabUI(); });
@@ -294,12 +312,14 @@ public class MainActivity extends AppCompatActivity {
         mainView.setVisibility(View.GONE);
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
+        adminView.setVisibility(View.GONE);
     }
     private void showMain() {
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.VISIBLE);
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
+        adminView.setVisibility(View.GONE);
         setAgentSubtitle();
         loadDayStats();
         checkForUpdate();
@@ -309,10 +329,75 @@ public class MainActivity extends AppCompatActivity {
         mainView.setVisibility(View.GONE);
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.VISIBLE);
+        adminView.setVisibility(View.GONE);
         agentError.setText("");
+    }
+    /** Admin Panel: sudhu admin Gmail-e login korle khulbe, Agent ID lagbe na. */
+    private void showAdmin() {
+        loginView.setVisibility(View.GONE);
+        mainView.setVisibility(View.GONE);
+        reportView.setVisibility(View.GONE);
+        agentView.setVisibility(View.GONE);
+        adminView.setVisibility(View.VISIBLE);
+        adminStatus.setText("");
     }
     private void setAgentSubtitle() {
         if (agentSubtitle != null && agentId != null) agentSubtitle.setText("Agent: " + agentId);
+    }
+    /** Admin: paste kora number-gulo target Agent-er tab-er seshe, paste kora order-e jog kore.
+     *  Agertheke thaka number ba paste-er vitore duplicate thakle skip hobe (abar boshbe na). */
+    private void submitAdminNumbers() {
+        String target = txt(adminAgentInput);
+        String pasted = adminNumbersInput.getText() == null ? "" : adminNumbersInput.getText().toString();
+        if (target.isEmpty()) { adminStatus.setText("Agent ID din"); return; }
+        if (pasted.trim().isEmpty()) { adminStatus.setText("Number paste korun"); return; }
+        if (token == null) { showLogin(); return; }
+        adminStatus.setText("Jog kora hocche...");
+        new Thread(() -> {
+            try {
+                List<String> tabs = SheetsClient.getTabs(token, SHEET_ID);
+                String match = null;
+                for (String t : tabs) if (t.equals(target)) { match = t; break; }
+                if (match == null) for (String t : tabs) if (t.equalsIgnoreCase(target)) { match = t; break; }
+                if (match == null) throw new Exception("Ei Agent ID-te kono list pai ni — ID ta abar miliye dekhun");
+                String finalMatch = match;
+                java.util.Set<String> existing = new java.util.HashSet<>();
+                for (Row r : SheetsClient.getRows(token, SHEET_ID, finalMatch)) {
+                    String n = normalizeAdminNumber(r.number);
+                    if (validAdminNumber(n)) existing.add(n);
+                }
+                java.util.List<String> toAdd = new java.util.ArrayList<>();
+                java.util.Set<String> seen = new java.util.HashSet<>();
+                int dup = 0, bad = 0;
+                for (String part : pasted.split("[\\n,;\\s]+")) {
+                    if (part.isEmpty()) continue;
+                    String n = normalizeAdminNumber(part);
+                    if (!validAdminNumber(n)) { bad++; continue; }
+                    if (existing.contains(n) || !seen.add(n)) { dup++; continue; }
+                    toAdd.add(n);
+                }
+                if (toAdd.isEmpty()) throw new Exception("Notun kono number pai ni" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
+                SheetsClient.appendNumbers(token, SHEET_ID, finalMatch, toAdd);
+                int added = toAdd.size();
+                runOnUiThread(() -> {
+                    adminStatus.setText(added + "ta number " + finalMatch + "-er list-e jog hoyeche" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
+                    adminNumbersInput.setText("");
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> adminStatus.setText("Hoyni: " + e.getMessage()));
+            }
+        }).start();
+    }
+    /** Paste/sheet-er number-ke sheet-er niyome anbe: 0 na thakle 0 jog, +880/880 hole 0-rup. */
+    private static String normalizeAdminNumber(String raw) {
+        String s = raw.trim().replaceAll("[\\s\\-]", "");
+        if (s.startsWith("+880")) s = "0" + s.substring(4);
+        else if (s.startsWith("880") && s.length() == 13) s = "0" + s.substring(3);
+        else if (!s.startsWith("0")) s = "0" + s;
+        return s;
+    }
+    private static boolean validAdminNumber(String s) {
+        return s.matches("0\\d{10}");
     }
     /** Agent ID jachai: sheet-e oi nam-e tab ache kina dekhbe, thakle save kore list khulbe. */
     private void submitAgent() {
@@ -347,6 +432,7 @@ public class MainActivity extends AppCompatActivity {
         mainView.setVisibility(View.GONE);
         reportView.setVisibility(View.VISIBLE);
         agentView.setVisibility(View.GONE);
+        adminView.setVisibility(View.GONE);
         loadReportData();
     }
 
@@ -359,6 +445,11 @@ public class MainActivity extends AppCompatActivity {
                     setAvatar(acct.getEmail());
                     SharedPreferences prefs0 = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
                     prefs0.edit().putString("current_email", acct.getEmail()).apply();
+                    // Admin Gmail hole Agent ID chhara-i Admin Panel khulbe.
+                    if (acct.getEmail() != null && ADMIN_EMAIL.equalsIgnoreCase(acct.getEmail())) {
+                        showAdmin();
+                        return;
+                    }
                     String saved = prefs0.getString("agent_id", null);
                     String savedEmail = prefs0.getString("agent_email", null);
                     // Agent ID sudhu tokhon-i reuse hobe jokhon seta EI Gmail-er — onno Gmail-e
