@@ -13,12 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SheetsClient {
-    /** Tab nam-e single-quote thakle API range-e escape korte hoy. */
     private static String q(String tab) {
         return "'" + tab.replace("'", "''") + "'";
     }
 
-    /** Sheet-er sob tab-er nam ferot dey (Agent ID check korar jonno). */
     public static List<String> getTabs(String token, String sheetId) throws Exception {
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "?fields=sheets.properties.title");
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
@@ -37,8 +35,6 @@ public class SheetsClient {
         return out;
     }
 
-    /** Drive-e nam diye spreadsheet khunja: sobcheye purono (prothom toiri) file-er ID, na pele null.
-     *  Scope na thakle ba jekono error-e null — caller tokhon ager moto local id / create flow-e jabe. */
     public static String findSpreadsheetByName(String token, String name) {
         try {
             String qq = URLEncoder.encode("name = '" + name.replace("'", "\\'") + "' and trashed = false", "UTF-8");
@@ -61,8 +57,6 @@ public class SheetsClient {
     }
 
     public static List<Row> getRows(String token, String sheetId, String tab) throws Exception {
-        // Open-ended range: 55 row-e atke thakbe na — notun number jog hole
-        // (56, 57, ...) setao asbe. Sheet joto boro hobe list toto boro hobe.
         String range = URLEncoder.encode(q(tab) + "!A6:F", "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
@@ -81,8 +75,6 @@ public class SheetsClient {
                 String d = v.length() > 3 ? v.optString(3) : "";
                 String e = v.length() > 4 ? v.optString(4) : "";
                 String f = v.length() > 5 ? v.optString(5) : "";
-                // Puro khali row (number delete/clear hoye gele) app-e dekhabe na.
-                // Row number index theke hisab hoy, tai porer row-gulor number thik thakbe.
                 if (a.isEmpty() && b.isEmpty() && cc.isEmpty() && d.isEmpty() && e.isEmpty() && f.isEmpty()) continue;
                 out.add(new Row(6 + i, a, b, cc, d, e, f));
             }
@@ -90,9 +82,6 @@ public class SheetsClient {
         return out;
     }
 
-    /** Save-er age check: sheet-e oi row-er number ekhono eki ache kina.
-     *  Team-er keu majhkhane row delete korle row sore jay — tokhon vul row-e
-     *  save na hoye user-ke Refresh korte bola hobe. */
     private static void checkRowStillMatches(String token, String sheetId, String tab, Row row) throws Exception {
         String range = URLEncoder.encode(q(tab) + "!A" + row.row, "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
@@ -132,8 +121,6 @@ public class SheetsClient {
         if (code != 200) throw new Exception("Sheet save failed: " + code + " " + readAll(c.getErrorStream()));
     }
 
-    // ---------- Report feature: SEPARATE spreadsheet (numbers sheet-e kono tab khola hobe na) ----------
-    /** Notun spreadsheet banay + 4 ta tab-e header bosay, tar ID ferot dey. */
     public static String createReportSpreadsheet(String token, String agentId) throws Exception {
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets");
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
@@ -186,7 +173,6 @@ public class SheetsClient {
         if (code != 200) throw new Exception("Header write failed: " + code + " " + readAll(c.getErrorStream()));
     }
 
-    /** Status Log file: status change-er sthayi record (source row delete holeo thakbe). */
     public static String createStatusLogSpreadsheet(String token, String agentId) throws Exception {
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets");
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
@@ -215,7 +201,33 @@ public class SheetsClient {
         return id;
     }
 
-    /** Ekta tab-er sob row (header bad diye) ferot dey, protita row String[] akare. */
+    /** v4.14 shared Status Log: age theke thaka "Telesales Status Log" file-e agent-er tab thakle kichu kore na, na thakle Sheets batchUpdate-e tab khule header bosay. Shared file kokhono toiri kore na, shudhu age theke thaka file-e tab jog kore. Tab toiri / pora age thekei thaka spreadsheets scope-e hoy, tai notun OAuth scope lage na. Main "Telesales (Team-03)" sheet-e kono tab jog kore na. */
+    public static void ensureSheetTab(String token, String spreadsheetId, String title) throws Exception {
+        List<String> tabs = getTabs(token, spreadsheetId);
+        for (String t : tabs) if (title.equals(t)) return;
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate");
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Authorization", "Bearer " + token);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray reqs = new JSONArray();
+        JSONObject req = new JSONObject();
+        JSONObject add = new JSONObject();
+        JSONObject props = new JSONObject();
+        props.put("title", title);
+        add.put("properties", props);
+        req.put("addSheet", add);
+        reqs.put(req);
+        body.put("requests", reqs);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Status log tab create failed: " + code + " " + readAll(c.getErrorStream()));
+        writeHeader(token, spreadsheetId, title, new String[]{"Date", "Number", "Status", "Valid"});
+    }
+
     public static List<String[]> getReportRows(String token, String sheetId, String tab) throws Exception {
         String range = URLEncoder.encode(tab + "!A2:Z", "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
@@ -237,7 +249,6 @@ public class SheetsClient {
         return out;
     }
 
-    /** Ekta tab-er seshe notun row jog kore. */
     public static void appendReportRow(String token, String sheetId, String tab, String[] vals) throws Exception {
         String range = URLEncoder.encode(tab + "!A:Z", "UTF-8") + ":append";
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range + "?valueInputOption=USER_ENTERED");
@@ -257,8 +268,30 @@ public class SheetsClient {
         if (code != 200) throw new Exception("Report add failed: " + code + " " + readAll(c.getErrorStream()));
     }
 
-    /** Admin panel: kono agent-er tab-er seshe (column A) onekgulo number ekbare jog kore.
-     *  RAW rakha hoy jate leading 0 text hisebe thik thake (number hoye gele 0 muche jeto). */
+    /** Ekta tab-er seshe onekgulo row ekbare jog kore (shared-tab migration-er jonno). */
+    public static void appendReportRows(String token, String sheetId, String tab, List<String[]> rows) throws Exception {
+        if (rows == null || rows.isEmpty()) return;
+        String range = URLEncoder.encode(tab + "!A:Z", "UTF-8") + ":append";
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range + "?valueInputOption=USER_ENTERED");
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Authorization", "Bearer " + token);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray values = new JSONArray();
+        for (String[] vals : rows) {
+            JSONArray one = new JSONArray();
+            for (String s : vals) one.put(s == null ? "" : s);
+            values.put(one);
+        }
+        body.put("values", values);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Report add failed: " + code + " " + readAll(c.getErrorStream()));
+    }
+
     public static void appendNumbers(String token, String sheetId, String tab, List<String> numbers) throws Exception {
         String range = URLEncoder.encode(q(tab) + "!A6:A", "UTF-8") + ":append";
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range + "?valueInputOption=RAW");
@@ -277,7 +310,6 @@ public class SheetsClient {
         if (code != 200) throw new Exception("Number add failed: " + code + " " + readAll(c.getErrorStream()));
     }
 
-    /** Tab-er numeric sheetId (deleteDimension-er jonno lage). */
     public static int getSheetNumericId(String token, String spreadsheetId, String tab) throws Exception {
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + "?fields=sheets.properties");
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
@@ -295,7 +327,6 @@ public class SheetsClient {
         throw new Exception("Tab pai ni: " + tab);
     }
 
-    /** Report sheet-er ekta row puropuri delete kore (nicher row-gulo upore sore ashe). */
     public static void deleteReportRow(String token, String spreadsheetId, String tab, int sheetRow) throws Exception {
         int gid = getSheetNumericId(token, spreadsheetId, tab);
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate");
