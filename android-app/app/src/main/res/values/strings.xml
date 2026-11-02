@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Telesales Status</string>
-    <string name="login_title">Telesales Status</string>
+    <string name="app_name">Telesales Agent CRM</string>
+    <string name="login_title">Telesales Agent CRM</string>
     <string name="continue_google">Continue with Google</string>
 </resources>
