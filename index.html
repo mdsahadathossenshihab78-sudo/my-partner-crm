@@ -1,105 +1,336 @@
 <!DOCTYPE html>
 <html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Telesales Status — bdxsukuna30</title>
+<title>Telesales Status</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
-:root{--indigo:#4f46e5;--violet:#7c3aed;--bg:#eef2ff;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif;background:var(--bg);color:var(--text)}
-.top{background:linear-gradient(135deg,#4f46e5,#7c3aed 55%,#db2777);color:#fff;padding:22px 16px}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif;background:#0B1026;color:#fff;min-height:100vh}
+.aurora{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55}
+.b1{width:340px;height:340px;background:#7c3aed;top:-90px;left:-70px}
+.b2{width:300px;height:300px;background:#2563eb;top:30%;right:-80px}
+.b3{width:260px;height:260px;background:#06b6d4;bottom:-70px;left:35%}
+.b4{width:220px;height:220px;background:#db2777;top:55%;left:-60px}
+.top{position:relative;z-index:1;background:linear-gradient(135deg,#4f46e5,#7c3aed 55%,#db2777);padding:22px 16px}
 .top-inner{max-width:900px;margin:0 auto}.top h1{margin:0;font-size:24px}.top p{margin:4px 0 0;opacity:.9;font-size:14px}
-.wrap{max-width:900px;margin:-14px auto 0;padding:0 14px 30px}
-.card{background:var(--card);border-radius:18px;padding:20px;margin-top:16px;box-shadow:0 4px 20px rgba(0,0,0,.06)}
-.btn{border:0;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer}
-.btn-primary{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff}
-.btn-light{background:#eef2ff;color:#111827}.btn-sm{padding:8px 12px;font-size:13px}
-input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:15px}
-label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}.muted{color:var(--muted);font-size:14px}
+.wrap{position:relative;z-index:1;max-width:900px;margin:-14px auto 0;padding:0 14px 30px}
+.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:20px;margin-top:16px;backdrop-filter:blur(12px)}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer;color:#fff}
+.btn-primary{background:linear-gradient(135deg,#4f46e5,#7c3aed)}
+.btn-light{background:rgba(255,255,255,.12)}.btn-sm{padding:8px 12px;font-size:13px}
+.btn-grad{background:linear-gradient(135deg,#4f46e5,#db2777)}
+input,select{width:100%;padding:12px;border:1px solid rgba(255,255,255,.2);border-radius:12px;font-size:15px;background:rgba(255,255,255,.08);color:#fff}
+input::placeholder{color:#9aa3b8}select option{color:#111827}
+label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}.muted{color:#b8c0d8;font-size:14px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.report{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
-.badge{display:inline-block;background:#eef2ff;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700}
-.badge-ok{background:#dcfce7}.badge-no{background:#fee2e2}.badge-blank{background:#fef3c7}
-.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 18px;border-radius:12px;display:none;z-index:99}
+.report{border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:14px;margin-top:12px;background:rgba(255,255,255,.05)}
+.badge{display:inline-block;background:rgba(255,255,255,.12);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700}
+.badge-ok{background:#14532d}.badge-no{background:#7f1d1d}.badge-blank{background:#713f12}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 18px;border-radius:12px;display:none;z-index:99;max-width:92vw;text-align:center}
+.stat{flex:1;min-width:130px;border-radius:14px;padding:14px}
+.stat b{font-size:23px;display:block}.stat span{font-size:12px;color:rgba(255,255,255,.9)}
+.s-blue{background:rgba(37,99,235,.35);border:1px solid rgba(96,165,250,.4)}
+.s-green{background:rgba(22,163,74,.35);border:1px solid rgba(74,222,128,.4)}
+.s-rose{background:rgba(225,29,72,.35);border:1px solid rgba(251,113,133,.4)}
+.s-violet{background:rgba(124,58,237,.35);border:1px solid rgba(167,139,250,.4)}
+.tab-on{background:linear-gradient(135deg,#4f46e5,#db2777)!important}
+.entry{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.entry:last-child{border-bottom:0}
+.xbtn{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:15px}
+pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;padding:14px;font-size:14px;line-height:1.6}
 </style></head><body>
-<div class="top"><div class="top-inner"><h1>📞 Telesales Status</h1><p>শুধু ট্যাব: bdxsukuna30 • Telesales (Team-03) • সব কলাম বদলালেই শিটে আপডেট হবে</p></div></div>
+<div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
+<div class="top"><div class="top-inner"><h1>📞 Telesales Status</h1><p>Telesales (Team-03) • নিজের Agent ID দিয়ে শুধু নিজের লিস্ট</p></div></div>
 <div class="wrap">
-<div class="card"><h2>📱 অ্যাপ ডাউনলোড (APK)</h2><p class="muted">ফোনে অ্যাপ হিসেবে ব্যবহার করতে চাইলে APK ডাউনলোড করে ইনস্টল করুন। ইনস্টলের সময় “Install unknown apps” অনুমতি চাইলে Allow করবেন।</p><a class="btn btn-primary" href="telesales-status.apk" style="text-decoration:none;display:inline-block">⬇️ APK ডাউনলোড করুন</a></div>
-<div class="card" id="loginCard"><h2>🔐 লগইন করুন</h2><p class="muted">Continue with Google দিয়ে লগইন করুন। শিটে লেখার জন্য Google Sheets অনুমতি চাওয়া হবে — এটা ছাড়া স্ট্যাটাস আপডেট হবে না।</p>
-<button class="btn btn-primary" id="googleBtn">▶ Continue with Google</button><p class="muted" id="loginMsg"></p>
-<div style="margin-top:12px"><label for="sheetId">Spreadsheet ID (প্রথমবার শুধু, পরে মনে থাকবে)</label><input id="sheetId" placeholder="Telesales শিটের ID এখানে পেস্ট করুন"></div></div>
-<div class="card" id="appCard" style="display:none">
-<div class="row" style="justify-content:space-between"><span>👤 লগইন: <b id="userEmail"></b></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
+<div class="card"><h2 style="margin-top:0">📱 অ্যাপ ডাউনলোড (APK)</h2><p class="muted">ফোনে অ্যাপ হিসেবে ব্যবহার করতে চাইলে APK ডাউনলোড করে ইনস্টল করুন। ইনস্টলের সময় “Install unknown apps” অনুমতি চাইলে Allow করবেন।</p><a class="btn btn-primary" href="telesales-status.apk" style="text-decoration:none;display:inline-block">⬇️ APK ডাউনলোড করুন</a></div>
+
+<div class="card" id="loginCard"><h2 style="margin-top:0">🔐 লগইন করুন</h2><p class="muted">Continue with Google দিয়ে লগইন করুন। শিটে লেখার জন্য Google Sheets অনুমতি চাওয়া হবে — এটা ছাড়া স্ট্যাটাস আপডেট হবে না।</p>
+<button class="btn btn-primary" id="googleBtn">▶ Continue with Google</button><p class="muted" id="loginMsg"></p></div>
+
+<div class="card" id="agentCard" style="display:none"><h2 style="margin-top:0">🪪 Agent ID দিন</h2><p class="muted">আপনার Agent ID (আপনার ট্যাবের নাম, যেমন bdxsukuna30) লিখুন — শুধু আপনার লিস্ট দেখাবে।</p>
+<label for="agentInput">Agent ID</label><input id="agentInput" placeholder="Agent ID লিখুন">
+<div class="row" style="margin-top:12px"><button class="btn btn-grad" id="agentBtn">চালিয়ে যান</button><button class="btn btn-light" id="agentBackBtn">অন্য Gmail দিয়ে লগইন</button></div>
+<p class="muted" id="agentMsg"></p></div>
+
+<div id="mainView" style="display:none">
+<div class="card"><div class="row" style="justify-content:space-between"><span>👤 <b id="userEmail"></b> • <span id="agentLabel"></span></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
+<div class="row" style="margin-top:12px"><button class="btn btn-light" id="reportBtn" style="flex:1">📋 Report</button></div>
+<div class="row" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn">◀</button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn">▶</button></div>
+<div class="row" style="margin-top:12px">
+<div class="stat s-blue"><b id="stConn">0</b><span>Connected</span></div>
+<div class="stat s-green"><b id="stValid">0</b><span>Valid</span></div>
+<div class="stat s-rose"><b id="stInv">0</b><span>Invalid</span></div>
+<div class="stat s-violet"><b id="stReg">0</b><span>Registration</span></div>
+<div class="stat s-blue"><b id="stFtd">0</b><span>FTD</span></div>
+<div class="stat s-green"><b id="stFtdAmt">৳0</b><span>FTD টাকা</span></div>
+</div>
+<p class="muted" id="weekSummary"></p>
+<div class="row" style="margin-top:8px"><button class="btn tab-on" id="tabPendingBtn" style="flex:1">কল বাকি</button><button class="btn btn-light" id="tabDoneBtn" style="flex:1">কল করা হয়েছে</button></div>
+<div class="row" style="margin-top:12px"><input id="search" placeholder="নাম্বার দিয়ে খুঁজুন" style="flex:1"><button class="btn btn-light" id="refreshBtn">↻ রিফ্রেশ</button></div>
 <p class="muted" id="syncStatus">লোড হচ্ছে...</p>
-<div class="row"><input id="search" placeholder="নাম্বার দিয়ে খুঁজুন (শেষের ডিজিট)" style="flex:1"><button class="btn btn-light" id="refreshBtn">↻ রিফ্রেশ</button></div>
-<p class="muted" id="summary"></p>
 <div id="list"></div>
-<p class="muted">💡 CALLING STATUS, Valid Conversation, 1st Call Remark, 2nd Call Remark, Others number — সব বদলানো যাবে। ফিল্ড বদলে “সেভ করুন” চাপলেই ওই রোর সব ফিল্ড শিটে লেখা হবে। নম্বর বদলানো যাবে না।</p>
+<p class="muted">💡 CALLING STATUS, Valid Conversation, 1st Call Remark, 2nd Call Remark, Others number — সব বদলানো যাবে। “সেভ করুন” চাপলেই শিটে লেখা হবে। নম্বর বদলানো যাবে না।</p>
 </div></div>
+
+<div id="reportView" style="display:none"><div class="card">
+<div class="row" style="justify-content:space-between"><h2 style="margin:0">📋 Report</h2><button class="btn btn-light btn-sm" id="reportBackBtn">← ফিরে যান</button></div>
+<div style="margin-top:16px"><h3 style="margin:0 0 8px">Registration</h3><div class="row"><input id="regNum" placeholder="নাম্বার" inputmode="tel" style="flex:1"><button class="btn btn-primary btn-sm" id="regAddBtn">+ যোগ করুন</button></div><div id="regList"></div></div>
+<div style="margin-top:16px"><h3 style="margin:0 0 8px">FTD</h3><div class="row"><input id="ftdNum" placeholder="নাম্বার" inputmode="tel" style="flex:1"><input id="ftdAmt" placeholder="টাকা" inputmode="decimal" style="flex:1"><button class="btn btn-primary btn-sm" id="ftdAddBtn">+ যোগ করুন</button></div><div id="ftdList"></div></div>
+<div style="margin-top:16px"><h3 style="margin:0 0 8px">Invalid Number</h3><div class="row"><input id="invNum" placeholder="নাম্বার" inputmode="tel" style="flex:1"><select id="invReason" style="flex:1"><option>কল ধরেনি</option><option>Not connected</option><option>বন্ধ</option><option>ভুল নাম্বার</option></select><button class="btn btn-primary btn-sm" id="invAddBtn">+ যোগ করুন</button></div><div id="invList"></div></div>
+<div style="margin-top:16px"><h3 style="margin:0 0 8px">Problems</h3><div class="row"><input id="probText" placeholder="সমস্যা লিখুন" style="flex:1"><button class="btn btn-primary btn-sm" id="probAddBtn">+ যোগ করুন</button></div><div id="probList"></div></div>
+<div class="row" style="margin-top:20px"><button class="btn btn-grad" id="genBtn" style="flex:1">📄 Generate Report</button></div>
+<div id="reportOut" style="display:none;margin-top:16px"><pre class="out" id="reportText"></pre><button class="btn btn-primary" id="copyReportBtn">📋 কপি করুন</button></div>
+</div></div>
+</div>
 <div class="toast" id="toast"></div>
 <script>
-const TAB='bdxsukuna30';
+const SHEET_ID='10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE';
 const firebaseConfig={apiKey:"AIzaSyB03sx0s65ycG3MYcSbB2HfGMigs9DI-r4",authDomain:"fir-a-topup-bazar.firebaseapp.com",databaseURL:"https://fir-a-topup-bazar-default-rtdb.firebaseio.com",projectId:"fir-a-topup-bazar",storageBucket:"fir-a-topup-bazar.firebasestorage.app",messagingSenderId:"928168996366",appId:"1:928168996366:web:fd879d795202891ee9965f",measurementId:"G-9QBLYHR817"};
-let auth=null, token=null, rows=[], dirty={};
+let auth=null, token=null, agentId=null, rows=[], tab='pending', lastStatusMap={};
+let selectedDate=dhakaToday();
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
-function sheetId(){return ($('sheetId').value||'').trim() || localStorage.getItem('telesales_sheet_id') || '10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE'}
+function esc(v){return (v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+function dhakaToday(){return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Dhaka'})}
+function dhakaNow(){const d=new Date();const date=d.toLocaleDateString('en-GB',{timeZone:'Asia/Dhaka'}).split('/');const time=d.toLocaleTimeString('en-US',{timeZone:'Asia/Dhaka',hour:'2-digit',minute:'2-digit',hour12:true});return {date:date[2]+'-'+date[1]+'-'+date[0],time:time}}
+function displayDay(s){const p=s.split('-');return p[2]+'-'+p[1]+'-'+p[0]}
+function parseDay(s){const p=s.split('-');return Date.UTC(+p[0],+p[1]-1,+p[2])}
+function fmtDay(ms){const d=new Date(ms);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0')}
+function addDays(day,n){return fmtDay(parseDay(day)+n*86400000)}
+function daysBetween(a,b){return Math.floor((parseDay(b)-parseDay(a))/86400000)}
+function dialNumber(n){n=(n||'').replace(/[^0-9+]/g,'');if(!n)return '';if(n.startsWith('+'))return n;if(n.startsWith('0'))return n;return '0'+n}
+function digits(n){return (n||'').replace(/[^0-9]/g,'')}
+function showLogin(){$('loginCard').style.display='block';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none'}
+function showAgent(){$('loginCard').style.display='none';$('agentCard').style.display='block';$('mainView').style.display='none';$('reportView').style.display='none'}
+function showMain(){$('loginCard').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='block';$('reportView').style.display='none';$('agentLabel').textContent='Agent: '+agentId;updateDateBtn();loadDayStats()}
+function showReport(){$('mainView').style.display='none';$('reportView').style.display='block';loadReportData()}
+function updateDateBtn(){$('dateBtn').textContent=displayDay(selectedDate)+(selectedDate===dhakaToday()?' • আজ':'')}
+function shiftDay(d){const nd=addDays(selectedDate,d);if(nd>dhakaToday())return;selectedDate=nd;updateDateBtn();loadDayStats()}
 try{if(window.firebase){firebase.initializeApp(firebaseConfig);auth=firebase.auth();}}catch(e){}
-$('sheetId').value=localStorage.getItem('telesales_sheet_id')||'';
-$('sheetId').addEventListener('change',()=>localStorage.setItem('telesales_sheet_id',$('sheetId').value.trim()));
 $('googleBtn').onclick=async()=>{
-  const id=sheetId(); if(!id){$('loginMsg').textContent='প্রথমে Spreadsheet ID দিন।';$('sheetId').focus();return;}
-  localStorage.setItem('telesales_sheet_id',id);
+  $('loginMsg').textContent='লগইন হচ্ছে...';
   try{
     const provider=new firebase.auth.GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/spreadsheets');
     const res=await auth.signInWithPopup(provider);
     token=res.credential && res.credential.accessToken;
     if(!token){$('loginMsg').textContent='Sheets অনুমতি পাওয়া যায়নি, আবার লগইন করুন।';return;}
-    $('loginCard').style.display='none';$('appCard').style.display='block';$('userEmail').textContent=res.user.email;
-    await loadRows();
-  }catch(e){$('loginMsg').textContent='লগইন হয়নি: '+(e.message||e);}
+    $('userEmail').textContent=res.user.email;
+    const saved=localStorage.getItem('agent_id');
+    if(saved){agentId=saved;showMain();loadRows();}
+    else showAgent();
+  }catch(e){$('loginMsg').textContent='লগইন হয়নি, আবার চেষ্টা করুন।';}
 };
-$('logoutBtn').onclick=()=>{if(auth)auth.signOut();location.reload();};
+$('logoutBtn').onclick=()=>{if(auth)auth.signOut();token=null;agentId=null;localStorage.removeItem('agent_id');showLogin();};
+$('agentBackBtn').onclick=()=>{if(auth)auth.signOut();token=null;agentId=null;showLogin();};
+$('agentBtn').onclick=async()=>{
+  const id=$('agentInput').value.trim(); if(!id){$('agentMsg').textContent='Agent ID লিখুন।';return;}
+  $('agentMsg').textContent='যাচাই হচ্ছে...';
+  try{
+    const titles=await getTabs();
+    let match=titles.find(t=>t===id)||titles.find(t=>t.toLowerCase()===id.toLowerCase());
+    if(!match){$('agentMsg').textContent='এই Agent ID-তে কোনো লিস্ট পাইনি।';return;}
+    agentId=match; localStorage.setItem('agent_id',match); showMain(); loadRows();
+  }catch(e){$('agentMsg').textContent='যাচাই হয়নি, আবার চেষ্টা করুন।';}
+};
+$('reportBtn').onclick=showReport;
+$('reportBackBtn').onclick=()=>{showMain();};
+$('prevDayBtn').onclick=()=>shiftDay(-1);
+$('nextDayBtn').onclick=()=>shiftDay(1);
+$('dateBtn').onclick=()=>{
+  const inp=document.createElement('input'); inp.type='date'; inp.value=selectedDate; inp.max=dhakaToday();
+  inp.style.position='fixed'; inp.style.opacity='0'; document.body.appendChild(inp);
+  inp.onchange=()=>{if(inp.value){selectedDate=inp.value;updateDateBtn();loadDayStats();} inp.remove();};
+  inp.showPicker?inp.showPicker():inp.click();
+};
+$('tabPendingBtn').onclick=()=>{tab='pending';setTabUI();render();};
+$('tabDoneBtn').onclick=()=>{tab='done';setTabUI();render();};
+function setTabUI(){$('tabPendingBtn').className='btn '+(tab==='pending'?'tab-on':'btn-light');$('tabDoneBtn').className='btn '+(tab==='done'?'tab-on':'btn-light');}
 $('refreshBtn').onclick=loadRows;
 $('search').addEventListener('input',render);
 async function api(path,method,body){
-  const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+sheetId()+'/values/'+path,{method:method||'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
-  if(!r.ok){const t=await r.text();throw new Error(r.status+' '+t.slice(0,200));}
+  const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+path,{method:method||'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  if(!r.ok) throw new Error('sheet-error');
   return r.json();
+}
+async function api2(path,method,body){
+  const r=await fetch('https://sheets.googleapis.com/v4/'+path,{method:method||'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  if(!r.ok) throw new Error('sheet-error');
+  return r.json();
+}
+async function getTabs(){
+  const d=await api2('spreadsheets/'+SHEET_ID+'?fields=sheets.properties.title');
+  return (d.sheets||[]).map(s=>s.properties.title);
 }
 async function loadRows(){
   try{
     $('syncStatus').textContent='🔄 শিট থেকে লোড হচ্ছে...';
-    const data=await api(encodeURIComponent(TAB)+'!A6:F55');
-    rows=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||'',status:v[1]||'',valid:v[2]||'',remark1:v[3]||'',remark2:v[4]||'',others:v[5]||''}));
-    dirty={}; render();
+    const data=await api(encodeURIComponent(agentId)+'!A6:F');
+    rows=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||'',status:v[1]||'',valid:v[2]||'',remark1:v[3]||'',remark2:v[4]||'',others:v[5]||''})).filter(r=>r.number||r.status||r.valid||r.remark1||r.remark2||r.others);
+    lastStatusMap={}; rows.forEach(r=>{lastStatusMap[(r.number||'').trim()]=(r.status||'')+'|'+(r.valid||'');});
+    render(); loadDayStats();
     $('syncStatus').textContent='✅ শিটের সাথে সংযুক্ত — '+rows.length+'টি রো';
-  }catch(e){$('syncStatus').textContent='⚠️ লোড হয়নি: '+e.message; }
+  }catch(e){$('syncStatus').textContent='⚠️ লোড হয়নি, আবার চেষ্টা করুন।';}
+}
+function filteredRows(){
+  const q=digits($('search').value.trim());
+  let list=rows.filter(r=>tab==='pending'?!r.status:!!r.status);
+  if(q) list=list.filter(r=>digits(r.number).includes(q)||digits(dialNumber(r.number)).includes(q));
+  return list;
 }
 function render(){
-  const q=$('search').value.trim();
-  const list=q?rows.filter(r=>r.number.includes(q)):rows;
-  const c=list.filter(r=>r.status==='call connected').length, n=list.filter(r=>r.status==='not connected').length, b=list.filter(r=>!r.status).length, vy=list.filter(r=>r.valid==='Yes').length;
-  $('summary').textContent='মোট: '+list.length+'টি • call connected: '+c+' • not connected: '+n+' • খালি: '+b+' • Valid Yes: '+vy;
+  const list=filteredRows();
   $('list').innerHTML=list.length?list.map(r=>{
     const badge=r.status==='call connected'?'badge-ok':r.status==='not connected'?'badge-no':'badge-blank';
-    const esc=v=>(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    return `<div class="report"><div class="row"><b>${r.number}</b><span class="badge ${badge}">${r.status||'খালি'}</span><span class="badge">রো ${r.row}</span><a class="btn btn-light btn-sm" href="tel:${r.number}" style="text-decoration:none">📞 কল করুন</a></div>
+    return `<div class="report"><div class="row"><b>${esc(dialNumber(r.number))}</b><span class="badge ${badge}">${r.status==='call connected'?'● call connected':r.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${r.row}</span>${r.valid?`<span class="badge">Valid: ${esc(r.valid)}</span>`:''}</div>
     <div style="margin-top:10px"><label>CALLING STATUS</label><select id="st-${r.row}"><option value="" ${!r.status?'selected':''}>— খালি —</option><option value="call connected" ${r.status==='call connected'?'selected':''}>call connected</option><option value="not connected" ${r.status==='not connected'?'selected':''}>not connected</option></select></div>
     <div style="margin-top:8px"><label>Valid Conversation</label><select id="vc-${r.row}"><option value="" ${!r.valid?'selected':''}>— খালি —</option><option value="Yes" ${r.valid==='Yes'?'selected':''}>Yes</option><option value="No" ${r.valid==='No'?'selected':''}>No</option></select></div>
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-${r.row}" value="${esc(r.remark1)}" placeholder="1st call remark লিখুন"></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-${r.row}" value="${esc(r.remark2)}" placeholder="2nd call remark লিখুন"></div>
-    <div style="margin-top:8px"><label>Others number</label><input id="ot-${r.row}" value="${esc(r.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
-    <div class="row" style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})">💾 সেভ করুন</button></div></div>`;
+    <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-${r.row}" value="${esc(r.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
+    <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none">📞 Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')">📋 Copy</button><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})" style="flex:1">💾 সেভ করুন</button></div></div>`;
   }).join(''):'<p class="muted">কোনো রো পাওয়া যায়নি।</p>';
+}
+async function copyNum(n){
+  try{await navigator.clipboard.writeText(n);toast('Copy হয়েছে');}
+  catch(e){const t=document.createElement('textarea');t.value=n;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Copy হয়েছে');}
 }
 window.saveRow=async (rowNum)=>{
   const r=rows.find(x=>x.row===rowNum); if(!r)return;
   const val=$('st-'+rowNum).value, vc=$('vc-'+rowNum).value, r1=$('r1-'+rowNum).value.trim(), r2=$('r2-'+rowNum).value.trim(), ot=$('ot-'+rowNum).value.trim();
   try{
-    await api(encodeURIComponent(TAB)+'!B'+rowNum+':F'+rowNum+'?valueInputOption=USER_ENTERED','PUT',{values:[[val,vc,r1,r2,ot]]});
-    r.status=val; r.valid=vc; r.remark1=r1; r.remark2=r2; r.others=ot; render(); toast('✅ রো '+rowNum+' সব ফিল্ড শিটে আপডেট হয়েছে');
-  }catch(e){toast('❌ সেভ হয়নি: '+e.message);}
+    const cur=await api(encodeURIComponent(agentId)+'!A'+rowNum);
+    const curNum=(cur.values&&cur.values[0]&&cur.values[0][0])||'';
+    if(curNum!==r.number){toast('শিটে রো বদলে গেছে — রিফ্রেশ করে আবার সেভ করুন');await loadRows();return;}
+    await api(encodeURIComponent(agentId)+'!B'+rowNum+':F'+rowNum+'?valueInputOption=USER_ENTERED','PUT',{values:[[val,vc,r1,r2,ot]]});
+    const key=(r.number||'').trim(), now=val+'|'+vc, old=lastStatusMap[key];
+    r.status=val; r.valid=vc; r.remark1=r1; r.remark2=r2; r.others=ot;
+    if(now!==old){
+      try{
+        await ensureLogSheet();
+        await appendRow(logSheetId,'Status Log',[dhakaToday(),dialNumber(r.number),val,vc]);
+        lastStatusMap[key]=now;
+        if(!localStorage.getItem('log_anchor_date_'+agentId)) localStorage.setItem('log_anchor_date_'+agentId,dhakaToday());
+      }catch(e){toast('শিটে সেভ হয়েছে, লগে জমা হয়নি');}
+    }
+    render(); loadDayStats(); toast('✅ রো '+rowNum+' শিটে আপডেট হয়েছে');
+  }catch(e){toast('❌ সেভ হয়নি, আবার চেষ্টা করুন');}
 };
-if(auth){auth.onAuthStateChanged(u=>{if(u && token){$('loginCard').style.display='none';$('appCard').style.display='block';$('userEmail').textContent=u.email;}});}
+let reportSheetId=null, logSheetId=null;
+async function createSheet(title,tabs){
+  const d=await api2('spreadsheets','POST',{properties:{title:title},sheets:tabs.map(t=>({properties:{title:t}}))});
+  return d.spreadsheetId;
+}
+async function writeHeader(sid,tab,headers){
+  await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:'+String.fromCharCode(64+headers.length)+'1?valueInputOption=USER_ENTERED','PUT',{values:[headers]});
+}
+async function appendRow(sid,tab,vals){
+  await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=USER_ENTERED','POST',{values:[vals]});
+}
+async function getTabRows(sid,tab){
+  const d=await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A2:Z');
+  return (d.values||[]).map((v,i)=>({cells:v,sheetRow:i+2}));
+}
+async function ensureReportSheet(){
+  if(reportSheetId) return;
+  reportSheetId=localStorage.getItem('report_sheet_id_'+agentId);
+  if(!reportSheetId && agentId==='bdxsukuna30') reportSheetId=localStorage.getItem('report_sheet_id');
+  if(!reportSheetId){
+    reportSheetId=await createSheet('Telesales Report - '+agentId,['Registration','FTD','Invalid','Problems']);
+    await writeHeader(reportSheetId,'Registration',['Date','Number']);
+    await writeHeader(reportSheetId,'FTD',['Date','Number','Amount']);
+    await writeHeader(reportSheetId,'Invalid',['Date','Number','Reason']);
+    await writeHeader(reportSheetId,'Problems',['Date','Problem']);
+    localStorage.setItem('report_sheet_id_'+agentId,reportSheetId);
+  }
+}
+async function ensureLogSheet(){
+  if(logSheetId) return;
+  logSheetId=localStorage.getItem('status_log_sheet_id_'+agentId);
+  if(!logSheetId){
+    logSheetId=await createSheet('Telesales Status Log - '+agentId,['Status Log']);
+    await writeHeader(logSheetId,'Status Log',['Date','Number','Status','Valid']);
+    localStorage.setItem('status_log_sheet_id_'+agentId,logSheetId);
+  }
+}
+function cellE(e,i){return (e.cells&&e.cells[i])||''}
+function filterTodayE(list,day){return list.filter(e=>cellE(e,0)===day)}
+function filterRangeE(list,from,to){return list.filter(e=>{const d=cellE(e,0);return d>=from&&d<=to})}
+function fmtAmt(n){return (Math.round(n*100)/100).toString()}
+async function loadDayStats(){
+  if(!token||!agentId) return;
+  const day=selectedDate;
+  try{
+    const lid=localStorage.getItem('status_log_sheet_id_'+agentId);
+    let rid=localStorage.getItem('report_sheet_id_'+agentId);
+    if(!rid && agentId==='bdxsukuna30') rid=localStorage.getItem('report_sheet_id');
+    const logs=lid?await getTabRows(lid,'Status Log'):[];
+    const invs=rid?await getTabRows(rid,'Invalid'):[];
+    const regs=rid?await getTabRows(rid,'Registration'):[];
+    const ftds=rid?await getTabRows(rid,'FTD'):[];
+    let conn=0, valid=0;
+    logs.forEach(e=>{if(cellE(e,0)===day){if(cellE(e,2)==='call connected')conn++;if(cellE(e,3)==='Yes')valid++;}});
+    const inv=filterTodayE(invs,day).length, reg=filterTodayE(regs,day).length;
+    const ftdToday=filterTodayE(ftds,day); let ftdSum=0;
+    ftdToday.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSum+=v;});
+    let anchor=localStorage.getItem('log_anchor_date_'+agentId);
+    if(!anchor){let min=null;logs.forEach(e=>{const d=cellE(e,0);if(d&&(min===null||d<min))min=d;});anchor=min||day;}
+    const diff=daysBetween(anchor,day), idx=diff>=0?Math.floor(diff/7):0;
+    const blockStart=addDays(anchor,idx*7), blockEnd=addDays(blockStart,6);
+    let connW=0; filterRangeE(logs,blockStart,blockEnd).forEach(e=>{if(cellE(e,2)==='call connected')connW++;});
+    const ftdWeek=filterRangeE(ftds,blockStart,blockEnd); let ftdSumW=0;
+    ftdWeek.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSumW+=v;});
+    $('stConn').textContent=conn; $('stValid').textContent=valid; $('stInv').textContent=inv; $('stReg').textContent=reg;
+    $('stFtd').textContent=ftdToday.length; $('stFtdAmt').textContent='৳'+fmtAmt(ftdSum);
+    $('weekSummary').textContent='Ei 7 din ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • FTD '+ftdWeek.length+' (৳'+fmtAmt(ftdSumW)+')';
+  }catch(e){$('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।';}
+}
+async function loadReportData(){
+  try{
+    await ensureReportSheet();
+    const regs=await getTabRows(reportSheetId,'Registration');
+    const ftds=await getTabRows(reportSheetId,'FTD');
+    const invs=await getTabRows(reportSheetId,'Invalid');
+    const probs=await getTabRows(reportSheetId,'Problems');
+    renderEntryList('regList',regs,e=>esc(cellE(e,1)));
+    renderEntryList('ftdList',ftds,e=>esc(cellE(e,1))+' — ৳'+esc(cellE(e,2)));
+    renderEntryList('invList',invs,e=>esc(cellE(e,1))+' ('+esc(cellE(e,2))+')');
+    renderEntryList('probList',probs,e=>esc(cellE(e,1)));
+    window._rep={regs:regs,ftds:ftds,invs:invs,probs:probs};
+  }catch(e){toast('Report লোড হয়নি, আবার চেষ্টা করুন');}
+}
+function renderEntryList(id,list,fmt){
+  $(id).innerHTML=list.length?list.map(e=>`<div class="entry"><span>${fmt(e)}</span><button class="xbtn" onclick="deleteEntry('${id}',${e.sheetRow})">✕</button></div>`).join(''):'<p class="muted">কোনো এন্ট্রি নেই।</p>';
+}
+async function deleteEntry(listId,sheetRow){
+  const tabMap={regList:'Registration',ftdList:'FTD',invList:'Invalid',probList:'Problems'};
+  const tabName=tabMap[listId];
+  try{
+    await ensureReportSheet();
+    const meta=await api2('spreadsheets/'+reportSheetId+'?fields=sheets.properties');
+    const sh=(meta.sheets||[]).find(s=>s.properties.title===tabName);
+    if(!sh) throw new Error('sheet-error');
+    await api2('spreadsheets/'+reportSheetId+':batchUpdate','POST',{requests:[{deleteDimension:{range:{sheetId:sh.properties.sheetId,dimension:'ROWS',startIndex:sheetRow-1,endIndex:sheetRow}}}]});
+    $('reportOut').style.display='none'; await loadReportData();
+  }catch(e){toast('ডিলিট হয়নি, আবার চেষ্টা করুন');}
+}
+$('regAddBtn').onclick=async()=>{const n=$('regNum').value.trim();if(!n)return;try{await ensureReportSheet();await appendRow(reportSheetId,'Registration',[dhakaToday(),dialNumber(n)]);$('regNum').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('ftdAddBtn').onclick=async()=>{const n=$('ftdNum').value.trim(),a=$('ftdAmt').value.trim();if(!n||!a)return;try{await ensureReportSheet();await appendRow(reportSheetId,'FTD',[dhakaToday(),dialNumber(n),a]);$('ftdNum').value='';$('ftdAmt').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('invAddBtn').onclick=async()=>{const n=$('invNum').value.trim();if(!n)return;try{await ensureReportSheet();await appendRow(reportSheetId,'Invalid',[dhakaToday(),dialNumber(n),$('invReason').value]);$('invNum').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('probAddBtn').onclick=async()=>{const t=$('probText').value.trim();if(!t)return;try{await ensureReportSheet();await appendRow(reportSheetId,'Problems',[dhakaToday(),t]);$('probText').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('genBtn').onclick=()=>{
+  const r=window._rep||{regs:[],ftds:[],invs:[],probs:[]};
+  const now=dhakaNow();
+  const total=rows.filter(x=>x.status).length, conn=rows.filter(x=>x.status==='call connected').length;
+  let ftdSum=0; r.ftds.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSum+=v;});
+  let out='Date: '+displayDay(now.date)+'\nTime: '+now.time+'\nAgent ID: '+agentId+'\nTotal Calls: '+total+'\nConnected: '+conn;
+  out+='\nRegistration ('+r.regs.length+'): '+r.regs.map(e=>cellE(e,1)).join(', ');
+  out+='\nFTD ('+r.ftds.length+'): '+r.ftds.map(e=>cellE(e,1)+' ('+cellE(e,2)+')').join(', ');
+  out+='\nTotal Amount Recharged: '+fmtAmt(ftdSum);
+  out+='\nInvalid Number ('+r.invs.length+'): '+r.invs.map(e=>cellE(e,1)+' ('+cellE(e,2)+')').join(', ');
+  out+='\nProblems ('+r.probs.length+'): '+r.probs.map(e=>cellE(e,1)).join(', ');
+  $('reportText').textContent=out; $('reportOut').style.display='block';
+};
+$('copyReportBtn').onclick=async()=>{try{await navigator.clipboard.writeText($('reportText').textContent);toast('Copy হয়েছে');}catch(e){toast('কপি হয়নি');}};
+setTabUI(); updateDateBtn();
 </script></body></html>
