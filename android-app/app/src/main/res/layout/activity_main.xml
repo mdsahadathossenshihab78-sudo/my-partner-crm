@@ -93,10 +93,10 @@
         </LinearLayout>
         </LinearLayout>
         </com.google.android.material.appbar.AppBarLayout>
-        <LinearLayout android:id="@+id/dashboardView"
+        <androidx.core.widget.NestedScrollView android:id="@+id/dashboardView" android:clipToPadding="false" android:paddingBottom="24dp"
             android:layout_width="match_parent" android:layout_height="match_parent"
             android:orientation="vertical" android:layout_marginBottom="88dp"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
         <!-- v4.13 dashboard redesign: hero totals at the top -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="16dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_violet" android:padding="16dp" android:layout_marginEnd="6dp">
@@ -159,11 +159,10 @@
                 <TextView android:id="@+id/weekSummary" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/white" />
             </LinearLayout>
         </LinearLayout>
-        </LinearLayout>
-        <LinearLayout android:id="@+id/listContent"
+        </LinearLayout></androidx.core.widget.NestedScrollView> <LinearLayout android:id="@+id/listContent"
             android:layout_width="match_parent" android:layout_height="match_parent"
             android:orientation="vertical" android:layout_marginBottom="88dp"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
             <com.google.android.material.button.MaterialButton android:id="@+id/btnTabPending"
