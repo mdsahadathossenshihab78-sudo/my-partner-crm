@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView guideText;
     private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
     private int currentSection = 0;
-    private TextView reportStatus, reportOutput, ftdTotal, ftdStepCount;
+    private TextView reportStatus, reportOutput, ftdTotal, ftdStepCount, regStepCount, invAutoText;
     private LinearLayout regList, invList, probList, ftdStepAmountRow;
     private TextInputEditText regCount, ftdStepAmount, invNumber, probText;
     
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         "নিচের মেনু থেকে Report-এ গেলে দিনের হিসাব দেওয়া যায়:\n" +
         "• Registration: আজ যতটা রেজিস্ট্রেশন হয়েছে, শুধু সংখ্যাটা লিখুন।\n" +
         "• FTD: + চাপলে একটা করে বাড়বে; প্রতিবার নিচে ওই FTD-র টাকাটা লিখতে হবে। শুধু মোট সংখ্যা আর মোট টাকা দেখাবে, আলাদা আলাদা FTD-র টাকা দেখাবে না। ভুল হলে − চাপলে আজকের শেষ FTD-টা বাদ যাবে।\n" +
-        "• Invalid Number: যে নাম্বারে কল ঢোকেনি বা নাম্বার ভুল, সেই নাম্বার আর কারণ (কল ধরেনি / Not connected / বন্ধ / ভুল নাম্বার) দিন।\n" +
+        "• Invalid: ").append(countAutoInvalid(logs, today)).append(" যে নাম্বারে কল ঢোকেনি বা নাম্বার ভুল, সেই নাম্বার আর কারণ (কল ধরেনি / Not connected / বন্ধ / ভুল নাম্বার) দিন।\n" +
         "• Problems: কাজের সময় কোনো সমস্যা হলে এখানে লিখুন।\n" +
         "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। Generate Report চাপলে আজকের তারিখ, সময়, Agent ID, মোট কল, Connected, Registration, FTD, মোট টাকা, Invalid আর Problems দিয়ে রিপোর্ট তৈরি হবে। Copy চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
         "৫. Website বাটন\n" +
@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
         reportOutputCard = findViewById(R.id.reportOutputCard);
         reportStatus = findViewById(R.id.reportStatus);
         reportOutput = findViewById(R.id.reportOutput);
-        regCount = findViewById(R.id.regCount);
+        regStepCount = findViewById(R.id.regStepCount); invAutoText = findViewById(R.id.invAutoText);
 
 
         invNumber = findViewById(R.id.invNumber);
@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayAdapter<String> ra = new ArrayAdapter<>(this, R.layout.spinner_item, reasons);
         ra.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        invReason.setAdapter(ra);
+        // v4.18: manual Invalid form removed; Invalid is now an auto-count from the Status Log.
 
         findViewById(R.id.menuDashboardBtn).setOnClickListener(v -> { applySection(0); loadDayStats(); });
         findViewById(R.id.menuHomeBtn).setOnClickListener(v -> applySection(1));
@@ -246,13 +246,9 @@ public class MainActivity extends AppCompatActivity {
         });
         findViewById(R.id.btnTabPending).setOnClickListener(v -> { adapter.setTab(0); setTabUI(); });
         findViewById(R.id.btnTabDone).setOnClickListener(v -> { adapter.setTab(1); setTabUI(); });
-        findViewById(R.id.regAddBtn).setOnClickListener(v -> {
-            String c = txt(regCount);
-            int cnt;
-            try { cnt = Integer.parseInt(c); } catch (Exception e) { cnt = -1; }
-            if (cnt <= 0) { Toast.makeText(this, "Registration সংখ্যা দিন", Toast.LENGTH_SHORT).show(); return; }
-            addReportEntry("Registration", new String[]{dhakaDate(), String.valueOf(cnt)}, () -> regCount.setText(""));
-        });
+        findViewById(R.id.regPlusBtn).setOnClickListener(v -> { addReportEntry("Registration", new String[]{dhakaDate(), "1"}, () -> loadReportData()); });
+            findViewById(R.id.regMinusBtn).setOnClickListener(v -> { REntry last = null; for (REntry e : regToday) if (last == null || e.sheetRow > last.sheetRow) last = e; if (last == null) { Toast.makeText(this, "Registration nei", Toast.LENGTH_SHORT).show(); return; } deleteReportEntry("Registration", last); });
+            
         findViewById(R.id.ftdPlusBtn).setOnClickListener(v -> {
             if (ftdStepAmountRow.getVisibility() == View.VISIBLE) { ftdStepAmount.requestFocus(); return; }
             int cur = ftdToday == null ? 0 : ftdTotalCount(ftdToday);
@@ -277,13 +273,8 @@ public class MainActivity extends AppCompatActivity {
             if (last == null) { Toast.makeText(this, "আজ কোনো FTD নেই", Toast.LENGTH_SHORT).show(); return; }
             deleteReportEntry("FTD", last);
         });
-        findViewById(R.id.invAddBtn).setOnClickListener(v -> {
-            String n = txt(invNumber);
-            if (n.isEmpty()) { Toast.makeText(this, "Number din", Toast.LENGTH_SHORT).show(); return; }
-            String reason = reasons[invReason.getSelectedItemPosition()];
-            addReportEntry("Invalid", new String[]{dhakaDate(), RowAdapter.dialNumber(n), reason}, () -> invNumber.setText(""));
-        });
-        findViewById(R.id.probAddBtn).setOnClickListener(v -> {
+        // v4.18: manual Invalid entry removed.
+            findViewById(R.id.probAddBtn).setOnClickListener(v -> {
             String t = txt(probText);
             if (t.isEmpty()) { Toast.makeText(this, "Problem likhun", Toast.LENGTH_SHORT).show(); return; }
             addReportEntry("Problems", new String[]{dhakaDate(), t}, () -> probText.setText(""));
@@ -666,7 +657,7 @@ public class MainActivity extends AppCompatActivity {
                     if ("Yes".equals(cellE(e, 3))) valid++;
                     if ("not connected".equals(cellE(e, 2))) notConn++;
                 }
-                int inv = filterTodayE(invs, day).size();
+                int inv = countAutoInvalid(logs, day);
                 int reg = regTotalCount(filterTodayE(regs, day));
                 List<REntry> ftdToday = filterTodayE(ftds, day);
                 int ftdN = ftdTotalCount(ftdToday);
@@ -845,7 +836,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regCount, R.id.regAddBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.invNumber, R.id.invReason, R.id.invAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
+    private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regPlusBtn, R.id.regMinusBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
         if (token == null) { showLogin(); return; }
         reportStatus.setText("Report load hocche...");
         new Thread(() -> {
@@ -856,16 +847,16 @@ public class MainActivity extends AppCompatActivity {
                 ftdToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "FTD")), today);
                 invToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Invalid")), today);
                 probToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Problems")), today);
-                runOnUiThread(() -> { refreshReportLists(); reportStatus.setText(""); });
+                runOnUiThread(() -> { refreshReportLists(); reportStatus.setText(""); loadAutoInvalidForReport(); });
             } catch (Exception e) {
                 runOnUiThread(() -> reportStatus.setText("Report load hoyni: " + e.getMessage()));
             }
         }).start();
     }
 
-    private void refreshReportLists() {
-        fillList(regList, regToday, "Registration");
-        fillList(invList, invToday, "Invalid");
+    private int countAutoInvalid(List<REntry> logs, String date) { java.util.Set<String> seen = new java.util.HashSet<>(); if (logs == null) return 0; for (REntry e : logs) { if (e == null) continue; if (!date.equals(cellE(e, 0))) continue; if (!"not connected".equalsIgnoreCase(cellE(e, 2).trim())) continue; if (!"No".equalsIgnoreCase(cellE(e, 3).trim())) continue; String n = cellE(e, 1).replace(" ", "").replace("-", ""); if (n.startsWith("+880")) n = "0" + n.substring(4); else if (n.startsWith("880")) n = "0" + n.substring(3); else if (!n.startsWith("0")) n = "0" + n; if (!n.isEmpty()) seen.add(n); } return seen.size(); } private void loadAutoInvalidForReport() { final String d = reportDate; new Thread(() -> { try { if (token == null) return; StatusLogTarget t = resolveStatusLogTarget(); if (t == null) return; List<REntry> logs = withRows(SheetsClient.getReportRows(token, t.sheetId, t.tab)); final int c = countAutoInvalid(logs, d); runOnUiThread(() -> { if (invAutoText != null) invAutoText.setText("Invalid: " + c); }); } catch (Exception ignored) { } }).start(); } private void refreshReportLists() {
+        if (regStepCount != null) regStepCount.setText(String.valueOf(regTotalCount(regToday)));
+        // v4.18: Invalid per-entry list removed; auto-count is shown in invAutoText.
         fillList(probList, probToday, "Problems");
         double sum = 0;
         for (REntry r : ftdToday) {
@@ -986,9 +977,9 @@ public class MainActivity extends AppCompatActivity {
                 }
                 sb.append("FTD: ").append(ftdTotalCount(ftdToday)).append("\n");
                 sb.append("Total Amount Recharged: ").append(fmtAmount(sum)).append("\n");
-                sb.append("Invalid Number:\n");
-                if (invToday.isEmpty()) sb.append("-\n");
-                else for (REntry r : invToday) sb.append(cellE(r, 1)).append(" - ").append(cellE(r, 2)).append("\n");
+                sb.append("Invalid: ").append(countAutoInvalid(logs, today)).append("\n");
+                // v4.18: manual Invalid rows are not listed. sb.append("-\n");
+                // v4.18: manual Invalid rows are not listed. sb.append(cellE(r, 1)).append(" - ").append(cellE(r, 2)).append("\n");
                 sb.append("Problems:\n");
                 if (probToday.isEmpty()) sb.append("-\n");
                 else for (REntry r : probToday) sb.append(cellE(r, 1)).append("\n");
