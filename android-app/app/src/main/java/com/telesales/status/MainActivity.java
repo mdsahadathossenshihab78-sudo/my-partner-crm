@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.auth.GoogleAuthUtil;
@@ -152,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
         invReason.setAdapter(ra);
 
         findViewById(R.id.reportBtn).setOnClickListener(v -> showReport());
+        findViewById(R.id.websiteBtn).setOnClickListener(v -> openWebsite());
         findViewById(R.id.reportBackBtn).setOnClickListener(v -> showMain());
         findViewById(R.id.btnPrevDay).setOnClickListener(v -> shiftDay(-1));
         findViewById(R.id.btnNextDay).setOnClickListener(v -> shiftDay(1));
@@ -539,6 +541,22 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> weekSummary.setText("Hisab load hoyni: " + e.getMessage()));
             }
         }).start();
+    }
+
+    /** Website button: WebView NOY — Chrome Custom Tab (Chrome-er profile, password/login cholbe). */
+    private static final String WEBSITE_URL = "https://bdxsukuna03.12bajeevip.com/register.html";
+    private void openWebsite() {
+        try {
+            CustomTabsIntent intent = new CustomTabsIntent.Builder().build();
+            intent.launchUrl(this, Uri.parse(WEBSITE_URL));
+        } catch (Exception e) {
+            try {
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(WEBSITE_URL));
+                startActivity(i);
+            } catch (Exception ex) {
+                Toast.makeText(this, "Browser khola jayni", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
