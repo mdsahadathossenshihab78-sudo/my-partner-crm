@@ -3,7 +3,14 @@ package com.telesales.status;
 import android.app.DatePickerDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.IntentFilter;
+import android.net.Uri;
+import android.os.Environment;
+import org.json.JSONObject;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -68,7 +75,10 @@ public class MainActivity extends AppCompatActivity {
     private View reportView, reportOutputCard;
     private TextView reportStatus, reportOutput, ftdTotal;
     private LinearLayout regList, ftdList, invList, probList;
-    private TextInputEditText regNumber, ftdCount, ftdAmount, invNumber, probText;
+    private TextInputEditText regCount, ftdCount, ftdAmount, invNumber, probText;
+    private boolean updateChecked = false;
+    private long updateDownloadId = -1;
+    private BroadcastReceiver updateReceiver;
     private Spinner invReason;
     private String reportSheetId;
     /** Report sheet-er ekta row: cells + sheet-er row number (delete korar jonno). */
@@ -98,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         reportOutputCard = findViewById(R.id.reportOutputCard);
         reportStatus = findViewById(R.id.reportStatus);
         reportOutput = findViewById(R.id.reportOutput);
-        regNumber = findViewById(R.id.regNumber);
+        regCount = findViewById(R.id.regCount);
         ftdCount = findViewById(R.id.ftdCount);
         ftdAmount = findViewById(R.id.ftdAmount);
         invNumber = findViewById(R.id.invNumber);
@@ -165,9 +175,11 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btnTabPending).setOnClickListener(v -> { adapter.setTab(0); setTabUI(); });
         findViewById(R.id.btnTabDone).setOnClickListener(v -> { adapter.setTab(1); setTabUI(); });
         findViewById(R.id.regAddBtn).setOnClickListener(v -> {
-            String n = txt(regNumber);
-            if (n.isEmpty()) { Toast.makeText(this, "Number din", Toast.LENGTH_SHORT).show(); return; }
-            addReportEntry("Registration", new String[]{dhakaDate(), RowAdapter.dialNumber(n)}, () -> regNumber.setText(""));
+            String c = txt(regCount);
+            int cnt;
+            try { cnt = Integer.parseInt(c); } catch (Exception e) { cnt = -1; }
+            if (cnt <= 0) { Toast.makeText(this, "Registration সংখ্যা দিন", Toast.LENGTH_SHORT).show(); return; }
+            addReportEntry("Registration", new String[]{dhakaDate(), String.valueOf(cnt)}, () -> regCount.setText(""));
         });
         findViewById(R.id.ftdAddBtn).setOnClickListener(v -> {
             String c = txt(ftdCount);
@@ -271,6 +283,7 @@ public class MainActivity extends AppCompatActivity {
         agentView.setVisibility(View.GONE);
         setAgentSubtitle();
         loadDayStats();
+        checkForUpdate();
     }
     private void showAgent() {
         loginView.setVisibility(View.GONE);
@@ -470,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
                     if ("not connected".equals(cellE(e, 2))) notConn++;
                 }
                 int inv = filterTodayE(invs, day).size();
-                int reg = filterTodayE(regs, day).size();
+                int reg = regTotalCount(filterTodayE(regs, day));
                 List<REntry> ftdToday = filterTodayE(ftds, day);
                 int ftdN = ftdTotalCount(ftdToday);
                 double ftdSum = 0;
@@ -509,6 +522,71 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> weekSummary.setText("Hisab load hoyni: " + e.getMessage()));
             }
         }).start();
+    }
+
+    /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
+    private void checkForUpdate() {
+        if (updateChecked) return;
+        updateChecked = true;
+        new Thread(() -> {
+            try {
+                java.net.URL url = new java.net.URL("https://raw.githubusercontent.com/mdsahadathossenshihab1-lgtm/telesales-status-app/main/version.json");
+                java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection();
+                c.setConnectTimeout(5000); c.setReadTimeout(5000);
+                java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream()));
+                StringBuilder sb = new StringBuilder(); String line;
+                while ((line = br.readLine()) != null) sb.append(line);
+                br.close();
+                JSONObject j = new JSONObject(sb.toString());
+                int remoteCode = j.getInt("versionCode");
+                String remoteName = j.optString("versionName", "");
+                String apkUrl = j.optString("apkUrl", "");
+                int myCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+                if (remoteCode > myCode && !apkUrl.isEmpty()) {
+                    runOnUiThread(() -> new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("অ্যাপ আপডেট করুন")
+                            .setMessage("নতুন ভার্সন " + remoteName + " এসেছে। আপডেট করলে নতুন সুবিধা পাবেন।")
+                            .setPositiveButton("আপডেট", (d, w) -> startUpdateDownload(apkUrl))
+                            .setNegativeButton("পরে", null)
+                            .show());
+                }
+            } catch (Exception ignored) { /* net/file na pele purono version choltei thakbe, kono error noy */ }
+        }).start();
+    }
+
+    private void startUpdateDownload(String apkUrl) {
+        try {
+            DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            DownloadManager.Request req = new DownloadManager.Request(Uri.parse(apkUrl));
+            req.setTitle("Telesales app update");
+            req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "telesales-status.apk");
+            req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            req.setMimeType("application/vnd.android.package-archive");
+            updateDownloadId = dm.enqueue(req);
+            if (updateReceiver == null) {
+                updateReceiver = new BroadcastReceiver() {
+                    @Override public void onReceive(Context ctx, Intent intent) {
+                        long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                        if (id != updateDownloadId) return;
+                        try {
+                            DownloadManager dm2 = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                            Uri uri = dm2.getUriForDownloadedFile(id);
+                            if (uri == null) { Toast.makeText(MainActivity.this, "ডাউনলোড হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show(); return; }
+                            Intent install = new Intent(Intent.ACTION_VIEW);
+                            install.setDataAndType(uri, "application/vnd.android.package-archive");
+                            install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            startActivity(install);
+                        } catch (Exception e) {
+                            Toast.makeText(MainActivity.this, "ইনস্টল খোলা যায়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                };
+                registerReceiver(updateReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+            }
+            Toast.makeText(this, "আপডেট ডাউনলোড হচ্ছে...", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "ডাউনলোড শুরু হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // ---------- Report ----------
@@ -553,6 +631,21 @@ public class MainActivity extends AppCompatActivity {
     }
     private static int ftdTotalCount(List<REntry> list) {
         int t = 0; for (REntry e : list) t += ftdCountOf(e); return t;
+    }
+
+    /** Registration row-r Number cell-e phone number na count: FTD-r motoi niyom. */
+    private static boolean isRegCountRow(REntry e) {
+        String n = cellE(e, 1);
+        if (n.isEmpty() || n.startsWith("0") || n.startsWith("+")) return false;
+        for (int i = 0; i < n.length(); i++) if (!Character.isDigit(n.charAt(i))) return false;
+        return true;
+    }
+    private static int regCountOf(REntry e) {
+        if (!isRegCountRow(e)) return 1;
+        try { return Integer.parseInt(cellE(e, 1)); } catch (Exception ex) { return 1; }
+    }
+    private static int regTotalCount(List<REntry> list) {
+        int t = 0; for (REntry e : list) t += regCountOf(e); return t;
     }
 
     private void ensureReportSheet() throws Exception {
@@ -612,6 +705,7 @@ public class MainActivity extends AppCompatActivity {
             if ("FTD".equals(tab) && isFtdCountRow(e)) text = cellE(e, 1) + "টা - " + cellE(e, 2);
             else if ("FTD".equals(tab) && cellE(e, 1).isEmpty()) text = cellE(e, 2);
             else if ("FTD".equals(tab) || "Invalid".equals(tab)) text = cellE(e, 1) + " - " + cellE(e, 2);
+            else if ("Registration".equals(tab) && isRegCountRow(e)) text = cellE(e, 1) + "টা";
             else text = cellE(e, 1);
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
@@ -694,12 +788,13 @@ public class MainActivity extends AppCompatActivity {
                 sb.append("Agent ID: ").append(agentId).append("\n");
                 sb.append("Total Calls: ").append(total).append("\n");
                 sb.append("Connected: ").append(conn).append("\n");
-                sb.append("Registration: ").append(regToday.size()).append("\n");
+                sb.append("Registration: ").append(regTotalCount(regToday)).append("\n");
                 if (!regToday.isEmpty()) {
-                    sb.append("Registration Numbers: ");
+                    sb.append("Registration Details: ");
                     for (int i = 0; i < regToday.size(); i++) {
                         if (i > 0) sb.append(", ");
-                        sb.append(cellE(regToday.get(i), 1));
+                        REntry re = regToday.get(i);
+                        sb.append(isRegCountRow(re) ? cellE(re, 1) + "টা" : cellE(re, 1));
                     }
                     sb.append("\n");
                 }
