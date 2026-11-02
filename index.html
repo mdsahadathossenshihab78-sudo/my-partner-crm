@@ -112,6 +112,7 @@ $('googleBtn').onclick=async()=>{
   try{
     const provider=new firebase.auth.GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/spreadsheets');
+    provider.addScope('https://www.googleapis.com/auth/drive.readonly');
     const res=await auth.signInWithPopup(provider);
     token=res.credential && res.credential.accessToken;
     if(!token){$('loginMsg').textContent='Sheets অনুমতি পাওয়া যায়নি, আবার লগইন করুন।';return;}
@@ -148,6 +149,10 @@ $('tabDoneBtn').onclick=()=>{tab='done';setTabUI();render();};
 function setTabUI(){$('tabPendingBtn').className='btn '+(tab==='pending'?'tab-on':'btn-light');$('tabDoneBtn').className='btn '+(tab==='done'?'tab-on':'btn-light');}
 $('refreshBtn').onclick=loadRows;
 $('search').addEventListener('input',render);
+let dirty=false;
+$('mainView').addEventListener('input',()=>{dirty=true;});
+$('mainView').addEventListener('change',()=>{dirty=true;});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&$('mainView').style.display!=='none'&&!dirty)loadRows();});
 async function api(path,method,body){
   const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+path,{method:method||'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
   if(!r.ok) throw new Error('sheet-error');
@@ -157,6 +162,18 @@ async function api2(path,method,body){
   const r=await fetch('https://sheets.googleapis.com/v4/'+path,{method:method||'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
   if(!r.ok) throw new Error('sheet-error');
   return r.json();
+}
+async function apiDrive(path){
+  const r=await fetch('https://www.googleapis.com/drive/v3/'+path,{headers:{Authorization:'Bearer '+token}});
+  if(!r.ok) throw new Error('drive-error');
+  return r.json();
+}
+async function findFileByName(name){
+  try{
+    const q=encodeURIComponent("name = '"+name.replace(/'/g,"\\'")+"' and trashed = false");
+    const d=await apiDrive('files?q='+q+'&orderBy=createdTime&fields=files(id,createdTime)');
+    return (d.files&&d.files[0])?d.files[0].id:null;
+  }catch(e){return null;}
 }
 async function getTabs(){
   const d=await api2('spreadsheets/'+SHEET_ID+'?fields=sheets.properties.title');
@@ -169,7 +186,7 @@ async function loadRows(){
     rows=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||'',status:v[1]||'',valid:v[2]||'',remark1:v[3]||'',remark2:v[4]||'',others:v[5]||''})).filter(r=>r.number||r.status||r.valid||r.remark1||r.remark2||r.others);
     lastStatusMap={}; rows.forEach(r=>{lastStatusMap[(r.number||'').trim()]=(r.status||'')+'|'+(r.valid||'');});
     render(); loadDayStats();
-    $('syncStatus').textContent='✅ শিটের সাথে সংযুক্ত — '+rows.length+'টি রো';
+    $('syncStatus').textContent='✅ শিটের সাথে সংযুক্ত — '+rows.length+'টি রো'; dirty=false;
   }catch(e){$('syncStatus').textContent='⚠️ লোড হয়নি, আবার চেষ্টা করুন।';}
 }
 function filteredRows(){
@@ -222,7 +239,7 @@ window.saveRow=async (rowNum)=>{
         if(!localStorage.getItem('log_anchor_date_'+agentId)) localStorage.setItem('log_anchor_date_'+agentId,dhakaToday());
       }catch(e){toast('শিটে সেভ হয়েছে, লগে জমা হয়নি');}
     }
-    render(); loadDayStats(); toast('✅ রো '+rowNum+' শিটে আপডেট হয়েছে');
+    render(); loadDayStats(); dirty=false; toast('✅ রো '+rowNum+' শিটে আপডেট হয়েছে');
   }catch(e){toast('❌ সেভ হয়নি, আবার চেষ্টা করুন');}
 };
 let reportSheetId=null, logSheetId=null;
@@ -244,6 +261,7 @@ async function ensureReportSheet(){
   if(reportSheetId) return;
   reportSheetId=localStorage.getItem('report_sheet_id_'+agentId);
   if(!reportSheetId && agentId==='bdxsukuna30') reportSheetId=localStorage.getItem('report_sheet_id');
+  if(!reportSheetId){reportSheetId=await findFileByName('Telesales Report - '+agentId);if(reportSheetId)localStorage.setItem('report_sheet_id_'+agentId,reportSheetId);}
   if(!reportSheetId){
     reportSheetId=await createSheet('Telesales Report - '+agentId,['Registration','FTD','Invalid','Problems']);
     await writeHeader(reportSheetId,'Registration',['Date','Number']);
@@ -256,6 +274,7 @@ async function ensureReportSheet(){
 async function ensureLogSheet(){
   if(logSheetId) return;
   logSheetId=localStorage.getItem('status_log_sheet_id_'+agentId);
+  if(!logSheetId){logSheetId=await findFileByName('Telesales Status Log - '+agentId);if(logSheetId)localStorage.setItem('status_log_sheet_id_'+agentId,logSheetId);}
   if(!logSheetId){
     logSheetId=await createSheet('Telesales Status Log - '+agentId,['Status Log']);
     await writeHeader(logSheetId,'Status Log',['Date','Number','Status','Valid']);
@@ -270,9 +289,11 @@ async function loadDayStats(){
   if(!token||!agentId) return;
   const day=selectedDate;
   try{
-    const lid=localStorage.getItem('status_log_sheet_id_'+agentId);
+    let lid=localStorage.getItem('status_log_sheet_id_'+agentId);
+    if(!lid){lid=await findFileByName('Telesales Status Log - '+agentId);if(lid)localStorage.setItem('status_log_sheet_id_'+agentId,lid);}
     let rid=localStorage.getItem('report_sheet_id_'+agentId);
     if(!rid && agentId==='bdxsukuna30') rid=localStorage.getItem('report_sheet_id');
+    if(!rid){rid=await findFileByName('Telesales Report - '+agentId);if(rid)localStorage.setItem('report_sheet_id_'+agentId,rid);}
     const logs=lid?await getTabRows(lid,'Status Log'):[];
     const invs=rid?await getTabRows(rid,'Invalid'):[];
     const regs=rid?await getTabRows(rid,'Registration'):[];
@@ -282,8 +303,8 @@ async function loadDayStats(){
     const inv=filterTodayE(invs,day).length, reg=filterTodayE(regs,day).length;
     const ftdToday=filterTodayE(ftds,day); let ftdSum=0;
     ftdToday.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSum+=v;});
-    let anchor=localStorage.getItem('log_anchor_date_'+agentId);
-    if(!anchor){let min=null;logs.forEach(e=>{const d=cellE(e,0);if(d&&(min===null||d<min))min=d;});anchor=min||day;}
+    let minLog=null;logs.forEach(e=>{const d=cellE(e,0);if(d&&(minLog===null||d<minLog))minLog=d;});
+    let anchor=minLog||localStorage.getItem('log_anchor_date_'+agentId)||day;
     const diff=daysBetween(anchor,day), idx=diff>=0?Math.floor(diff/7):0;
     const blockStart=addDays(anchor,idx*7), blockEnd=addDays(blockStart,6);
     let connW=0; filterRangeE(logs,blockStart,blockEnd).forEach(e=>{if(cellE(e,2)==='call connected')connW++;});
