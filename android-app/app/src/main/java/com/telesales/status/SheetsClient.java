@@ -37,6 +37,22 @@ public class SheetsClient {
         return out;
     }
 
+    /** Drive-e nam diye spreadsheet khunja: sobcheye purono (prothom toiri) file-er ID, na pele null.
+     *  Scope na thakle ba jekono error-e null — caller tokhon ager moto local id / create flow-e jabe. */
+    public static String findSpreadsheetByName(String token, String name) {
+        try {
+            String qq = URLEncoder.encode("name = '" + name.replace("'", "\\'") + "' and trashed = false", "UTF-8");
+            URL url = new URL("https://www.googleapis.com/drive/v3/files?q=" + qq + "&orderBy=createdTime&fields=files(id,createdTime)");
+            HttpURLConnection c = (HttpURLConnection) url.openConnection();
+            c.setRequestProperty("Authorization", "Bearer " + token);
+            if (c.getResponseCode() != 200) return null;
+            JSONObject j = new JSONObject(readAll(c.getInputStream()));
+            JSONArray files = j.optJSONArray("files");
+            if (files == null || files.length() == 0) return null;
+            return files.getJSONObject(0).optString("id", null);
+        } catch (Exception e) { return null; }
+    }
+
     private static String readAll(InputStream in) throws Exception {
         BufferedReader r = new BufferedReader(new InputStreamReader(in, "UTF-8"));
         StringBuilder sb = new StringBuilder(); String line;
