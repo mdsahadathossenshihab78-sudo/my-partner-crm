@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private View reportView, reportOutputCard;
     private TextView reportStatus, reportOutput, ftdTotal;
     private LinearLayout regList, ftdList, invList, probList;
-    private TextInputEditText regNumber, ftdNumber, ftdAmount, invNumber, probText;
+    private TextInputEditText regNumber, ftdAmount, invNumber, probText;
     private Spinner invReason;
     private String reportSheetId;
     /** Report sheet-er ekta row: cells + sheet-er row number (delete korar jonno). */
@@ -99,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
         reportStatus = findViewById(R.id.reportStatus);
         reportOutput = findViewById(R.id.reportOutput);
         regNumber = findViewById(R.id.regNumber);
-        ftdNumber = findViewById(R.id.ftdNumber);
         ftdAmount = findViewById(R.id.ftdAmount);
         invNumber = findViewById(R.id.invNumber);
         invReason = findViewById(R.id.invReason);
@@ -170,12 +169,11 @@ public class MainActivity extends AppCompatActivity {
             addReportEntry("Registration", new String[]{dhakaDate(), RowAdapter.dialNumber(n)}, () -> regNumber.setText(""));
         });
         findViewById(R.id.ftdAddBtn).setOnClickListener(v -> {
-            String n = txt(ftdNumber);
             String a = txt(ftdAmount);
             double amt;
             try { amt = Double.parseDouble(a); } catch (Exception e) { amt = -1; }
-            if (n.isEmpty() || amt <= 0) { Toast.makeText(this, "Number ar thik amount din", Toast.LENGTH_SHORT).show(); return; }
-            addReportEntry("FTD", new String[]{dhakaDate(), RowAdapter.dialNumber(n), fmtAmount(amt)}, () -> { ftdNumber.setText(""); ftdAmount.setText(""); });
+            if (amt <= 0) { Toast.makeText(this, "Thik amount din", Toast.LENGTH_SHORT).show(); return; }
+            addReportEntry("FTD", new String[]{dhakaDate(), "", fmtAmount(amt)}, () -> { ftdAmount.setText(""); });
         });
         findViewById(R.id.invAddBtn).setOnClickListener(v -> {
             String n = txt(invNumber);
@@ -591,8 +589,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         for (REntry e : list) {
-            String text = ("FTD".equals(tab) || "Invalid".equals(tab))
-                    ? cellE(e, 1) + " - " + cellE(e, 2) : cellE(e, 1);
+            String text = ("FTD".equals(tab) && cellE(e, 1).isEmpty())
+                    ? cellE(e, 2)
+                    : (("FTD".equals(tab) || "Invalid".equals(tab))
+                    ? cellE(e, 1) + " - " + cellE(e, 2) : cellE(e, 1));
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
@@ -688,7 +688,9 @@ public class MainActivity extends AppCompatActivity {
                     sb.append("FTD Details: ");
                     for (int i = 0; i < ftdToday.size(); i++) {
                         if (i > 0) sb.append(", ");
-                        sb.append(cellE(ftdToday.get(i), 1)).append(" - ").append(cellE(ftdToday.get(i), 2));
+                        String ftdNum = cellE(ftdToday.get(i), 1);
+                        if (ftdNum.isEmpty()) sb.append(cellE(ftdToday.get(i), 2));
+                        else sb.append(ftdNum).append(" - ").append(cellE(ftdToday.get(i), 2));
                     }
                     sb.append("\n");
                 }
