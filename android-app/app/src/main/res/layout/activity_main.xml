@@ -287,12 +287,6 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="FTD" android:textSize="12sp" android:textStyle="bold"
                     android:textColor="@color/white" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/ftdNumber"
-                    android:layout_width="match_parent" android:layout_height="52dp"
-                    android:hint="নাম্বার" android:inputType="phone"
-                    android:background="@drawable/glass_field" android:padding="12dp"
-                    android:layout_marginTop="10dp" android:textColor="@color/white"
-                    android:textColorHint="@color/muted_light" />
                 <com.google.android.material.textfield.TextInputEditText android:id="@+id/ftdAmount"
                     android:layout_width="match_parent" android:layout_height="52dp"
                     android:hint="টাকার পরিমাণ" android:inputType="numberDecimal"
