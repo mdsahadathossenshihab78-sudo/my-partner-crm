@@ -220,20 +220,7 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="REGISTRATION" android:textSize="12sp" android:textStyle="bold"
                     android:textColor="@color/white" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/regCount"
-                    android:layout_width="match_parent" android:layout_height="52dp"
-                    android:hint="Registration সংখ্যা" android:inputType="number"
-                    android:background="@drawable/glass_field" android:padding="12dp"
-                    android:layout_marginTop="10dp" android:textColor="@color/white"
-                    android:textColorHint="@color/muted_light" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/regAddBtn"
-                    android:layout_width="match_parent" android:layout_height="48dp"
-                    android:layout_marginTop="10dp" android:text="Add"
-                    app:backgroundTint="@null" android:background="@drawable/btn_gradient"
-                    android:textColor="@color/white" />
-                <LinearLayout android:id="@+id/regList" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:orientation="vertical"
-                    android:layout_marginTop="10dp" />
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="10dp"><com.google.android.material.button.MaterialButton android:id="@+id/regMinusBtn" android:layout_width="52dp" android:layout_height="52dp" android:text="-" android:textSize="20sp" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" /><TextView android:id="@+id/regStepCount" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="0" android:textSize="24sp" android:textStyle="bold" android:gravity="center" android:textColor="@color/white" /><com.google.android.material.button.MaterialButton android:id="@+id/regPlusBtn" android:layout_width="52dp" android:layout_height="52dp" android:text="+" android:textSize="20sp" app:backgroundTint="@null" android:background="@drawable/btn_gradient" android:textColor="@color/white" /></LinearLayout>
             </LinearLayout>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical" android:background="@drawable/glass_card"
@@ -284,23 +271,7 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="INVALID NUMBER" android:textSize="12sp" android:textStyle="bold"
                     android:textColor="@color/white" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/invNumber"
-                    android:layout_width="match_parent" android:layout_height="52dp"
-                    android:hint="নাম্বার" android:inputType="phone"
-                    android:background="@drawable/glass_field" android:padding="12dp"
-                    android:layout_marginTop="10dp" android:textColor="@color/white"
-                    android:textColorHint="@color/muted_light" />
-                <Spinner android:id="@+id/invReason" android:layout_width="match_parent"
-                    android:layout_height="52dp" android:background="@drawable/glass_field"
-                    android:layout_marginTop="10dp" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/invAddBtn"
-                    android:layout_width="match_parent" android:layout_height="48dp"
-                    android:layout_marginTop="10dp" android:text="Add"
-                    app:backgroundTint="@null" android:background="@drawable/btn_gradient"
-                    android:textColor="@color/white" />
-                <LinearLayout android:id="@+id/invList" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:orientation="vertical"
-                    android:layout_marginTop="10dp" />
+                    <TextView android:id="@+id/invAutoText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Invalid: 0" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/white" android:layout_marginTop="10dp" />
             </LinearLayout>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical" android:background="@drawable/glass_card"
