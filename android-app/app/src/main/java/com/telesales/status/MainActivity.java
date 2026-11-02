@@ -13,7 +13,7 @@ import android.os.Environment;
 import org.json.JSONObject;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.content.res.ColorStateList; import android.graphics.Color; import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private GoogleSignInClient signInClient;
     private String token;
     private String agentId;
-    private String statusLogSheetId;
+    private String statusLogSheetId; private String statusLogTab = "Status Log"; private static final String SHARED_STATUS_LOG_TITLE = "Telesales Status Log";
     private String selectedDate = dhakaDate();
     private Map<String,String> lastStatusMap = new HashMap<>();
     private RowAdapter adapter;
@@ -378,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
         checkForUpdate();
     }
     /** Niche menu: 0 = Dashboard (date + sob hisab), 1 = Home (number list). */
-    private void applySection(int sec) {
+    private static class StatusLogTarget { String sheetId; String tab; boolean shared; StatusLogTarget(String s, String t, boolean sh) { sheetId = s; tab = t; shared = sh; } } private static String cell(String[] r, int i) { return (r != null && i < r.length && r[i] != null) ? r[i] : ""; } private static String logRowKey(String[] r) { return cell(r, 0) + "|" + cell(r, 1) + "|" + cell(r, 2) + "|" + cell(r, 3); } private StatusLogTarget resolveLegacyStatusLogTarget() { String legacyId = resolveSharedId("status_log_sheet_id_", "Telesales Status Log - " + agentId); if (legacyId == null) return null; return new StatusLogTarget(legacyId, "Status Log", false); } private void migrateLegacyStatusLogToShared(String sharedId) throws Exception { SharedPreferences p = getSharedPreferences("telesales_prefs", MODE_PRIVATE); String flagKey = "status_log_migrated_to_shared_" + agentId; if (p.getBoolean(flagKey, false)) return; StatusLogTarget legacy = resolveLegacyStatusLogTarget(); if (legacy == null || sharedId.equals(legacy.sheetId)) { p.edit().putBoolean(flagKey, true).apply(); return; } List<String[]> legacyRows = SheetsClient.getReportRows(accessToken, legacy.sheetId, "Status Log"); List<String[]> sharedRows = SheetsClient.getReportRows(accessToken, sharedId, agentId); java.util.Set<String> seen = new java.util.HashSet<>(); for (String[] r : sharedRows) seen.add(logRowKey(r)); List<String[]> missing = new ArrayList<>(); for (String[] r : legacyRows) { if (r == null || r.length == 0) continue; String[] four = new String[]{cell(r, 0), cell(r, 1), cell(r, 2), cell(r, 3)}; if (!seen.contains(logRowKey(four))) missing.add(four); } SheetsClient.appendReportRows(accessToken, sharedId, agentId, missing); p.edit().putBoolean(flagKey, true).apply(); } private StatusLogTarget resolveStatusLogTarget() throws Exception { String sharedId = SheetsClient.findSpreadsheetByName(accessToken, SHARED_STATUS_LOG_TITLE); if (sharedId != null) { try { SheetsClient.ensureSheetTab(accessToken, sharedId, agentId); } catch (Exception e) { StatusLogTarget legacy = resolveLegacyStatusLogTarget(); if (legacy != null) return legacy; throw e; } try { migrateLegacyStatusLogToShared(sharedId); } catch (Exception ignored) { } return new StatusLogTarget(sharedId, agentId, true); } return resolveLegacyStatusLogTarget(); } private void updateMenuState(int active) { MaterialButton[] btns = new MaterialButton[]{menuDashboardBtn, menuHomeBtn, menuReportBtn, menuWebsiteBtn, menuGuideBtn}; int dim = Color.parseColor("#9AA3C7"); for (int i = 0; i < btns.length; i++) { MaterialButton b = btns[i]; if (b == null) continue; boolean on = (i == active); b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field); b.setTextColor(on ? Color.WHITE : dim); b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL); b.setIconTint(ColorStateList.valueOf(on ? Color.WHITE : dim)); } } private void applySection(int sec) {
         currentSection = sec;
         dashboardView.setVisibility(sec == 0 ? View.VISIBLE : View.GONE);
         listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); mainView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE);
@@ -494,7 +494,7 @@ public class MainActivity extends AppCompatActivity {
         if (token == null) { showLogin(); return; }
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.GONE);
-        reportView.setVisibility(View.VISIBLE);
+        updateMenuState(2); reportView.setVisibility(View.VISIBLE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
         guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
@@ -508,7 +508,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.VISIBLE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
+        updateMenuState(4); guideView.setVisibility(View.VISIBLE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
     }
 
     private void fetchToken(GoogleSignInAccount acct) {
@@ -593,7 +593,7 @@ public class MainActivity extends AppCompatActivity {
         return id;
     }
 
-    private void ensureStatusLogSheet() throws Exception {
+    private void ensureStatusLogSheet() throws Exception { StatusLogTarget t = resolveStatusLogTarget(); if (t != null) { statusLogSheetId = t.sheetId; statusLogTab = t.tab; return; } statusLogSheetId = SheetsClient.createStatusLogSpreadsheet(accessToken, agentId); statusLogTab = "Status Log"; SharedPreferences p = getSharedPreferences("telesales_prefs", MODE_PRIVATE); p.edit().putString("status_log_sheet_id_" + agentId, statusLogSheetId).apply(); } private void ensureStatusLogSheetLegacyUnused() throws Exception {
         if (statusLogSheetId != null) return;
         SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
         statusLogSheetId = resolveSharedId("status_log_sheet_id_" + agentId, null, "Telesales Status Log - " + agentId);
@@ -708,7 +708,7 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
+    private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
 
     /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
     private void checkForUpdate() {
