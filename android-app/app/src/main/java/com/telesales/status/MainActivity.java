@@ -28,7 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabsIntent; import android.webkit.CookieManager; import android.webkit.WebView; import android.webkit.WebViewClient;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.auth.GoogleAuthUtil;
@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
     private View reportView, reportOutputCard;
     private View guideView;
     private TextView guideText;
-    private View dashboardView, listContent;
+    private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
     private int currentSection = 0;
     private TextView reportStatus, reportOutput, ftdTotal, ftdStepCount;
     private LinearLayout regList, invList, probList, ftdStepAmountRow;
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         "৫. Website বাটন\n" +
         "নিচের মেনু থেকে Website চাপলে আপনার সাইটটা অ্যাপের ভিতরেই Chrome-এর মতো খুলবে। Chrome-এর সেভ করা পাসওয়ার্ড/লগইন চলবে। ব্যাক চাপলে আবার অ্যাপে ফিরে আসবেন।\n\n" +
         "৬. দিনের হিসাব (ড্যাশবোর্ড)\n" +
-        "ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, FTD, FTD টাকা আর Registration দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।";
+        "ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, FTD, FTD টাকা আর Registration দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।" + "উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।";
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,13 +146,13 @@ public class MainActivity extends AppCompatActivity {
         statInvDay = findViewById(R.id.statInvDay);
         statRegDay = findViewById(R.id.statRegDay);
         statFtdDay = findViewById(R.id.statFtdDay);
-        statFtdAmtDay = findViewById(R.id.statFtdAmtDay);
+        statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalNumDay = findViewById(R.id.statTotalNumDay);
         weekSummary = findViewById(R.id.weekSummary);
         dateBtn = findViewById(R.id.btnDate);
         statusText = findViewById(R.id.statusText);
         searchBox = findViewById(R.id.searchBox);
         reportView = findViewById(R.id.reportView);
-        guideView = findViewById(R.id.guideView);
+        guideView = findViewById(R.id.guideView); bottomMenuBar = findViewById(R.id.bottomMenuBar); websiteView = findViewById(R.id.websiteView); websiteWeb = findViewById(R.id.websiteWeb); websiteWeb.getSettings().setJavaScriptEnabled(true); websiteWeb.getSettings().setDomStorageEnabled(true); CookieManager.getInstance().setAcceptCookie(true); CookieManager.getInstance().setAcceptThirdPartyCookies(websiteWeb, true); websiteWeb.setWebViewClient(new WebViewClient());
         guideText = findViewById(R.id.guideText);
         guideText.setText(GUIDE_TEXT);
         dashboardView = findViewById(R.id.dashboardView);
@@ -210,10 +210,10 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.menuDashboardBtn).setOnClickListener(v -> { applySection(0); loadDayStats(); });
         findViewById(R.id.menuHomeBtn).setOnClickListener(v -> applySection(1));
         findViewById(R.id.menuReportBtn).setOnClickListener(v -> showReport());
-        findViewById(R.id.menuWebsiteBtn).setOnClickListener(v -> openWebsite());
+        findViewById(R.id.menuWebsiteBtn).setOnClickListener(v -> showWebsite());
         findViewById(R.id.menuGuideBtn).setOnClickListener(v -> showGuide());
-        findViewById(R.id.guideBackBtn).setOnClickListener(v -> showMain());
-        findViewById(R.id.reportBackBtn).setOnClickListener(v -> showMain());
+         
+         
         findViewById(R.id.btnPrevDay).setOnClickListener(v -> shiftDay(-1));
         findViewById(R.id.btnNextDay).setOnClickListener(v -> shiftDay(1));
         dateBtn.setOnClickListener(v -> {
@@ -363,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.GONE);
+        guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
     }
     private void showMain() {
         loginView.setVisibility(View.GONE);
@@ -372,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.GONE);
+        guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE);
         setAgentSubtitle();
         loadDayStats();
         checkForUpdate();
@@ -391,7 +391,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.VISIBLE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.GONE);
+        guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
         agentError.setText("");
     }
     /** Admin Panel: sudhu admin Gmail-e login korle khulbe, Agent ID lagbe na. */
@@ -401,7 +401,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.VISIBLE);
-        guideView.setVisibility(View.GONE);
+        guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
         adminStatus.setText("");
     }
     private void setAgentSubtitle() {
@@ -497,7 +497,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.VISIBLE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.GONE);
+        guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
         loadReportData();
     }
 
@@ -508,7 +508,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.VISIBLE);
+        guideView.setVisibility(View.VISIBLE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
     }
 
     private void fetchToken(GoogleSignInAccount acct) {
@@ -567,7 +567,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 List<Row> rows = SheetsClient.getRows(token, SHEET_ID, agentId);
                 runOnUiThread(() -> {
-                    adapter.setRows(rows);
+                    adapter.setRows(rows); statTotalNumDay.setText(String.valueOf(rows.size()));
                     adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
                     statusText.setText("শিটের সাথে সংযুক্ত — " + rows.size() + "টি রো");
                     lastStatusMap.clear();
@@ -661,9 +661,8 @@ public class MainActivity extends AppCompatActivity {
                 List<REntry> invs = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "Invalid"));
                 List<REntry> regs = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "Registration"));
                 List<REntry> ftds = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "FTD"));
-                int conn = 0, valid = 0, notConn = 0;
-                for (REntry e : logs) if (day.equals(cellE(e, 0))) {
-                    if ("call connected".equals(cellE(e, 2))) conn++;
+                int conn = 0, valid = 0, notConn = 0, totalCall = 0;
+                for (REntry e : logs) if (day.equals(cellE(e, 0))) { totalCall++; if ("call connected".equals(cellE(e, 2))) conn++;
                     if ("Yes".equals(cellE(e, 3))) valid++;
                     if ("not connected".equals(cellE(e, 2))) notConn++;
                 }
@@ -691,10 +690,10 @@ public class MainActivity extends AppCompatActivity {
                 double ftdSumW = 0;
                 for (REntry e : ftdWeek) { try { ftdSumW += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
                 String finalBlockStart = blockStart, finalBlockEnd = blockEnd;
-                int finalConn = conn, finalValid = valid, finalInv = inv, finalReg = reg, finalFtdN = ftdN, finalConnW = connW, finalFtdNW = ftdNW, finalNotConn = notConn, finalNotConnW = notConnW;
+                int finalConn = conn, finalValid = valid, finalInv = inv, finalReg = reg, finalFtdN = ftdN, finalConnW = connW, finalFtdNW = ftdNW, finalNotConn = notConn, finalNotConnW = notConnW, finalTotalCall = totalCall;
                 double finalFtdSum = ftdSum, finalFtdSumW = ftdSumW;
                 runOnUiThread(() -> {
-                    statConnDay.setText(String.valueOf(finalConn));
+                    statConnDay.setText(String.valueOf(finalConn)); statTotalCallDay.setText(String.valueOf(finalTotalCall));
                     statNotConnDay.setText(String.valueOf(finalNotConn));
                     statValidDay.setText(String.valueOf(finalValid));
                     statInvDay.setText(String.valueOf(finalInv));
@@ -709,28 +708,7 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    /** Website button: WebView NOY — Chrome Custom Tab, app-er vitorei khulbe, back chaple app-e fire asbe. */
-    private static final String WEBSITE_URL = "https://www.12bajeevip.com/m/member/home";
-    private void openWebsite() {
-        Uri uri = Uri.parse(WEBSITE_URL);
-        try {
-            // Chrome-kei badhyo kora holo: Chrome-er profile (password/login) + app-er vitorei tab
-            CustomTabsIntent intent = new CustomTabsIntent.Builder().build();
-            intent.intent.setPackage("com.android.chrome");
-            intent.launchUrl(this, uri);
-        } catch (Exception e) {
-            try {
-                CustomTabsIntent intent2 = new CustomTabsIntent.Builder().build();
-                intent2.launchUrl(this, uri);
-            } catch (Exception e2) {
-                try {
-                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                } catch (Exception ex) {
-                    Toast.makeText(this, "Browser khola jayni", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-    }
+    private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
 
     /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
     private void checkForUpdate() {
