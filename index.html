@@ -76,7 +76,7 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 <div id="reportView" style="display:none"><div class="card">
 <div class="row" style="justify-content:space-between"><h2 style="margin:0">📋 Report</h2><button class="btn btn-light btn-sm" id="reportBackBtn">← ফিরে যান</button></div>
 <div style="margin-top:16px"><h3 style="margin:0 0 8px">Registration</h3><div class="row"><input id="regNum" placeholder="নাম্বার" inputmode="tel" style="flex:1"><button class="btn btn-primary btn-sm" id="regAddBtn">+ যোগ করুন</button></div><div id="regList"></div></div>
-<div style="margin-top:16px"><h3 style="margin:0 0 8px">FTD</h3><div class="row"><input id="ftdAmt" placeholder="টাকা" inputmode="decimal" style="flex:1"><button class="btn btn-primary btn-sm" id="ftdAddBtn">+ যোগ করুন</button></div><div id="ftdList"></div></div>
+<div style="margin-top:16px"><h3 style="margin:0 0 8px">FTD</h3><div class="row"><input id="ftdCount" placeholder="FTD সংখ্যা" inputmode="numeric" style="flex:1"><input id="ftdAmt" placeholder="মোট টাকা" inputmode="decimal" style="flex:1"><button class="btn btn-primary btn-sm" id="ftdAddBtn">+ যোগ করুন</button></div><div id="ftdList"></div></div>
 <div style="margin-top:16px"><h3 style="margin:0 0 8px">Invalid Number</h3><div class="row"><input id="invNum" placeholder="নাম্বার" inputmode="tel" style="flex:1"><select id="invReason" style="flex:1"><option>কল ধরেনি</option><option>Not connected</option><option>বন্ধ</option><option>ভুল নাম্বার</option></select><button class="btn btn-primary btn-sm" id="invAddBtn">+ যোগ করুন</button></div><div id="invList"></div></div>
 <div style="margin-top:16px"><h3 style="margin:0 0 8px">Problems</h3><div class="row"><input id="probText" placeholder="সমস্যা লিখুন" style="flex:1"><button class="btn btn-primary btn-sm" id="probAddBtn">+ যোগ করুন</button></div><div id="probList"></div></div>
 <div class="row" style="margin-top:20px"><button class="btn btn-grad" id="genBtn" style="flex:1">📄 Generate Report</button></div>
@@ -284,6 +284,9 @@ async function ensureLogSheet(){
   }
 }
 function cellE(e,i){return (e.cells&&e.cells[i])||''}
+function isFtdCountRow(e){const n=cellE(e,1);return n!==''&&!n.startsWith('0')&&!n.startsWith('+')&&/^\d+$/.test(n);}
+function ftdCountOf(e){return isFtdCountRow(e)?(parseInt(cellE(e,1),10)||1):1;}
+function ftdTotalCount(list){return list.reduce((t,e)=>t+ftdCountOf(e),0);}
 function filterTodayE(list,day){return list.filter(e=>cellE(e,0)===day)}
 function filterRangeE(list,from,to){return list.filter(e=>{const d=cellE(e,0);return d>=from&&d<=to})}
 function fmtAmt(n){return (Math.round(n*100)/100).toString()}
@@ -313,8 +316,8 @@ async function loadDayStats(){
     const ftdWeek=filterRangeE(ftds,blockStart,blockEnd); let ftdSumW=0;
     ftdWeek.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSumW+=v;});
     $('stConn').textContent=conn; $('stNotConn').textContent=notConn; $('stValid').textContent=valid; $('stInv').textContent=inv; $('stReg').textContent=reg;
-    $('stFtd').textContent=ftdToday.length; $('stFtdAmt').textContent='৳'+fmtAmt(ftdSum);
-    $('weekSummary').textContent='Ei 7 din ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • FTD '+ftdWeek.length+' (৳'+fmtAmt(ftdSumW)+')';
+    $('stFtd').textContent=ftdTotalCount(ftdToday); $('stFtdAmt').textContent='৳'+fmtAmt(ftdSum);
+    $('weekSummary').textContent='Ei 7 din ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • FTD '+ftdTotalCount(ftdWeek)+' (৳'+fmtAmt(ftdSumW)+')';
   }catch(e){$('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।';}
 }
 async function loadReportData(){
@@ -325,7 +328,7 @@ async function loadReportData(){
     const invs=await getTabRows(reportSheetId,'Invalid');
     const probs=await getTabRows(reportSheetId,'Problems');
     renderEntryList('regList',regs,e=>esc(cellE(e,1)));
-    renderEntryList('ftdList',ftds,e=>{const n=cellE(e,1);return n?esc(n)+' — ৳'+esc(cellE(e,2)):'৳'+esc(cellE(e,2));});
+    renderEntryList('ftdList',ftds,e=>{if(isFtdCountRow(e))return esc(cellE(e,1))+'টা — ৳'+esc(cellE(e,2));const n=cellE(e,1);return n?esc(n)+' — ৳'+esc(cellE(e,2)):'৳'+esc(cellE(e,2));});
     renderEntryList('invList',invs,e=>esc(cellE(e,1))+' ('+esc(cellE(e,2))+')');
     renderEntryList('probList',probs,e=>esc(cellE(e,1)));
     window._rep={regs:regs,ftds:ftds,invs:invs,probs:probs};
@@ -347,7 +350,7 @@ async function deleteEntry(listId,sheetRow){
   }catch(e){toast('ডিলিট হয়নি, আবার চেষ্টা করুন');}
 }
 $('regAddBtn').onclick=async()=>{const n=$('regNum').value.trim();if(!n)return;try{await ensureReportSheet();await appendRow(reportSheetId,'Registration',[dhakaToday(),dialNumber(n)]);$('regNum').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
-$('ftdAddBtn').onclick=async()=>{const a=$('ftdAmt').value.trim();if(!a)return;try{await ensureReportSheet();await appendRow(reportSheetId,'FTD',[dhakaToday(),'',a]);$('ftdAmt').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('ftdAddBtn').onclick=async()=>{const c=parseInt($('ftdCount').value.trim(),10),a=$('ftdAmt').value.trim();if(!(c>0)||!a)return;try{await ensureReportSheet();await appendRow(reportSheetId,'FTD',[dhakaToday(),String(c),a]);$('ftdCount').value='';$('ftdAmt').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 $('invAddBtn').onclick=async()=>{const n=$('invNum').value.trim();if(!n)return;try{await ensureReportSheet();await appendRow(reportSheetId,'Invalid',[dhakaToday(),dialNumber(n),$('invReason').value]);$('invNum').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 $('probAddBtn').onclick=async()=>{const t=$('probText').value.trim();if(!t)return;try{await ensureReportSheet();await appendRow(reportSheetId,'Problems',[dhakaToday(),t]);$('probText').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 $('genBtn').onclick=()=>{
@@ -357,7 +360,7 @@ $('genBtn').onclick=()=>{
   let ftdSum=0; r.ftds.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSum+=v;});
   let out='Date: '+displayDay(now.date)+'\nTime: '+now.time+'\nAgent ID: '+agentId+'\nTotal Calls: '+total+'\nConnected: '+conn;
   out+='\nRegistration ('+r.regs.length+'): '+r.regs.map(e=>cellE(e,1)).join(', ');
-  out+='\nFTD ('+r.ftds.length+'): '+r.ftds.map(e=>{const n=cellE(e,1);return n?n+' ('+cellE(e,2)+')':cellE(e,2);}).join(', ');
+  out+='\nFTD ('+ftdTotalCount(r.ftds)+'): '+r.ftds.map(e=>{if(isFtdCountRow(e))return cellE(e,1)+'টা ('+cellE(e,2)+')';const n=cellE(e,1);return n?n+' ('+cellE(e,2)+')':cellE(e,2);}).join(', ');
   out+='\nTotal Amount Recharged: '+fmtAmt(ftdSum);
   out+='\nInvalid Number ('+r.invs.length+'): '+r.invs.map(e=>cellE(e,1)+' ('+cellE(e,2)+')').join(', ');
   out+='\nProblems ('+r.probs.length+'): '+r.probs.map(e=>cellE(e,1)).join(', ');
