@@ -28,10 +28,17 @@
             android:layout_height="wrap_content" android:layout_marginTop="12dp"
             android:textColor="@color/error_light" android:textSize="13sp" />
     </LinearLayout>
-    <!-- Main view -->
-    <LinearLayout android:id="@+id/mainView"
+    <!-- Main view: dashboard (top bar + Report + stats) scrolls away on scroll;
+         tabs + search stay pinned, list gets full height -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout android:id="@+id/mainView"
         android:layout_width="match_parent" android:layout_height="match_parent"
-        android:orientation="vertical" android:visibility="gone">
+        android:visibility="gone">
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:background="@android:color/transparent" app:elevation="0dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_scrollFlags="scroll|enterAlways|snap">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
             <TextView android:layout_width="38dp" android:layout_height="38dp"
@@ -105,6 +112,11 @@
                     android:text="Valid Yes" android:textSize="12sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
         </LinearLayout>
+        </LinearLayout>
+        </com.google.android.material.appbar.AppBarLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
             <com.google.android.material.button.MaterialButton android:id="@+id/btnTabPending"
@@ -136,7 +148,8 @@
         <androidx.recyclerview.widget.RecyclerView android:id="@+id/recycler"
             android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:padding="8dp" android:clipToPadding="false" />
-    </LinearLayout>
+        </LinearLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
     <!-- Report view -->
     <ScrollView android:id="@+id/reportView"
         android:layout_width="match_parent" android:layout_height="match_parent"
