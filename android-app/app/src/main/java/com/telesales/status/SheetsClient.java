@@ -257,6 +257,26 @@ public class SheetsClient {
         if (code != 200) throw new Exception("Report add failed: " + code + " " + readAll(c.getErrorStream()));
     }
 
+    /** Admin panel: kono agent-er tab-er seshe (column A) onekgulo number ekbare jog kore.
+     *  RAW rakha hoy jate leading 0 text hisebe thik thake (number hoye gele 0 muche jeto). */
+    public static void appendNumbers(String token, String sheetId, String tab, List<String> numbers) throws Exception {
+        String range = URLEncoder.encode(q(tab) + "!A6:A", "UTF-8") + ":append";
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range + "?valueInputOption=RAW");
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Authorization", "Bearer " + token);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray values = new JSONArray();
+        for (String n : numbers) { JSONArray one = new JSONArray(); one.put(n); values.put(one); }
+        body.put("values", values);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Number add failed: " + code + " " + readAll(c.getErrorStream()));
+    }
+
     /** Tab-er numeric sheetId (deleteDimension-er jonno lage). */
     public static int getSheetNumericId(String token, String spreadsheetId, String tab) throws Exception {
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + "?fields=sheets.properties");
