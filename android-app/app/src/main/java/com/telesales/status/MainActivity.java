@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private String token;
     private String agentId;
     private String statusLogSheetId; private String statusLogTab = "Status Log"; private static final String SHARED_STATUS_LOG_TITLE = "Telesales Status Log";
-    private String selectedDate = dhakaDate();
+    private String selectedDate = dhakaDate(); private String reportDate = dhakaDate();
     private Map<String,String> lastStatusMap = new HashMap<>();
     private RowAdapter adapter;
     private View loginView, mainView;
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText adminAgentInput, adminNumbersInput;
     private TextView loginError, avatarView, statusText, weekSummary;
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
-    private MaterialButton dateBtn;
+    private MaterialButton dateBtn; private Button reportPrevBtn, reportDateBtn, reportNextBtn, reportTodayBtn; private TextView reportDateNote;
     private TextInputEditText searchBox;
     private View reportView, reportOutputCard;
     private View guideView;
@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
          
          
         findViewById(R.id.btnPrevDay).setOnClickListener(v -> shiftDay(-1));
-        findViewById(R.id.btnNextDay).setOnClickListener(v -> shiftDay(1));
+        findViewById(R.id.btnNextDay).setOnClickListener(v -> shiftDay(1)); reportPrevBtn = findViewById(R.id.btnReportPrevDay); reportDateBtn = findViewById(R.id.btnReportDate); reportNextBtn = findViewById(R.id.btnReportNextDay); reportTodayBtn = findViewById(R.id.btnReportToday); reportDateNote = findViewById(R.id.reportDateNote); reportPrevBtn.setOnClickListener(v -> shiftReportDay(-1)); reportNextBtn.setOnClickListener(v -> shiftReportDay(1)); reportTodayBtn.setOnClickListener(v -> setReportDate(dhakaDate())); reportDateBtn.setOnClickListener(v -> { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); new DatePickerDialog(MainActivity.this, (view, y, m, d) -> { Calendar n = Calendar.getInstance(TimeZone.getTimeZone("UTC")); n.set(y, m, d, 0, 0, 0); n.set(Calendar.MILLISECOND, 0); String nd = fmtDay(n.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show(); } catch (Exception e) { } }); updateReportDateBtn(); updateReportEditState();
         dateBtn.setOnClickListener(v -> {
             try {
                 Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -494,7 +494,7 @@ public class MainActivity extends AppCompatActivity {
         if (token == null) { showLogin(); return; }
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.GONE);
-        updateMenuState(2); reportView.setVisibility(View.VISIBLE);
+        updateMenuState(2); reportView.setVisibility(View.VISIBLE); updateReportDateBtn(); updateReportEditState();
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
         guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
@@ -845,13 +845,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void loadReportData() {
+    private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regCount, R.id.regAddBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.invNumber, R.id.invReason, R.id.invAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
         if (token == null) { showLogin(); return; }
         reportStatus.setText("Report load hocche...");
         new Thread(() -> {
             try {
                 ensureReportSheet();
-                String today = dhakaDate();
+                String today = reportDate;
                 regToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Registration")), today);
                 ftdToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "FTD")), today);
                 invToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Invalid")), today);
@@ -872,7 +872,7 @@ public class MainActivity extends AppCompatActivity {
             try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}
         }
         ftdStepCount.setText(String.valueOf(ftdTotalCount(ftdToday)));
-        ftdTotal.setText("আজ মোট: " + ftdTotalCount(ftdToday) + "টা • ৳" + fmtAmount(sum));
+        ftdTotal.setText((reportDate.equals(dhakaDate()) ? "আজ মোট: " : displayDay(reportDate) + " মোট: ") + ftdTotalCount(ftdToday) + "টা • ৳" + fmtAmount(sum));
     }
 
     /** Ekta list-er prottek entry-r pase ✕ delete button bosay. */
@@ -911,13 +911,13 @@ public class MainActivity extends AppCompatActivity {
             del.setPadding(20, 8, 20, 8);
             del.setOnClickListener(v -> deleteReportEntry(tab, e));
             row.addView(t);
-            row.addView(del);
+            if (isReportToday()) row.addView(del);
             parent.addView(row);
         }
     }
 
     /** Sheet thekeo row-ta muche fele, tarpor list abar load kore. */
-    private void deleteReportEntry(String tab, REntry e) {
+    private void deleteReportEntry(String tab, REntry e) { if (!isReportToday()) { Toast.makeText(this, "অতীতের রিপোর্ট শুধু দেখা ও কপি করা যাবে", Toast.LENGTH_SHORT).show(); return; }
         if (token == null) { showLogin(); return; }
         reportStatus.setText("Delete hocche...");
         new Thread(() -> {
@@ -931,7 +931,7 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void addReportEntry(String tab, String[] vals, Runnable clear) {
+    private void addReportEntry(String tab, String[] vals, Runnable clear) { if (!isReportToday()) { Toast.makeText(this, "অতীতের রিপোর্ট শুধু দেখা ও কপি করা যাবে", Toast.LENGTH_SHORT).show(); return; }
         if (token == null) { showLogin(); return; }
         reportStatus.setText("Add hocche...");
         new Thread(() -> {
@@ -950,16 +950,16 @@ public class MainActivity extends AppCompatActivity {
         reportStatus.setText("Report banano hocche...");
         new Thread(() -> {
             try {
-                List<Row> rows = SheetsClient.getRows(token, SHEET_ID, agentId);
+                StatusLogTarget logTarget = resolveStatusLogTarget(); List<REntry> logs = logTarget == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, logTarget.sheetId, logTarget.tab));
                 int total = 0, conn = 0;
-                for (Row r : rows) {
-                    if (r.status != null && !r.status.isEmpty()) {
+                for (REntry e : logs) {
+                    if (today.equals(cellE(e, 0))) {
                         total++;
-                        if ("call connected".equals(r.status)) conn++;
+                        if ("call connected".equals(cellE(e, 2))) conn++;
                     }
                 }
                 ensureReportSheet();
-                String today = dhakaDate();
+                String today = reportDate;
                 regToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Registration")), today);
                 ftdToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "FTD")), today);
                 invToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Invalid")), today);
@@ -969,7 +969,7 @@ public class MainActivity extends AppCompatActivity {
                     try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}
                 }
                 StringBuilder sb = new StringBuilder();
-                sb.append("Date: ").append(dhaka("dd-MM-yyyy")).append("\n");
+                sb.append("Date: ").append(displayDay(today)).append("\n");
                 sb.append("Time: ").append(dhaka("hh:mm a")).append("\n");
                 sb.append("Agent ID: ").append(agentId).append("\n");
                 sb.append("Total Calls: ").append(total).append("\n");
