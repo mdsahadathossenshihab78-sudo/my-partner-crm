@@ -222,9 +222,9 @@
                     android:layout_marginTop="10dp" android:text="Add"
                     app:backgroundTint="@null" android:background="@drawable/btn_gradient"
                     android:textColor="@color/white" />
-                <TextView android:id="@+id/regList" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:textSize="14sp"
-                    android:textColor="@color/white" android:layout_marginTop="10dp" />
+                <LinearLayout android:id="@+id/regList" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical"
+                    android:layout_marginTop="10dp" />
             </LinearLayout>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical" android:background="@drawable/glass_card"
@@ -249,9 +249,9 @@
                     android:layout_marginTop="10dp" android:text="Add"
                     app:backgroundTint="@null" android:background="@drawable/btn_gradient"
                     android:textColor="@color/white" />
-                <TextView android:id="@+id/ftdList" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:textSize="14sp"
-                    android:textColor="@color/white" android:layout_marginTop="10dp" />
+                <LinearLayout android:id="@+id/ftdList" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical"
+                    android:layout_marginTop="10dp" />
                 <TextView android:id="@+id/ftdTotal" android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:textSize="14sp" android:textStyle="bold"
                     android:textColor="@color/white" android:layout_marginTop="6dp" />
@@ -276,9 +276,9 @@
                     android:layout_marginTop="10dp" android:text="Add"
                     app:backgroundTint="@null" android:background="@drawable/btn_gradient"
                     android:textColor="@color/white" />
-                <TextView android:id="@+id/invList" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:textSize="14sp"
-                    android:textColor="@color/white" android:layout_marginTop="10dp" />
+                <LinearLayout android:id="@+id/invList" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical"
+                    android:layout_marginTop="10dp" />
             </LinearLayout>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical" android:background="@drawable/glass_card"
@@ -297,9 +297,9 @@
                     android:layout_marginTop="10dp" android:text="Add"
                     app:backgroundTint="@null" android:background="@drawable/btn_gradient"
                     android:textColor="@color/white" />
-                <TextView android:id="@+id/probList" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:textSize="14sp"
-                    android:textColor="@color/white" android:layout_marginTop="10dp" />
+                <LinearLayout android:id="@+id/probList" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical"
+                    android:layout_marginTop="10dp" />
             </LinearLayout>
             <com.google.android.material.button.MaterialButton android:id="@+id/generateBtn"
                 android:layout_width="match_parent" android:layout_height="56dp"
