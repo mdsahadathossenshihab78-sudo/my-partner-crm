@@ -248,7 +248,7 @@
                 app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
             <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuHomeBtn"
                 android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
-                android:text="হোম" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
+                android:text="কল লিস্ট" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
                 app:icon="@android:drawable/ic_menu_agenda" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
                 app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
             <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuReportBtn"
