@@ -287,26 +287,39 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="FTD" android:textSize="12sp" android:textStyle="bold"
                     android:textColor="@color/white" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/ftdCount"
-                    android:layout_width="match_parent" android:layout_height="52dp"
-                    android:hint="FTD সংখ্যা" android:inputType="number"
-                    android:background="@drawable/glass_field" android:padding="12dp"
-                    android:layout_marginTop="10dp" android:textColor="@color/white"
-                    android:textColorHint="@color/muted_light" />
-                <com.google.android.material.textfield.TextInputEditText android:id="@+id/ftdAmount"
-                    android:layout_width="match_parent" android:layout_height="52dp"
-                    android:hint="মোট টাকা" android:inputType="numberDecimal"
-                    android:background="@drawable/glass_field" android:padding="12dp"
-                    android:layout_marginTop="10dp" android:textColor="@color/white"
-                    android:textColorHint="@color/muted_light" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/ftdAddBtn"
-                    android:layout_width="match_parent" android:layout_height="48dp"
-                    android:layout_marginTop="10dp" android:text="Add"
-                    app:backgroundTint="@null" android:background="@drawable/btn_gradient"
-                    android:textColor="@color/white" />
-                <LinearLayout android:id="@+id/ftdList" android:layout_width="match_parent"
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+                    <com.google.android.material.button.MaterialButton android:id="@+id/ftdMinusBtn"
+                        android:layout_width="52dp" android:layout_height="52dp"
+                        android:text="-" android:textSize="20sp"
+                        app:backgroundTint="@null" android:background="@drawable/glass_field"
+                        android:textColor="@color/white" />
+                    <TextView android:id="@+id/ftdStepCount"
+                        android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                        android:text="0" android:textSize="24sp" android:textStyle="bold"
+                        android:gravity="center" android:textColor="@color/white" />
+                    <com.google.android.material.button.MaterialButton android:id="@+id/ftdPlusBtn"
+                        android:layout_width="52dp" android:layout_height="52dp"
+                        android:text="+" android:textSize="20sp"
+                        app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                        android:textColor="@color/white" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/ftdStepAmountRow" android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:orientation="vertical"
-                    android:layout_marginTop="10dp" />
+                    android:visibility="gone">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/ftdStepAmount"
+                        android:layout_width="match_parent" android:layout_height="52dp"
+                        android:hint="এই FTD কত টাকার?" android:inputType="numberDecimal"
+                        android:background="@drawable/glass_field" android:padding="12dp"
+                        android:layout_marginTop="10dp" android:textColor="@color/white"
+                        android:textColorHint="@color/muted_light" />
+                    <com.google.android.material.button.MaterialButton android:id="@+id/ftdStepAddBtn"
+                        android:layout_width="match_parent" android:layout_height="48dp"
+                        android:layout_marginTop="10dp" android:text="টাকা যোগ করুন"
+                        app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                        android:textColor="@color/white" />
+                </LinearLayout>
                 <TextView android:id="@+id/ftdTotal" android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:textSize="14sp" android:textStyle="bold"
                     android:textColor="@color/white" android:layout_marginTop="6dp" />
