@@ -543,18 +543,25 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    /** Website button: WebView NOY — Chrome Custom Tab (Chrome-er profile, password/login cholbe). */
-    private static final String WEBSITE_URL = "https://bdxsukuna03.12bajeevip.com/register.html";
+    /** Website button: WebView NOY — Chrome Custom Tab, app-er vitorei khulbe, back chaple app-e fire asbe. */
+    private static final String WEBSITE_URL = "https://www.12bajeevip.com/m/member/home";
     private void openWebsite() {
+        Uri uri = Uri.parse(WEBSITE_URL);
         try {
+            // Chrome-kei badhyo kora holo: Chrome-er profile (password/login) + app-er vitorei tab
             CustomTabsIntent intent = new CustomTabsIntent.Builder().build();
-            intent.launchUrl(this, Uri.parse(WEBSITE_URL));
+            intent.intent.setPackage("com.android.chrome");
+            intent.launchUrl(this, uri);
         } catch (Exception e) {
             try {
-                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(WEBSITE_URL));
-                startActivity(i);
-            } catch (Exception ex) {
-                Toast.makeText(this, "Browser khola jayni", Toast.LENGTH_SHORT).show();
+                CustomTabsIntent intent2 = new CustomTabsIntent.Builder().build();
+                intent2.launchUrl(this, uri);
+            } catch (Exception e2) {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                } catch (Exception ex) {
+                    Toast.makeText(this, "Browser khola jayni", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
