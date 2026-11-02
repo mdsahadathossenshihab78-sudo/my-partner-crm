@@ -315,8 +315,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchToken(GoogleSignInAccount acct) {
-        statusText.setText("লগইন হচ্ছে...");
-        showMain();
+        loginError.setText("লগইন হচ্ছে...");
         new Thread(() -> {
             try {
                 token = GoogleAuthUtil.getToken(this, acct.getAccount(), "oauth2:" + SHEET_SCOPE);
@@ -324,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                     setAvatar(acct.getEmail());
                     String saved = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).getString("agent_id", null);
                     if (saved != null && !saved.isEmpty()) {
-                        agentId = saved; reportSheetId = null; setAgentSubtitle(); loadRows();
+                        agentId = saved; reportSheetId = null; setAgentSubtitle(); showMain(); loadRows();
                     } else {
                         showAgent();
                     }
