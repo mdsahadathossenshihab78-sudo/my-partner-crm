@@ -379,8 +379,9 @@ public class MainActivity extends AppCompatActivity {
                 if (toAdd.isEmpty()) throw new Exception("Notun kono number pai ni" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
                 SheetsClient.appendNumbers(token, SHEET_ID, finalMatch, toAdd);
                 int added = toAdd.size();
+                int dupFinal = dup, badFinal = bad;
                 runOnUiThread(() -> {
-                    adminStatus.setText(added + "ta number " + finalMatch + "-er list-e jog hoyeche" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
+                    adminStatus.setText(added + "ta number " + finalMatch + "-er list-e jog hoyeche" + (dupFinal > 0 ? " (" + dupFinal + "ta duplicate skip)" : "") + (badFinal > 0 ? " (" + badFinal + "ta thik number na)" : ""));
                     adminNumbersInput.setText("");
                 });
             } catch (Exception e) {
