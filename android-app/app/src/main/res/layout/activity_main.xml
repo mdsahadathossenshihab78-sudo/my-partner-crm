@@ -100,6 +100,13 @@
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
+            <com.google.android.material.button.MaterialButton android:id="@+id/websiteBtn"
+                android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="Website" app:backgroundTint="@null"
+                android:background="@drawable/glass_field" android:textColor="@color/white" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
                 android:background="@drawable/stat_blue" android:padding="10dp"
