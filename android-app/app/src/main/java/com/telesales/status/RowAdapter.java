@@ -1,5 +1,8 @@
 package com.telesales.status;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -8,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AdapterView;
 import android.widget.Spinner;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
@@ -115,6 +119,17 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
             h.itemView.getContext().startActivity(chooser);
         });
+        h.btnCopy.setOnClickListener(v -> {
+            Context ctx = h.itemView.getContext();
+            String num = dialNumber(r.number);
+            try {
+                ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+                cm.setPrimaryClip(ClipData.newPlainText("Number", num));
+                Toast.makeText(ctx, "Copy hoyeche: " + num, Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(ctx, "Copy hoyni, abar chesta korun", Toast.LENGTH_SHORT).show();
+            }
+        });
         h.btnSave.setOnClickListener(v -> {
             r.status = statusOpts[h.spStatus.getSelectedItemPosition()];
             r.valid = validOpts[h.spValid.getSelectedItemPosition()];
@@ -129,7 +144,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     static class Holder extends RecyclerView.ViewHolder {
         TextView tvNumber, tvRow, tvChipStatus, tvChipValid; Spinner spStatus, spValid;
         TextInputEditText etRemark1, etRemark2, etOthers;
-        android.widget.Button btnCall; MaterialButton btnSave;
+        android.widget.Button btnCall, btnCopy; MaterialButton btnSave;
         Holder(View v) {
             super(v);
             tvNumber = v.findViewById(R.id.tvNumber); tvRow = v.findViewById(R.id.tvRow);
@@ -137,6 +152,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             spStatus = v.findViewById(R.id.spStatus); spValid = v.findViewById(R.id.spValid);
             etRemark1 = v.findViewById(R.id.etRemark1); etRemark2 = v.findViewById(R.id.etRemark2);
             etOthers = v.findViewById(R.id.etOthers); btnCall = v.findViewById(R.id.btnCall);
+            btnCopy = v.findViewById(R.id.btnCopy);
             btnSave = v.findViewById(R.id.btnSave);
         }
     }
