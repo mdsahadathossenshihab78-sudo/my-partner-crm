@@ -70,12 +70,12 @@
             android:background="@android:color/transparent" app:elevation="0dp">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_scrollFlags="scroll|enterAlways|snap">
+            app:layout_scrollFlags="scroll|snap">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical">
             <TextView android:layout_width="38dp" android:layout_height="38dp"
                 android:background="@drawable/logo_gradient" android:gravity="center"
-                android:text="T" android:textSize="18sp" android:textStyle="bold"
+                android:text="T" android:textSize="23sp" android:textStyle="bold"
                 android:textColor="@color/white" />
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical" android:paddingStart="10dp">
@@ -102,69 +102,69 @@
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
-                android:background="@drawable/stat_blue" android:padding="14dp"
+                android:background="@drawable/stat_blue" android:padding="10dp"
                 android:layout_marginEnd="5dp">
                 <TextView android:id="@+id/statConnDay" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:text="0" android:textSize="23sp"
+                    android:layout_height="wrap_content" android:text="0" android:textSize="18sp"
                     android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Connected" android:textSize="12sp" android:textColor="#E6FFFFFF" />
+                    android:text="Connected" android:textSize="11sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
-                android:background="@drawable/stat_green" android:padding="14dp"
+                android:background="@drawable/stat_green" android:padding="10dp"
                 android:layout_marginStart="5dp">
                 <TextView android:id="@+id/statValidDay" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:text="0" android:textSize="23sp"
+                    android:layout_height="wrap_content" android:text="0" android:textSize="18sp"
                     android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Valid" android:textSize="12sp" android:textColor="#E6FFFFFF" />
+                    android:text="Valid" android:textSize="11sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
-                android:background="@drawable/stat_rose" android:padding="14dp"
+                android:background="@drawable/stat_rose" android:padding="10dp"
                 android:layout_marginEnd="5dp">
                 <TextView android:id="@+id/statInvDay" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:text="0" android:textSize="23sp"
+                    android:layout_height="wrap_content" android:text="0" android:textSize="18sp"
                     android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Invalid" android:textSize="12sp" android:textColor="#E6FFFFFF" />
+                    android:text="Invalid" android:textSize="11sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
-                android:background="@drawable/stat_violet" android:padding="14dp"
+                android:background="@drawable/stat_violet" android:padding="10dp"
                 android:layout_marginStart="5dp">
                 <TextView android:id="@+id/statRegDay" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:text="0" android:textSize="23sp"
+                    android:layout_height="wrap_content" android:text="0" android:textSize="18sp"
                     android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Registration" android:textSize="12sp" android:textColor="#E6FFFFFF" />
+                    android:text="Registration" android:textSize="11sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
-                android:background="@drawable/stat_blue" android:padding="14dp"
+                android:background="@drawable/stat_blue" android:padding="10dp"
                 android:layout_marginEnd="5dp">
                 <TextView android:id="@+id/statFtdDay" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:text="0" android:textSize="23sp"
+                    android:layout_height="wrap_content" android:text="0" android:textSize="18sp"
                     android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="FTD" android:textSize="12sp" android:textColor="#E6FFFFFF" />
+                    android:text="FTD" android:textSize="11sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
-                android:background="@drawable/stat_green" android:padding="14dp"
+                android:background="@drawable/stat_green" android:padding="10dp"
                 android:layout_marginStart="5dp">
                 <TextView android:id="@+id/statFtdAmtDay" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:text="৳0" android:textSize="23sp"
+                    android:layout_height="wrap_content" android:text="৳0" android:textSize="18sp"
                     android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="FTD টাকা" android:textSize="12sp" android:textColor="#E6FFFFFF" />
+                    android:text="FTD টাকা" android:textSize="11sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
         </LinearLayout>
         <TextView android:id="@+id/weekSummary" android:layout_width="match_parent"
