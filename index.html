@@ -273,7 +273,7 @@ window.saveRow=async (rowNum)=>{
     if(now!==old){
       try{
         await ensureLogSheet();
-        await appendRow(logSheetId,'Status Log',[dhakaToday(),dialNumber(r.number),val,vc]);
+        await appendRow(logSheetId,logSheetTab,[dhakaToday(),dialNumber(r.number),val,vc]);
         lastStatusMap[key]=now;
         if(!localStorage.getItem('log_anchor_date_'+agentId)) localStorage.setItem('log_anchor_date_'+agentId,dhakaToday());
       }catch(e){toast('শিটে সেভ হয়েছে, লগে জমা হয়নি');}
@@ -281,7 +281,7 @@ window.saveRow=async (rowNum)=>{
     render(); loadDayStats(); dirty=false; toast('✅ রো '+rowNum+' শিটে আপডেট হয়েছে');
   }catch(e){toast('❌ সেভ হয়নি, আবার চেষ্টা করুন');}
 };
-let reportSheetId=null, logSheetId=null;
+let reportSheetId=null, logSheetId=null, logSheetTab='Status Log'; const SHARED_LOG_TITLE='Telesales Status Log';
 async function createSheet(title,tabs){
   const d=await api2('spreadsheets','POST',{properties:{title:title},sheets:tabs.map(t=>({properties:{title:t}}))});
   return d.spreadsheetId;
@@ -310,7 +310,7 @@ async function ensureReportSheet(){
     localStorage.setItem('report_sheet_id_'+agentId,reportSheetId);
   }
 }
-async function ensureSheetTab(sid, tab){ let meta = await api2('spreadsheets/' + sid + '?fields=sheets.properties.title'); let tabs = (meta.sheets || []).map(s => s.properties.title); if (tabs.includes(tab)) return; await api2('spreadsheets/' + sid + ':batchUpdate', 'POST', {requests:[{addSheet:{properties:{title:tab}}}] }); await writeHeader(sid, tab, ['Date','Number','Status','Valid']); } async function resolveLegacyLogTarget(){ let legacyId = await resolveSharedId('status_log_sheet_id_', 'Telesales Status Log - ' + agentId); return legacyId ? {id:legacyId, tab:'Status Log'} : null; } async function migrateLegacyLogToShared(sharedId){ let flagKey = 'status_log_migrated_to_shared_' + agentId; if (localStorage.getItem(flagKey) === '1') return; let legacy = await resolveLegacyLogTarget(); if (!legacy || legacy.id === sharedId) { localStorage.setItem(flagKey, '1'); return; } let legacyRows = await getTabRows(legacy.id, 'Status Log'); let sharedRows = await getTabRows(sharedId, agentId); let seen = new Set(sharedRows.map(r => [r[0]||'', r[1]||'', r[2]||'', r[3]||''].join('|'))); let missing = legacyRows.filter(r => r && r.length).map(r => [r[0]||'', r[1]||'', r[2]||'', r[3]||'']).filter(r => !seen.has(r.join('|'))); if (missing.length) await api2('spreadsheets/' + sharedId + '/values/' + encodeURIComponent(agentId + '!A:Z') + ':append?valueInputOption=USER_ENTERED', 'POST', {values:missing}); localStorage.setItem(flagKey, '1'); } async function resolveLogTarget(){ let sharedId = await findFileByName(SHARED_LOG_TITLE); if (sharedId) { try { await ensureSheetTab(sharedId, agentId); } catch(e) { let legacy = await resolveLegacyLogTarget(); if (legacy) return legacy; throw e; } try { await migrateLegacyLogToShared(sharedId); } catch(e) {} return {id:sharedId, tab:agentId}; } return await resolveLegacyLogTarget(); } async function ensureLogSheet(){ let t = await resolveLogTarget(); if (t) { logSheetId = t.id; logSheetTab = t.tab; return; } logSheetId = await createStatusLogSheet(); logSheetTab = 'Status Log'; localStorage.setItem('status_log_sheet_id_' + agentId, logSheetId); } async function ensureLogSheetLegacyUnused(){
+async function ensureSheetTab(sid, tab){ let meta = await api2('spreadsheets/' + sid + '?fields=sheets.properties.title'); let tabs = (meta.sheets || []).map(s => s.properties.title); if (tabs.includes(tab)) return; await api2('spreadsheets/' + sid + ':batchUpdate', 'POST', {requests:[{addSheet:{properties:{title:tab}}}] }); await writeHeader(sid, tab, ['Date','Number','Status','Valid']); } async function resolveLegacyLogTarget(){ let legacyId = await resolveSharedId('status_log_sheet_id_', 'Telesales Status Log - ' + agentId); return legacyId ? {id:legacyId, tab:'Status Log'} : null; } async function migrateLegacyLogToShared(sharedId){ let flagKey = 'status_log_migrated_to_shared_' + agentId; if (localStorage.getItem(flagKey) === '1') return; let legacy = await resolveLegacyLogTarget(); if (!legacy || legacy.id === sharedId) { localStorage.setItem(flagKey, '1'); return; } let legacyRows = await getTabRows(legacy.id, 'Status Log'); let sharedRows = await getTabRows(sharedId, agentId); let seen = new Set(sharedRows.map(e => [cellE(e,0), cellE(e,1), cellE(e,2), cellE(e,3)].join('|'))); let missing = legacyRows.map(e => [cellE(e,0), cellE(e,1), cellE(e,2), cellE(e,3)]).filter(r => r.join('|') !== '|||').filter(r => !seen.has(r.join('|'))); if (missing.length) await api2('spreadsheets/' + sharedId + '/values/' + encodeURIComponent(agentId + '!A:Z') + ':append?valueInputOption=USER_ENTERED', 'POST', {values:missing}); localStorage.setItem(flagKey, '1'); } async function resolveLogTarget(){ let sharedId = await findFileByName(SHARED_LOG_TITLE); if (sharedId) { try { await ensureSheetTab(sharedId, agentId); } catch(e) { let legacy = await resolveLegacyLogTarget(); if (legacy) return legacy; throw e; } try { await migrateLegacyLogToShared(sharedId); } catch(e) {} return {id:sharedId, tab:agentId}; } return await resolveLegacyLogTarget(); } async function ensureLogSheet(){ let t = await resolveLogTarget(); if (t) { logSheetId = t.id; logSheetTab = t.tab; return; } logSheetId = await createStatusLogSheet(); logSheetTab = 'Status Log'; localStorage.setItem('status_log_sheet_id_' + agentId, logSheetId); } async function ensureLogSheetLegacyUnused(){
   if(logSheetId) return;
   logSheetId=localStorage.getItem('status_log_sheet_id_'+agentId);
   if(!logSheetId){logSheetId=await findFileByName('Telesales Status Log - '+agentId);if(logSheetId)localStorage.setItem('status_log_sheet_id_'+agentId,logSheetId);}
@@ -334,12 +334,12 @@ async function loadDayStats(){
   if(!token||!agentId) return;
   const day=selectedDate;
   try{
-    let lid=localStorage.getItem('status_log_sheet_id_'+agentId);
+    let logTarget=await resolveLogTarget(); let lid=logTarget?logTarget.id:null;
     if(!lid){lid=await findFileByName('Telesales Status Log - '+agentId);if(lid)localStorage.setItem('status_log_sheet_id_'+agentId,lid);}
     let rid=localStorage.getItem('report_sheet_id_'+agentId);
     if(!rid && agentId==='bdxsukuna30') rid=localStorage.getItem('report_sheet_id');
     if(!rid){rid=await findFileByName('Telesales Report - '+agentId);if(rid)localStorage.setItem('report_sheet_id_'+agentId,rid);}
-    const logs=lid?await getTabRows(lid,'Status Log'):[];
+    const logs=lid?await getTabRows(lid,logTarget.tab):[];
     const invs=rid?await getTabRows(rid,'Invalid'):[];
     const regs=rid?await getTabRows(rid,'Registration'):[];
     const ftds=rid?await getTabRows(rid,'FTD'):[];
