@@ -79,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton dateBtn;
     private TextInputEditText searchBox;
     private View reportView, reportOutputCard;
+    private View guideView;
+    private TextView guideText;
     private TextView reportStatus, reportOutput, ftdTotal, ftdStepCount;
     private LinearLayout regList, invList, probList, ftdStepAmountRow;
     private TextInputEditText regCount, ftdStepAmount, invNumber, probText;
@@ -91,6 +93,40 @@ public class MainActivity extends AppCompatActivity {
     static class REntry { final String[] cells; final int sheetRow; REntry(String[] c, int r) { cells = c; sheetRow = r; } }
     private List<REntry> regToday = new ArrayList<>(), ftdToday = new ArrayList<>(), invToday = new ArrayList<>(), probToday = new ArrayList<>();
     private final String[] reasons = {"কল ধরেনি", "Not connected", "বন্ধ", "ভুল নাম্বার"};
+
+    /** Bangla user manual: agent-ra kobe Connected/Not Connected/Valid Yes/No dibe, remark, report. */
+    private static final String GUIDE_TEXT =
+        "১. লগইন\n" +
+        "Continue with Google চাপুন, আপনার Gmail দিয়ে লগইন করুন। প্রথমবার Agent ID চাইবে — আপনার ট্যাবের নাম (যেমন bdxsukuna30) লিখুন। এরপর থেকে ওই Gmail-এ লগইন করলেই সরাসরি আপনার লিস্ট খুলবে। উপরের অক্ষরে চাপ দিলে Logout হবে।\n\n" +
+        "২. কল লিস্ট\n" +
+        "কল বাকি ট্যাবে যেসব নাম্বারে এখনো কল করা হয়নি, সেগুলো থাকে। কল করে স্ট্যাটাস দিলে সেটা কল করা হয়েছে ট্যাবে চলে যাবে। উপরে তারিখ বদলে ওই দিনের হিসাব দেখতে পারবেন। Search বক্সে নাম্বার লিখে খুঁজতে পারবেন। Refresh চাপলে শিট থেকে নতুন লিস্ট আসবে।\n\n" +
+        "৩. কল করা ও স্ট্যাটাস দেওয়া\n" +
+        "Call চাপলে কল যাবে। Copy চাপলে নাম্বার কপি হবে। কল করার পর স্ট্যাটাস দিন, তারপর Save চাপুন। Save না চাপলে শিটে কিছু বদলাবে না।\n\n" +
+        "কল Connected কখন দিবেন:\n" +
+        "যখন কলটা ধরেছে — অর্থাৎ কেউ ফোন রিসিভ করেছে — তখন Connected দিবেন।\n\n" +
+        "কল Not Connected কখন দিবেন:\n" +
+        "যখন কেউ কল রিসিভ করেনি, বা ফোন বন্ধ, বা কল কেটে দিয়েছে — তখন Not Connected দিবেন।\n\n" +
+        "Valid কখন Yes দিবেন:\n" +
+        "কল ধরেছে এবং সে ডিপোজিট করবে — এখনই করুক, বা বিকালে করুক, বা সন্ধ্যায় করুক — ডিপোজিট করার কথা যারা বলেছে, তাদের Yes দিবেন।\n\n" +
+        "Valid কখন No দিবেন:\n" +
+        "যারা ডিপোজিট করবে না; যারা গেম খেলে না; ফোন ধরেছে কিন্তু ডিপোজিট করবে না বলেছে; বা যার নাম্বার দিয়ে অ্যাকাউন্ট খোলা নেই — তাদের No দিবেন।\n\n" +
+        "১ম কল রিমার্ক:\n" +
+        "প্রথম কল করে যা জানতে পারলেন — ফোন ধরেছে না ধরেনি, ডিপোজিট করতে চেয়েছে কি চায়নি, যেকোনো কথা — এখানে লিখে দিতে পারবেন।\n\n" +
+        "২য় কল রিমার্ক:\n" +
+        "দ্বিতীয়বার কল করে যা জানলেন, সেটা এখানে লিখবেন।\n\n" +
+        "অন্য নাম্বার (Others Number):\n" +
+        "কাস্টমারের যদি আরেকটা এক্সট্রা নাম্বার থাকে, সেটা এখানে অ্যাড করতে পারবেন।\n\n" +
+        "৪. Report\n" +
+        "নিচের মেনু থেকে Report-এ গেলে দিনের হিসাব দেওয়া যায়:\n" +
+        "• Registration: আজ যতটা রেজিস্ট্রেশন হয়েছে, শুধু সংখ্যাটা লিখুন।\n" +
+        "• FTD: + চাপলে একটা করে বাড়বে; প্রতিবার নিচে ওই FTD-র টাকাটা লিখতে হবে। শুধু মোট সংখ্যা আর মোট টাকা দেখাবে, আলাদা আলাদা FTD-র টাকা দেখাবে না। ভুল হলে − চাপলে আজকের শেষ FTD-টা বাদ যাবে।\n" +
+        "• Invalid Number: যে নাম্বারে কল ঢোকেনি বা নাম্বার ভুল, সেই নাম্বার আর কারণ (কল ধরেনি / Not connected / বন্ধ / ভুল নাম্বার) দিন।\n" +
+        "• Problems: কাজের সময় কোনো সমস্যা হলে এখানে লিখুন।\n" +
+        "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। Generate Report চাপলে আজকের তারিখ, সময়, Agent ID, মোট কল, Connected, Registration, FTD, মোট টাকা, Invalid আর Problems দিয়ে রিপোর্ট তৈরি হবে। Copy চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
+        "৫. Website বাটন\n" +
+        "নিচের মেনু থেকে Website চাপলে আপনার সাইটটা অ্যাপের ভিতরেই Chrome-এর মতো খুলবে। Chrome-এর সেভ করা পাসওয়ার্ড/লগইন চলবে। ব্যাক চাপলে আবার অ্যাপে ফিরে আসবেন।\n\n" +
+        "৬. দিনের হিসাব\n" +
+        "উপরের বক্সে ওই দিনের Connected, Not Connected, Valid, Invalid, FTD, FTD টাকা আর Registration দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।";
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,6 +147,9 @@ public class MainActivity extends AppCompatActivity {
         statusText = findViewById(R.id.statusText);
         searchBox = findViewById(R.id.searchBox);
         reportView = findViewById(R.id.reportView);
+        guideView = findViewById(R.id.guideView);
+        guideText = findViewById(R.id.guideText);
+        guideText.setText(GUIDE_TEXT);
         reportOutputCard = findViewById(R.id.reportOutputCard);
         reportStatus = findViewById(R.id.reportStatus);
         reportOutput = findViewById(R.id.reportOutput);
@@ -161,8 +200,10 @@ public class MainActivity extends AppCompatActivity {
         ra.setDropDownViewResource(R.layout.spinner_dropdown_item);
         invReason.setAdapter(ra);
 
-        findViewById(R.id.reportBtn).setOnClickListener(v -> showReport());
-        findViewById(R.id.websiteBtn).setOnClickListener(v -> openWebsite());
+        findViewById(R.id.menuReportBtn).setOnClickListener(v -> showReport());
+        findViewById(R.id.menuWebsiteBtn).setOnClickListener(v -> openWebsite());
+        findViewById(R.id.menuGuideBtn).setOnClickListener(v -> showGuide());
+        findViewById(R.id.guideBackBtn).setOnClickListener(v -> showMain());
         findViewById(R.id.reportBackBtn).setOnClickListener(v -> showMain());
         findViewById(R.id.btnPrevDay).setOnClickListener(v -> shiftDay(-1));
         findViewById(R.id.btnNextDay).setOnClickListener(v -> shiftDay(1));
@@ -313,6 +354,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
+        guideView.setVisibility(View.GONE);
     }
     private void showMain() {
         loginView.setVisibility(View.GONE);
@@ -320,6 +362,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
+        guideView.setVisibility(View.GONE);
         setAgentSubtitle();
         loadDayStats();
         checkForUpdate();
@@ -330,6 +373,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.VISIBLE);
         adminView.setVisibility(View.GONE);
+        guideView.setVisibility(View.GONE);
         agentError.setText("");
     }
     /** Admin Panel: sudhu admin Gmail-e login korle khulbe, Agent ID lagbe na. */
@@ -339,6 +383,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.VISIBLE);
+        guideView.setVisibility(View.GONE);
         adminStatus.setText("");
     }
     private void setAgentSubtitle() {
@@ -434,7 +479,18 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.VISIBLE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
+        guideView.setVisibility(View.GONE);
         loadReportData();
+    }
+
+    /** User Guide khulbe: Bangla manual, niche menu theke. */
+    private void showGuide() {
+        loginView.setVisibility(View.GONE);
+        mainView.setVisibility(View.GONE);
+        reportView.setVisibility(View.GONE);
+        agentView.setVisibility(View.GONE);
+        adminView.setVisibility(View.GONE);
+        guideView.setVisibility(View.VISIBLE);
     }
 
     private void fetchToken(GoogleSignInAccount acct) {
