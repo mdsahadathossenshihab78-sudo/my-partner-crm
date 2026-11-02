@@ -91,7 +91,30 @@
                 android:text="S" android:textSize="14sp" android:textStyle="bold"
                 android:textColor="@color/white" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        
+        </LinearLayout>
+        </com.google.android.material.appbar.AppBarLayout>
+        <LinearLayout android:id="@+id/dashboardView"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="vertical" android:layout_marginBottom="88dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnPrevDay"
+                android:layout_width="52dp" android:layout_height="52dp"
+                android:text="◀" app:backgroundTint="@null"
+                android:background="@drawable/glass_field" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDate"
+                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+                android:layout_marginStart="8dp" android:layout_marginEnd="8dp"
+                android:text="তারিখ" app:backgroundTint="@null"
+                android:background="@drawable/glass_field" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnNextDay"
+                android:layout_width="52dp" android:layout_height="52dp"
+                android:text="▶" app:backgroundTint="@null"
+                android:background="@drawable/glass_field" android:textColor="@color/white" />
+        </LinearLayout>
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1" android:orientation="vertical"
@@ -177,26 +200,12 @@
             android:layout_height="wrap_content" android:paddingHorizontal="16dp" android:paddingTop="8dp"
             android:textSize="13sp" android:textColor="@color/muted_light" />
         </LinearLayout>
-        </com.google.android.material.appbar.AppBarLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
-            android:orientation="vertical" android:layout_marginBottom="72dp"
+
+        <LinearLayout android:id="@+id/listContent"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="vertical" android:layout_marginBottom="88dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnPrevDay"
-                android:layout_width="52dp" android:layout_height="52dp"
-                android:text="◀" app:backgroundTint="@null"
-                android:background="@drawable/glass_field" android:textColor="@color/white" />
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnDate"
-                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
-                android:layout_marginStart="8dp" android:layout_marginEnd="8dp"
-                android:text="তারিখ" app:backgroundTint="@null"
-                android:background="@drawable/glass_field" android:textColor="@color/white" />
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnNextDay"
-                android:layout_width="52dp" android:layout_height="52dp"
-                android:text="▶" app:backgroundTint="@null"
-                android:background="@drawable/glass_field" android:textColor="@color/white" />
-        </LinearLayout>
+        
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
             <com.google.android.material.button.MaterialButton android:id="@+id/btnTabPending"
@@ -229,21 +238,34 @@
             android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:padding="8dp" android:clipToPadding="false" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_gravity="bottom" android:orientation="horizontal"
             android:background="#CC0B1026" android:padding="10dp">
-            <com.google.android.material.button.MaterialButton android:id="@+id/menuReportBtn"
-                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
-                android:text="Report" app:backgroundTint="@null"
-                android:background="@drawable/glass_field" android:textColor="@color/white" />
-            <com.google.android.material.button.MaterialButton android:id="@+id/menuWebsiteBtn"
-                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
-                android:layout_marginStart="8dp" android:text="Website" app:backgroundTint="@null"
-                android:background="@drawable/glass_field" android:textColor="@color/white" />
-            <com.google.android.material.button.MaterialButton android:id="@+id/menuGuideBtn"
-                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
-                android:layout_marginStart="8dp" android:text="ইউজার গাইড" app:backgroundTint="@null"
-                android:background="@drawable/glass_field" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/menuDashboardBtn"
+                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
+                android:text="ড্যাশবোর্ড" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
+                app:icon="@android:drawable/ic_menu_view" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuHomeBtn"
+                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
+                android:text="হোম" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
+                app:icon="@android:drawable/ic_menu_agenda" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuReportBtn"
+                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
+                android:text="Report" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
+                app:icon="@android:drawable/ic_menu_edit" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuWebsiteBtn"
+                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
+                android:text="Website" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
+                app:icon="@android:drawable/ic_menu_compass" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
+            <com.google.android.material.button.MaterialButton android:layout_marginStart="6dp" android:id="@+id/menuGuideBtn"
+                android:layout_width="0dp" android:layout_height="64dp" android:layout_weight="1"
+                android:text="ইউজার গাইড" android:textSize="11sp" android:paddingTop="6dp" android:paddingBottom="4dp"
+                app:icon="@android:drawable/ic_menu_help" app:iconSize="22dp" app:iconGravity="top" app:iconTint="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
         </LinearLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
     <!-- Report view -->
