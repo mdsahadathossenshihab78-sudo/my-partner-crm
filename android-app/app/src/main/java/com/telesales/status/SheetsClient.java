@@ -170,6 +170,35 @@ public class SheetsClient {
         if (code != 200) throw new Exception("Header write failed: " + code + " " + readAll(c.getErrorStream()));
     }
 
+    /** Status Log file: status change-er sthayi record (source row delete holeo thakbe). */
+    public static String createStatusLogSpreadsheet(String token, String agentId) throws Exception {
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets");
+        HttpURLConnection c = (HttpURLConnection) url.openConnection();
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Authorization", "Bearer " + token);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONObject props = new JSONObject();
+        props.put("title", "Telesales Status Log - " + agentId);
+        body.put("properties", props);
+        JSONArray sheets = new JSONArray();
+        JSONObject s = new JSONObject();
+        JSONObject p = new JSONObject();
+        p.put("title", "Status Log");
+        s.put("properties", p);
+        sheets.put(s);
+        body.put("sheets", sheets);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Status log create failed: " + code + " " + readAll(c.getErrorStream()));
+        String id = new JSONObject(readAll(c.getInputStream())).optString("spreadsheetId");
+        if (id.isEmpty()) throw new Exception("Status log ID paini");
+        writeHeader(token, id, "Status Log", new String[]{"Date", "Number", "Status", "Valid"});
+        return id;
+    }
+
     /** Ekta tab-er sob row (header bad diye) ferot dey, protita row String[] akare. */
     public static List<String[]> getReportRows(String token, String sheetId, String tab) throws Exception {
         String range = URLEncoder.encode(tab + "!A2:Z", "UTF-8");
