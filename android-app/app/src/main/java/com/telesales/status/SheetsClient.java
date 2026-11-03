@@ -602,4 +602,154 @@ public class SheetsClient {
             }
         }
     }
+
+    /** v4.28: Drive files.get — sheet-er nam + mimeType (admin verify-er jonno). */
+    public static String[] getSpreadsheetName(String token, String fileId) throws Exception {
+        URL url = new URL("https://www.googleapis.com/drive/v3/files/" + URLEncoder.encode(fileId, "UTF-8") + "?fields=id,name,mimeType");
+        HttpURLConnection c = open(url, token);
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Sheet info load failed: " + code + " " + readAll(c.getErrorStream()));
+        JSONObject j = new JSONObject(readAll(c.getInputStream()));
+        return new String[]{j.optString("name", ""), j.optString("mimeType", "")};
+    }
+
+    /** v4.28: sheet link ba ID theke sudhu ID ber kora — "/d/" thakle tar porer ongsho, na thakle trim kora lekha. */
+    public static String extractSpreadsheetId(String raw) {
+        if (raw == null) return "";
+        String s = raw.trim();
+        int d = s.indexOf("/d/");
+        if (d >= 0) {
+            String rest = s.substring(d + 3);
+            int slash = rest.indexOf('/');
+            if (slash >= 0) rest = rest.substring(0, slash);
+            int qm = rest.indexOf('?');
+            if (qm >= 0) rest = rest.substring(0, qm);
+            int hash = rest.indexOf('#');
+            if (hash >= 0) rest = rest.substring(0, hash);
+            return rest.trim();
+        }
+        return s;
+    }
+
+    /** v4.28: numbers sheet-er tab-er 5 nambar row (header) pora — notun numbers sheet-e tab kopir jonno. */
+    public static String[] getHeaderRow5(String token, String sheetId, String tab) throws Exception {
+        String range = URLEncoder.encode(q(tab) + "!A5:F5", "UTF-8");
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
+        HttpURLConnection c = open(url, token);
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Header read failed: " + code + " " + readAll(c.getErrorStream()));
+        JSONObject j = new JSONObject(readAll(c.getInputStream()));
+        JSONArray values = j.optJSONArray("values");
+        String[] out = new String[]{"", "", "", "", "", ""};
+        if (values != null && values.length() > 0) {
+            JSONArray v = values.getJSONArray(0);
+            for (int k = 0; k < v.length() && k < 6; k++) out[k] = v.optString(k);
+        }
+        return out;
+    }
+
+    /** v4.28: numbers sheet-e agent tab na thakle khule row 5-e header bosano (notun numbers sheet-er jonno). */
+    public static void ensureNumbersTab(String token, String spreadsheetId, String title, String[] headerRow5) throws Exception {
+        List<String> tabs = getTabs(token, spreadsheetId);
+        for (String t : tabs) if (title.equals(t)) return;
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate");
+        HttpURLConnection c = open(url, token);
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray reqs = new JSONArray();
+        JSONObject req = new JSONObject();
+        JSONObject add = new JSONObject();
+        JSONObject props = new JSONObject();
+        props.put("title", title);
+        add.put("properties", props);
+        req.put("addSheet", add);
+        reqs.put(req);
+        body.put("requests", reqs);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) {
+            String err = readAll(c.getErrorStream());
+            if (err != null && err.toLowerCase().contains("already exists")) return;
+            throw new Exception("Numbers tab create failed: " + code + " " + err);
+        }
+        String[] h = headerRow5;
+        if (h == null || h.length == 0) h = new String[]{"MOBILE NUMBER", "CALLING STATUS", "Valid Conversation", "1ST CALL REMARK", "2ND CALL REMAR", "Others number"};
+        String[] row6 = new String[6];
+        for (int k = 0; k < 6; k++) row6[k] = k < h.length && h[k] != null ? h[k] : "";
+        updateCells(token, spreadsheetId, title + "!A5:F5", new String[][]{row6});
+    }
+
+    /** v4.28: Daily Reports file-e "Reports" tab na thakle khule header bosano (notun daily sheet-er jonno). Header appendDailyReport-er column order-er sathe mile. */
+    public static void ensureDailyTab(String token, String spreadsheetId) throws Exception {
+        List<String> tabs = getTabs(token, spreadsheetId);
+        for (String t : tabs) if ("Reports".equals(t)) return;
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate");
+        HttpURLConnection c = open(url, token);
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray reqs = new JSONArray();
+        JSONObject req = new JSONObject();
+        JSONObject add = new JSONObject();
+        JSONObject props = new JSONObject();
+        props.put("title", "Reports");
+        add.put("properties", props);
+        req.put("addSheet", add);
+        reqs.put(req);
+        body.put("requests", reqs);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) {
+            String err = readAll(c.getErrorStream());
+            if (err != null && err.toLowerCase().contains("already exists")) return;
+            throw new Exception("Daily tab create failed: " + code + " " + err);
+        }
+        writeHeader(token, spreadsheetId, "Reports", new String[]{"Date", "Agent ID", "Total Calls", "Connected", "Registration", "FTD", "Total Amount", "Invalid", "Problems", "Generated At"});
+        try { formatStatusLogTab(token, spreadsheetId, "Reports"); } catch (Exception ignored) { /* format na bosleo tab + header thik thakbe */ }
+    }
+
+    /** v4.28 SHEETCONFIG: config tab (Store|SheetId|FromDate|Note) — kokhono switch hoy na, eikhanei sob store-er chain thake. */
+    public static final String CONFIG_TAB = "SheetConfig";
+
+    public static void ensureConfigTab(String token, String spreadsheetId) throws Exception {
+        List<String> tabs = getTabs(token, spreadsheetId);
+        for (String t : tabs) if (CONFIG_TAB.equals(t)) return;
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate");
+        HttpURLConnection c = open(url, token);
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray reqs = new JSONArray();
+        JSONObject req = new JSONObject();
+        JSONObject add = new JSONObject();
+        JSONObject props = new JSONObject();
+        props.put("title", CONFIG_TAB);
+        add.put("properties", props);
+        req.put("addSheet", add);
+        reqs.put(req);
+        body.put("requests", reqs);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) {
+            String err = readAll(c.getErrorStream());
+            if (err != null && err.toLowerCase().contains("already exists")) return;
+            throw new Exception("Config tab create failed: " + code + " " + err);
+        }
+        writeHeader(token, spreadsheetId, CONFIG_TAB, new String[]{"Store", "SheetId", "FromDate", "Note"});
+    }
+
+    public static List<String[]> getConfigRows(String token, String spreadsheetId) throws Exception {
+        return getReportRows(token, spreadsheetId, CONFIG_TAB);
+    }
+
+    public static void appendConfigRow(String token, String spreadsheetId, String[] vals) throws Exception {
+        appendReportRow(token, spreadsheetId, CONFIG_TAB, vals);
+    }
 }
