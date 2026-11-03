@@ -478,6 +478,88 @@
             <TextView android:id="@+id/adminSheetStatus" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:layout_marginTop="8dp"
                 android:textColor="@color/lavender" android:textSize="13sp" />
+            <!-- v4.29 Admin add: Admin Panel theke arekjon admin -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="এডমিন অ্যাড" android:textSize="20sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="যার Gmail দিবেন, সে-ও এডমিন প্যানেল খুলতে পারবে।"
+                android:textSize="13sp" android:textColor="@color/lavender" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/adminNewAdminInput"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:hint="Admin-er Gmail"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/adminAddAdminBtn"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="14dp" android:text="Admin add korun"
+                android:textSize="15sp" android:textStyle="bold" android:textColor="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+            <TextView android:id="@+id/adminAdminStatus" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                android:textColor="@color/lavender" android:textSize="13sp" />
+            <!-- v4.29 Notun team-er sheet: banale live bodlabe na, Active='No' thakbe -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="নতুন টিমের শিট" android:textSize="20sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="নতুন টিমের জন্য আলাদা শিট বানান। এই শিট বানালে লাইভ নাম্বার বদলাবে না — শিট আলাদা থাকবে, পরে চাইলে সবার জন্য চালু করা যাবে।"
+                android:textSize="13sp" android:textColor="@color/lavender" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/teamNameInput"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:hint="Team-er nam, jemon Team-04"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/teamAgentsInput"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:minLines="5" android:gravity="top"
+                android:layout_marginTop="14dp" android:hint="Agent ID — proti line-e ekta"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light"
+                android:inputType="textMultiLine" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/teamCreateBtn"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="14dp" android:text="Sheet banan"
+                android:textSize="15sp" android:textStyle="bold" android:textColor="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+            <TextView android:id="@+id/teamStatus" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                android:textColor="@color/lavender" android:textSize="13sp" />
+            <!-- v4.29 Banano team: chalu/bondho + prottek team-e number -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="বানানো টিম" android:textSize="20sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <LinearLayout android:id="@+id/teamListContainer"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" />
+            <TextView android:id="@+id/teamSelectedLabel" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                android:text="Select kora team: —" android:textColor="@color/lavender" android:textSize="13sp" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/teamTabInput"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:hint="Tab / Agent ID"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/teamNumbersInput"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:minLines="5" android:gravity="top"
+                android:layout_marginTop="14dp" android:hint="Number-gulo paste korun — proti line-e ekta, ba comma diye"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light"
+                android:inputType="textMultiLine" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/teamNumbersAddBtn"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="14dp" android:text="Team-e number bosan"
+                android:textSize="15sp" android:textStyle="bold" android:textColor="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+            <TextView android:id="@+id/teamNumbersStatus" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                android:textColor="@color/lavender" android:textSize="13sp" />
             <com.google.android.material.button.MaterialButton android:id="@+id/adminLogoutBtn"
                 android:layout_width="match_parent" android:layout_height="48dp"
                 android:layout_marginTop="20dp" android:text="Logout"
