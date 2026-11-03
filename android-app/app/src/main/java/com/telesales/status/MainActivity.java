@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private GoogleSignInClient signInClient;
     private String token;
     private String agentId;
-    private String statusLogSheetId; private String statusLogTab = "Status Log"; private static final String SHARED_STATUS_LOG_TITLE = "Telesales Status Log";
+    private String statusLogSheetId; private String statusLogTab = "Status Log"; private static final String SHARED_STATUS_LOG_ID = "1t22IL9miZ_5QYWD3rJVioXZlKsGwlk6X8bW_TQCjbfQ";
     private String selectedDate = dhakaDate(); private String reportDate = dhakaDate();
     private Map<String,String> lastStatusMap = new HashMap<>();
     private RowAdapter adapter;
@@ -464,19 +464,16 @@ public class MainActivity extends AppCompatActivity {
         if (agentId != null && agentId.equals(sharedLogCacheAgent) && sharedLogCacheId != null) {
             return new StatusLogTarget(sharedLogCacheId, agentId, true);
         }
-        String sharedId = SheetsClient.findSpreadsheetByName(token, SHARED_STATUS_LOG_TITLE);
-        if (sharedId != null) {
-            try { SheetsClient.ensureSheetTab(token, sharedId, agentId); }
-            catch (Exception e) {
-                StatusLogTarget legacy = resolveLegacyStatusLogTarget();
-                if (legacy != null) return legacy;
-                throw e;
-            }
-            try { migrateLegacyStatusLogToShared(sharedId); } catch (Exception ignored) { }
-            sharedLogCacheAgent = agentId; sharedLogCacheId = sharedId;
-            return new StatusLogTarget(sharedId, agentId, true);
+        String sharedId = SHARED_STATUS_LOG_ID;
+        try { SheetsClient.ensureSheetTab(token, sharedId, agentId); }
+        catch (Exception e) {
+            StatusLogTarget legacy = resolveLegacyStatusLogTarget();
+            if (legacy != null) return legacy;
+            throw e;
         }
-        return resolveLegacyStatusLogTarget();
+        try { migrateLegacyStatusLogToShared(sharedId); } catch (Exception ignored) { }
+        sharedLogCacheAgent = agentId; sharedLogCacheId = sharedId;
+        return new StatusLogTarget(sharedId, agentId, true);
     }
 
     /** v4.19: shared log cache batil — porer resolve abar tab ache kina jachai korbe
@@ -1028,7 +1025,7 @@ public class MainActivity extends AppCompatActivity {
                     clearReportCache();
                     try {
                         String sid = sharedLogCacheId;
-                        if (sid == null) sid = SheetsClient.findSpreadsheetByName(token, SHARED_STATUS_LOG_TITLE);
+                        if (sid == null) sid = SHARED_STATUS_LOG_ID;
                         if (sid != null) SheetsClient.clearRegistryReportId(token, sid, agentId);
                     } catch (Exception ignored) {}
                     loadReportData(); return;
@@ -1480,7 +1477,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             if (token == null || agentId == null) return null;
             String sharedId = sharedLogCacheId;
-            if (sharedId == null) sharedId = SheetsClient.findSpreadsheetByName(token, SHARED_STATUS_LOG_TITLE);
+            if (sharedId == null) sharedId = SHARED_STATUS_LOG_ID;
             if (sharedId == null) return null;
             return SheetsClient.getRegistryEntry(token, sharedId, agentId);
         } catch (Exception e) { return null; }
@@ -1493,7 +1490,7 @@ public class MainActivity extends AppCompatActivity {
             if (token == null || agentId == null) return;
             if (reportId == null && legacyId == null) return;
             String sharedId = sharedLogCacheId;
-            if (sharedId == null) sharedId = SheetsClient.findSpreadsheetByName(token, SHARED_STATUS_LOG_TITLE);
+            if (sharedId == null) sharedId = SHARED_STATUS_LOG_ID;
             if (sharedId == null) return;
             SheetsClient.upsertRegistryEntry(token, sharedId, agentId, reportId, legacyId);
         } catch (Exception ignored) { /* backfill kokhono main kaj atkabe na */ }
