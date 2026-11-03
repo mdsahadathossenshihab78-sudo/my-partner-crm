@@ -6,8 +6,8 @@ android {
         applicationId 'com.telesales.status'
         minSdk 24
         targetSdk 34
-        versionCode 34
-        versionName '4.20'
+        versionCode 35
+        versionName '4.21'
     }
     signingConfigs {
         debug {
