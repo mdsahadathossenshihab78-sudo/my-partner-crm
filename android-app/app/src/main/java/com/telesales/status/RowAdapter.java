@@ -31,6 +31,11 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     private final String[] validLabels = {"— খালি —", "Yes", "No"};
 
     public RowAdapter(OnSave onSave) { this.onSave = onSave; }
+    /** Date-filtered called tab: log theke asa row-gulo (null = ekhono load hoyni, tokhon purono niyom). */
+    private List<Row> calledRows = null;
+    private String calledDate = null;
+    public void setCalledRows(List<Row> rows, String date) { calledRows = rows == null ? null : new ArrayList<>(rows); calledDate = date; filter(lastQ); }
+    public String getCalledDate() { return calledDate; }
 
     public void setRows(List<Row> rows) {
         all = new ArrayList<>(rows); filter(lastQ);
@@ -52,9 +57,12 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         lastQ = q == null ? "" : q;
         shown.clear();
         String qn = lastQ.trim().replaceAll("[\\s\\-]", "");
-        for (Row r : all) {
-            boolean inTab = (tab == 0) ? (r.status == null || r.status.isEmpty())
-                                       : (r.status != null && !r.status.isEmpty());
+        List<Row> src = (tab == 1 && calledRows != null) ? calledRows : all;
+        for (Row r : src) {
+            boolean inTab;
+            if (tab == 0) inTab = (r.status == null || r.status.isEmpty());
+            else if (calledRows != null) inTab = true; // calledRows-e thaka manei oi date-e call hoyeche
+            else inTab = (r.status != null && !r.status.isEmpty());
             if (!inTab) continue;
             if (qn.isEmpty() || r.number.contains(qn) || dialNumber(r.number).contains(qn)) shown.add(r);
         }
@@ -107,7 +115,11 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     @Override public void onBindViewHolder(@NonNull Holder h, int pos) {
         Row r = shown.get(pos);
         h.tvNumber.setText(dialNumber(r.number));
-        h.tvRow.setText("রো " + r.row);
+        h.tvRow.setText(r.viewOnly ? "লগ থেকে" : "রো " + r.row);
+        h.spStatus.setEnabled(!r.viewOnly); h.spValid.setEnabled(!r.viewOnly);
+        h.etRemark1.setEnabled(!r.viewOnly); h.etRemark2.setEnabled(!r.viewOnly); h.etOthers.setEnabled(!r.viewOnly);
+        h.btnSave.setEnabled(!r.viewOnly);
+        h.btnSave.setText(r.viewOnly ? "শুধু দেখা যাবে" : "Save korun");
         final String[] sOpts = withUnknown(statusOpts, r.status);
         final String[] sLabels = withUnknown(statusLabels, r.status);
         final String[] vOpts = withUnknown(validOpts, r.valid);

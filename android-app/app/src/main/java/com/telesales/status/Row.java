@@ -3,6 +3,8 @@ package com.telesales.status;
 public class Row {
     public int row;
     public String number, status, valid, remark1, remark2, others;
+    /** Log theke asa view-only row (main sheet-e nei) — Save hobena, sudhu dekha jabe. */
+    public boolean viewOnly = false;
     public Row(int row, String number, String status, String valid, String remark1, String remark2, String others) {
         this.row = row; this.number = number == null ? "" : number;
         this.status = status == null ? "" : status; this.valid = valid == null ? "" : valid;

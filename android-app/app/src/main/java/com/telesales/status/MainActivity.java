@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     // load-er sequence diye purono response notun data-r upor boshbe na.
     private String sharedLogCacheAgent = null, sharedLogCacheId = null;
     private int rowsSeq = 0, statsSeq = 0, reportSeq = 0;
+    private boolean reportStatsFallbackUsed = false, reportLoadFallbackUsed = false;
     private boolean rowsLoading = false, authRetryUsed = false;
     private android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable pendingRowsLoad, pendingStatsLoad;
@@ -133,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         "• FTD: + চাপলে একটা করে বাড়বে; প্রতিবার নিচে ওই FTD-র টাকাটা লিখতে হবে। শুধু মোট সংখ্যা আর মোট টাকা দেখাবে, আলাদা আলাদা FTD-র টাকা দেখাবে না। ভুল হলে − চাপলে আজকের শেষ FTD-টা বাদ যাবে।\n" +
         "• Invalid Number: আলাদা করে লিখতে হবে না — নিজে থেকে হিসাব হয়। যেসব নাম্বারে Not Connected আর Valid No দুটোই আছে, সেসব নাম্বার ওই দিনে একবার করে গোনা হয় (একই নাম্বার দুবার থাকলেও ১)। আগের হাতে লেখা Invalid লেখাগুলো শুধু পুরোনো হিসাব হিসেবে থেকে যাবে।\n" +
         "• Problems: কাজের সময় কোনো সমস্যা হলে এখানে লিখুন।\n" +
-        "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। Generate Report চাপলে আজকের তারিখ, সময়, Agent ID, মোট কল, Connected, Registration, FTD, মোট টাকা, Invalid আর Problems দিয়ে রিপোর্ট তৈরি হবে। Copy চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
+        "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। Generate Report চাপলে নির্বাচিত তারিখ, সময়, Agent ID, মোট কল, Connected, Registration, FTD, মোট টাকা, Invalid আর Problems দিয়ে রিপোর্ট তৈরি হবে। Copy চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
         "৫. Website বাটন\n" +
         "নিচের মেনু থেকে Website চাপলে আপনার সাইটটা অ্যাপের ভিতরেই খুলবে, আর নিচে মেনু দেখা যাবে। প্রথমবার ইউজারনেম-পাসওয়ার্ড দিয়ে লগইন করতে হবে; তারপর থেকে লগইন মনে থাকবে, আপডেট দিলেও ভুলবে না। মেনু থেকে যেকোনো অপশনে যেতে পারবেন।\n\n" +
         "৬. দিনের হিসাব (ড্যাশবোর্ড)\n" +
@@ -315,33 +316,54 @@ public class MainActivity extends AppCompatActivity {
         adapter = new RowAdapter((row, btn) -> {
             btn.setEnabled(false); btn.setText("সেভ হচ্ছে...");
             new Thread(() -> {
+                String key = row.number == null ? "" : row.number.trim();
+                String now = (row.status == null ? "" : row.status) + "|" + (row.valid == null ? "" : row.valid);
+                String old = lastStatusMap.get(key);
+                boolean changed = !now.equals(old);
+                boolean isClear = (row.status == null || row.status.isEmpty()) && (row.valid == null || row.valid.isEmpty());
+                String dialNum = RowAdapter.dialNumber(row.number);
                 try {
                     SheetsClient.updateRow(token, SHEET_ID, agentId, row);
-                    String key = row.number == null ? "" : row.number.trim();
-                    String now = (row.status == null ? "" : row.status) + "|" + (row.valid == null ? "" : row.valid);
-                    String old = lastStatusMap.get(key);
                     String logError = null;
                     boolean logAppended = false;
-                    if (!now.equals(old)) {
+                    boolean logCleared = false;
+                    if (changed) {
                         try {
                             ensureStatusLogSheet();
-                            SheetsClient.appendReportRow(token, statusLogSheetId, statusLogTab, new String[]{dhakaDate(), RowAdapter.dialNumber(row.number), row.status == null ? "" : row.status, row.valid == null ? "" : row.valid});
+                            if (isClear) {
+                                // v4.20 clear-undo: khali korle oi diner oi number-er log row muche jabe, blank row jog hobe na.
+                                SheetsClient.deleteLogRowsForDateNumber(token, statusLogSheetId, statusLogTab, dhakaDate(), dialNum);
+                                purgePendingFor(dhakaDate(), dialNum, "log");
+                                lastStatusMap.put(key, now);
+                                logCleared = true;
+                            } else {
+                                SheetsClient.appendReportRow(token, statusLogSheetId, statusLogTab, new String[]{dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid});
+                                lastStatusMap.put(key, now);
+                                logAppended = true;
+                                purgePendingFor(dhakaDate(), dialNum, "clear");
+                                SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                                if (p.getString("log_anchor_date_" + agentId, null) == null)
+                                    p.edit().putString("log_anchor_date_" + agentId, dhakaDate()).apply();
+                            }
+                        } catch (Exception le) {
+                            logError = le.getMessage(); maybeInvalidateLogCache(le);
+                            // main update hoyeche, log side pore sync hobe (harabe na).
+                            if (isClear) queuePendingClear(dhakaDate(), dialNum);
+                            else queuePendingLog(dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid);
                             lastStatusMap.put(key, now);
-                            logAppended = true;
-                            SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
-                            if (p.getString("log_anchor_date_" + agentId, null) == null)
-                                p.edit().putString("log_anchor_date_" + agentId, dhakaDate()).apply();
-                        } catch (Exception le) { logError = le.getMessage(); maybeInvalidateLogCache(le); }
+                        }
                     }
                     String finalLogError = logError;
                     boolean finalLogAppended = logAppended;
+                    boolean finalLogCleared = logCleared;
                     runOnUiThread(() -> {
                         authRetryUsed = false;
                         btn.setEnabled(true); btn.setText("Save korun");
-                        Toast.makeText(this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (log-e joma hoyni: " + finalLogError + ")" : ""), Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (log pore sync hobe)" : (finalLogCleared ? " (ajker log row muche geche)" : "")), Toast.LENGTH_LONG).show();
                         adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
-                        if (finalLogAppended) applyLocalSaveToTiles(row.status, row.valid);
-                        drainOutboxAsync();
+                        if (finalLogAppended) { applyLocalSaveToTiles(row.status, row.valid); refreshInvalidTileAfterSave(); }
+                        else if (finalLogCleared) loadDayStats();
+                        drainOutboxAsync(); drainPendingLogsAsync();
                     });
                 } catch (Exception e) {
                     if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) {
@@ -349,6 +371,11 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(() -> { btn.setEnabled(true); btn.setText("Save korun"); btn.performClick(); });
                     } else {
                         queueOutbox(row);
+                        // main update hoyni — log side-o pore drain-e hobe (outbox clear howar por).
+                        if (changed) {
+                            if (isClear) queuePendingClear(dhakaDate(), dialNum);
+                            else queuePendingLog(dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid);
+                        }
                         runOnUiThread(() -> {
                             btn.setEnabled(true); btn.setText("Save korun");
                             Toast.makeText(this, "সেভ হয়নি — pore abar chesta hobe (joma ache): " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -462,6 +489,8 @@ public class MainActivity extends AppCompatActivity {
         listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); mainView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE);
         updateMenuState(sec);
         findViewById(R.id.menuHomeBtn).setBackgroundResource(sec == 1 ? R.drawable.btn_gradient : R.drawable.glass_field);
+        // v4.20: list-e dhukle called tab-er date purono hole taja hisab ana.
+        if (sec == 1 && adapter != null && selectedDate != null && !selectedDate.equals(adapter.getCalledDate())) loadDayStats();
     }
     private void showAgent() {
         loginView.setVisibility(View.GONE);
@@ -749,7 +778,16 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
-                StatusLogTarget logTarget = resolveStatusLogTarget(); if (logTarget == null) return; String logId = logTarget.sheetId;
+                StatusLogTarget logTarget = resolveStatusLogTarget();
+                if (logTarget == null) {
+                    final String d = day;
+                    runOnUiThread(() -> {
+                        if (weekSummary != null) weekSummary.setText("Hisab load hoyni: log file pai ni — Refresh korun");
+                        if (adapter != null) adapter.setCalledRows(null, d);
+                    });
+                    return;
+                }
+                String logId = logTarget.sheetId;
                 String repId = resolveSharedId("report_sheet_id_" + agentId,
                         "bdxsukuna30".equals(agentId) ? "report_sheet_id" : null, "Telesales Report - " + agentId);
                 List<REntry> logs = logId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, logId, logTarget.tab));
@@ -796,10 +834,13 @@ public class MainActivity extends AppCompatActivity {
                     statRegDay.setText(String.valueOf(finalReg));
                     statFtdDay.setText(String.valueOf(finalFtdN));
                     statFtdAmtDay.setText("৳" + fmtAmount(finalFtdSum));
-                    weekSummary.setText("Ei 7 din (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • FTD " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")");
+                    weekSummary.setText("Ei 7 din (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • FTD " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + (logTarget.shared ? "" : " • Purono log file use hocche (shared file pai ni)"));
+                    buildCalledRows(logs, day);
+                    reportStatsFallbackUsed = false;
                 });
             } catch (Exception e) {
                 maybeInvalidateLogCache(e);
+                if (isNotFoundError(e) && !reportStatsFallbackUsed) { reportStatsFallbackUsed = true; clearReportCache(); loadDayStats(); return; }
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; loadDayStats(); return; }
                 runOnUiThread(() -> weekSummary.setText("Hisab load hoyni: " + e.getMessage()));
             }
@@ -834,7 +875,7 @@ public class MainActivity extends AppCompatActivity {
                     // tarpor install korte hobe; dialog-e sei nirdesh-i thakbe.
                     runOnUiThread(() -> { if (isFinishing()) return; new AlertDialog.Builder(MainActivity.this)
                             .setTitle("অ্যাপ আপডেট করা জরুরি")
-                            .setMessage("এই ভার্সন আর চলবে না। নতুন ভার্সন " + remoteName + " পেতে আগে পুরোনো অ্যাপটা Uninstall করুন, তারপর আপডেট চাপুন — নতুন করে ইনস্টল হবে।")
+                            .setMessage("এই ভার্সন আর চলবে না। নতুন ভার্সন " + remoteName + " পেতে আগে অ্যাপে Refresh চেপে জমা সেভগুলো সিঙ্ক করুন, তারপর পুরোনো অ্যাপটা Uninstall করে আপডেট চাপুন — নতুন করে ইনস্টল হবে।")
                             .setCancelable(false)
                             .setPositiveButton("আপডেট", (d, w) -> startUpdateDownload(apkUrl))
                             .show(); });
@@ -976,8 +1017,18 @@ public class MainActivity extends AppCompatActivity {
                 ftdToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "FTD")), today);
                 invToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Invalid")), today);
                 probToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Problems")), today);
-                runOnUiThread(() -> { if (seq != reportSeq || !reportDate.equals(today)) return; refreshReportLists(); reportStatus.setText(""); loadAutoInvalidForReport(); });
+                runOnUiThread(() -> { if (seq != reportSeq || !reportDate.equals(today)) return; reportLoadFallbackUsed = false; refreshReportLists(); reportStatus.setText(""); loadAutoInvalidForReport(); });
             } catch (Exception e) {
+                if (isNotFoundError(e) && !reportLoadFallbackUsed) {
+                    reportLoadFallbackUsed = true;
+                    clearReportCache();
+                    try {
+                        String sid = sharedLogCacheId;
+                        if (sid == null) sid = SheetsClient.findSpreadsheetByName(token, SHARED_STATUS_LOG_TITLE);
+                        if (sid != null) SheetsClient.clearRegistryReportId(token, sid, agentId);
+                    } catch (Exception ignored) {}
+                    loadReportData(); return;
+                }
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; loadReportData(); return; }
                 runOnUiThread(() -> reportStatus.setText("Report load hoyni: " + e.getMessage()));
             }
@@ -1044,10 +1095,16 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 ensureReportSheet();
-                // v4.19: delete-er age abar pore dekha — row sore gele vul row muchbe na.
-                String firstCell = SheetsClient.getFirstCell(token, reportSheetId, tab, "A" + e.sheetRow);
-                String expected = e.cells.length > 0 ? e.cells[0] : "";
-                if (!firstCell.trim().equals(expected.trim())) throw new Exception("Sheet-e row bodle geche — Refresh kore abar delete korun");
+                // v4.20: delete-er age PURO row miliye dekha — sudhu date millei hobe na
+                // (eki diner onek row thake, row sore gele vul row muchto).
+                String[] current = SheetsClient.readRowCells(token, reportSheetId, tab, e.sheetRow);
+                boolean same = true;
+                for (int ci = 0; ci < e.cells.length; ci++) {
+                    String cur = ci < current.length ? current[ci] : "";
+                    String exp = e.cells[ci] == null ? "" : e.cells[ci];
+                    if (!cur.trim().equals(exp.trim())) { same = false; break; }
+                }
+                if (!same) throw new Exception("Sheet-e row bodle geche — Refresh kore abar delete korun");
                 SheetsClient.deleteReportRow(token, reportSheetId, tab, e.sheetRow);
                 runOnUiThread(() -> { reportOutputCard.setVisibility(View.GONE); loadReportData(); loadDayStats(); });
             } catch (Exception ex) {
@@ -1223,6 +1280,23 @@ public class MainActivity extends AppCompatActivity {
                     Row r = new Row(o.optInt("row"), o.optString("number"), o.optString("status"), o.optString("valid"), o.optString("r1"), o.optString("r2"), o.optString("others"));
                     try {
                         SheetsClient.updateRow(token, SHEET_ID, myAgent, r);
+                        // v4.20: drain-e main update land korlei log side-o thik korte hobe.
+                        String entryDate = dateFromTs(o.optLong("ts"));
+                        String dNum = RowAdapter.dialNumber(r.number);
+                        boolean entryClear = (r.status == null || r.status.isEmpty()) && (r.valid == null || r.valid.isEmpty());
+                        if (entryClear) {
+                            try {
+                                ensureStatusLogSheet();
+                                SheetsClient.deleteLogRowsForDateNumber(token, statusLogSheetId, statusLogTab, entryDate, dNum);
+                                purgePendingFor(entryDate, dNum, "log");
+                            } catch (Exception de) {
+                                queuePendingClear(entryDate, dNum);
+                                arr.remove(i); changed = true;
+                                break; // delete fail — porer entry pore, order thik thakbe
+                            }
+                        } else {
+                            purgePendingFor(entryDate, dNum, "clear");
+                        }
                         arr.remove(i); changed = true; // eki index-e porer entry asbe, i barbe na
                     } catch (Exception e) {
                         String m = e.getMessage() == null ? "" : e.getMessage();
@@ -1232,8 +1306,168 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 if (changed) p.edit().putString(OUTBOX_KEY, arr.toString()).apply();
+                drainPendingLogsAsync();
             } catch (Exception ignored) {}
         }).start();
+    }
+
+    /** v4.20 PENDING-LOG: log append fail hole (ba main save fail hole) log row-ta phone-e
+     *  joma thakbe — pore drain-e append/clear hobe, harabe na. Type: "log" = append,
+     *  "clear" = oi date+number-er log row muche fela. */
+    private static final String PENDING_LOG_KEY = "pending_log_v420";
+    private static String dateFromTs(long ts) {
+        if (ts <= 0) return dhakaDate();
+        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        f.setTimeZone(TimeZone.getTimeZone("Asia/Dhaka"));
+        return f.format(new Date(ts));
+    }
+    private void queuePending(String type, String date, String number, String status, String valid) {
+        try {
+            SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+            JSONArray arr;
+            try { arr = new JSONArray(p.getString(PENDING_LOG_KEY, "[]")); } catch (Exception e) { arr = new JSONArray(); }
+            JSONObject o = new JSONObject();
+            o.put("agent", agentId == null ? "" : agentId);
+            o.put("type", type); o.put("date", date == null ? "" : date);
+            o.put("number", number == null ? "" : number);
+            o.put("status", status == null ? "" : status);
+            o.put("valid", valid == null ? "" : valid);
+            o.put("ts", System.currentTimeMillis());
+            arr.put(o);
+            p.edit().putString(PENDING_LOG_KEY, arr.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+    private void queuePendingLog(String date, String number, String status, String valid) { queuePending("log", date, number, status, valid); }
+    private void queuePendingClear(String date, String number) { queuePending("clear", date, number, "", ""); }
+    /** Pending theke (date, number)-er entry muche fela — type null hole sob type.
+     *  Sudhu ei agent-er entry muchbe (onno agent-er ta noy). */
+    private void purgePendingFor(String date, String number, String type) {
+        try {
+            SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+            JSONArray arr;
+            try { arr = new JSONArray(p.getString(PENDING_LOG_KEY, "[]")); } catch (Exception e) { return; }
+            JSONArray kept = new JSONArray();
+            String norm = SheetsClient.normLogNumber(number);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                String ea = o.optString("agent");
+                if (!ea.isEmpty() && agentId != null && !ea.equals(agentId)) { kept.put(o); continue; }
+                boolean same = date.equals(o.optString("date")) && norm.equals(SheetsClient.normLogNumber(o.optString("number")));
+                if (same && (type == null || type.equals(o.optString("type")))) continue;
+                kept.put(o);
+            }
+            p.edit().putString(PENDING_LOG_KEY, kept.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+    /** Pending log/clear drain: FIFO; outbox-e oi number-er main update baki thakle
+     *  tar log entry skip (pore abar, order thik rakhte eki number-er porer gulo-o skip),
+     *  clear entry skip noy. Fail hole thambe (order thik). */
+    private void drainPendingLogsAsync() {
+        if (token == null || agentId == null) return;
+        final String myAgent = agentId;
+        new Thread(() -> {
+            try {
+                SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                JSONArray arr;
+                try { arr = new JSONArray(p.getString(PENDING_LOG_KEY, "[]")); } catch (Exception e) { return; }
+                if (arr.length() == 0) return;
+                java.util.Set<String> outboxNums = new java.util.HashSet<>();
+                try {
+                    JSONArray ob = new JSONArray(p.getString(OUTBOX_KEY, "[]"));
+                    for (int i = 0; i < ob.length(); i++) {
+                        JSONObject o = ob.optJSONObject(i);
+                        if (o != null && myAgent.equals(o.optString("agent"))) outboxNums.add(SheetsClient.normLogNumber(o.optString("number")));
+                    }
+                } catch (Exception ignored) {}
+                StatusLogTarget t;
+                try { t = resolveStatusLogTarget(); } catch (Exception e) { return; }
+                if (t == null) return;
+                boolean changed = false;
+                boolean authTried = false;
+                java.util.Set<String> skippedNums = new java.util.HashSet<>();
+                for (int i = 0; i < arr.length(); ) {
+                    JSONObject o = arr.optJSONObject(i);
+                    if (o == null) { i++; continue; }
+                    String ea = o.optString("agent");
+                    if (!ea.isEmpty() && !myAgent.equals(ea)) { i++; continue; }
+                    String type = o.optString("type");
+                    String num = SheetsClient.normLogNumber(o.optString("number"));
+                    if ("log".equals(type) && (outboxNums.contains(num) || skippedNums.contains(num))) { skippedNums.add(num); i++; continue; }
+                    try {
+                        if ("clear".equals(type)) {
+                            SheetsClient.deleteLogRowsForDateNumber(token, t.sheetId, t.tab, o.optString("date"), o.optString("number"));
+                        } else {
+                            SheetsClient.appendReportRow(token, t.sheetId, t.tab, new String[]{o.optString("date"), RowAdapter.dialNumber(o.optString("number")), o.optString("status"), o.optString("valid")});
+                        }
+                        arr.remove(i); changed = true;
+                    } catch (Exception e) {
+                        if (isAuthError(e) && !authTried && refreshTokenSync()) { authTried = true; continue; }
+                        break;
+                    }
+                }
+                if (changed) p.edit().putString(PENDING_LOG_KEY, arr.toString()).apply();
+            } catch (Exception ignored) {}
+        }).start();
+    }
+    private static boolean isNotFoundError(Exception e) {
+        String m = e == null ? "" : String.valueOf(e.getMessage()).toLowerCase();
+        return m.contains("404") || m.contains("not found");
+    }
+    /** Stale Report ID cache khali kora (prefs + field) — porer resolve abar Drive search korbe. */
+    private void clearReportCache() {
+        try {
+            SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+            SharedPreferences.Editor ed = p.edit().remove("report_sheet_id_" + agentId);
+            if ("bdxsukuna30".equals(agentId)) ed.remove("report_sheet_id");
+            ed.apply();
+        } catch (Exception ignored) {}
+        reportSheetId = null;
+    }
+    /** Save-er por Invalid tile taja kora (ekta log read — cache thakle Drive search noy). */
+    private void refreshInvalidTileAfterSave() {
+        if (token == null || agentId == null) return;
+        if (selectedDate == null || !selectedDate.equals(dhakaDate())) return;
+        new Thread(() -> {
+            try {
+                StatusLogTarget t = resolveStatusLogTarget();
+                if (t == null) return;
+                List<REntry> logs = withRows(SheetsClient.getReportRows(token, t.sheetId, t.tab));
+                final int c = countAutoInvalid(logs, dhakaDate());
+                runOnUiThread(() -> { if (statInvDay != null && selectedDate != null && selectedDate.equals(dhakaDate())) statInvDay.setText(String.valueOf(c)); });
+            } catch (Exception ignored) {}
+        }).start();
+    }
+    /** v4.20: Dashboard date-onujayi called tab-er row toiri — log theke oi diner call kora
+     *  number; main sheet-e thakle editable row, na thakle view-only log row. */
+    private void buildCalledRows(List<REntry> logs, String day) {
+        try {
+            if (adapter == null) return;
+            java.util.Map<String, Row> mainByNorm = new java.util.HashMap<>();
+            for (Row r : adapter.getAll()) mainByNorm.put(SheetsClient.normLogNumber(r.number), r);
+            java.util.Map<String, String[]> latest = new java.util.HashMap<>();
+            java.util.Map<String, String> displayNum = new java.util.HashMap<>();
+            if (logs != null) for (REntry e : logs) {
+                if (e == null || !day.equals(cellE(e, 0))) continue;
+                String st = cellE(e, 2);
+                if (st == null || st.isEmpty()) continue;
+                String norm = SheetsClient.normLogNumber(cellE(e, 1));
+                if (norm.isEmpty()) continue;
+                latest.put(norm, new String[]{st, cellE(e, 3)});
+                displayNum.put(norm, cellE(e, 1));
+            }
+            java.util.List<Row> called = new java.util.ArrayList<>();
+            for (java.util.Map.Entry<String, String[]> en : latest.entrySet()) {
+                Row m = mainByNorm.get(en.getKey());
+                if (m != null) called.add(m);
+                else {
+                    Row s = new Row(-1, displayNum.get(en.getKey()), en.getValue()[0], en.getValue()[1], "", "", "");
+                    s.viewOnly = true;
+                    called.add(s);
+                }
+            }
+            adapter.setCalledRows(called, day);
+        } catch (Exception ignored) {}
     }
 
     /** v4.19 REGISTRY read: shared log-er Registry tab theke ei agent-er {reportId, legacyId}.

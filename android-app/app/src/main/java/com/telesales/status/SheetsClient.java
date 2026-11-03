@@ -515,4 +515,58 @@ public class SheetsClient {
         int code = c.getResponseCode();
         if (code != 200) throw new Exception("Report delete failed: " + code + " " + readAll(c.getErrorStream()));
     }
+
+    /** Log number normalise (countAutoInvalid-er motoi): space/dash bad, +880/880 -> 0-rup. */
+    public static String normLogNumber(String n) {
+        if (n == null) return "";
+        String d = n.replace(" ", "").replace("-", "");
+        if (d.startsWith("+880")) d = "0" + d.substring(4);
+        else if (d.startsWith("880")) d = "0" + d.substring(3);
+        else if (!d.isEmpty() && !d.startsWith("0")) d = "0" + d;
+        return d;
+    }
+
+    /** Ekta sheet row-r sob cell (A{row}:Z{row}) — delete-er age puro row miliye dekhar jonno. */
+    public static String[] readRowCells(String token, String sheetId, String tab, int sheetRow) throws Exception {
+        String range = URLEncoder.encode(q(tab) + "!A" + sheetRow + ":Z" + sheetRow, "UTF-8");
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
+        HttpURLConnection c = open(url, token);
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Row read failed: " + code + " " + readAll(c.getErrorStream()));
+        JSONObject j = new JSONObject(readAll(c.getInputStream()));
+        JSONArray values = j.optJSONArray("values");
+        if (values == null || values.length() == 0) return new String[0];
+        JSONArray v = values.getJSONArray(0);
+        String[] out = new String[v.length()];
+        for (int k = 0; k < v.length(); k++) out[k] = v.optString(k);
+        return out;
+    }
+
+    /** Log tab theke (date, number)-er SOB row muche fela (clear-undo): niche theke upore
+     *  delete korle index sore na. */
+    public static void deleteLogRowsForDateNumber(String token, String sheetId, String tab, String date, String number) throws Exception {
+        String norm = normLogNumber(number);
+        if (norm.isEmpty()) return;
+        List<String[]> rows = getReportRows(token, sheetId, tab);
+        java.util.List<Integer> toDelete = new java.util.ArrayList<>();
+        for (int i = 0; i < rows.size(); i++) {
+            String[] r = rows.get(i);
+            String d = r.length > 0 ? r[0] : "";
+            String n = r.length > 1 ? normLogNumber(r[1]) : "";
+            if (date.equals(d) && norm.equals(n)) toDelete.add(i + 2);
+        }
+        for (int k = toDelete.size() - 1; k >= 0; k--) deleteReportRow(token, sheetId, tab, toDelete.get(k));
+    }
+
+    /** Registry-te agent-er Report File ID khali kora (stale ID fallback-er jonno). */
+    public static void clearRegistryReportId(String token, String spreadsheetId, String agentId) throws Exception {
+        List<String[]> rows = getReportRows(token, spreadsheetId, REGISTRY_TAB);
+        for (int i = 0; i < rows.size(); i++) {
+            String[] r = rows.get(i);
+            if (r.length > 0 && agentId.equals(r[0])) {
+                updateCells(token, spreadsheetId, REGISTRY_TAB + "!B" + (i + 2), new String[][]{{""}});
+                return;
+            }
+        }
+    }
 }
