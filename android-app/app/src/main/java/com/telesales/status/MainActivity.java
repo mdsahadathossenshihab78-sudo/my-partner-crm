@@ -525,7 +525,9 @@ public class MainActivity extends AppCompatActivity {
         adminStatus.setText("Jog kora hocche...");
         new Thread(() -> {
             try {
-                List<String> tabs = SheetsClient.getTabs(token, SHEET_ID);
+                List<String> tabs;
+                try { tabs = SheetsClient.getTabs(token, SHEET_ID); }
+                catch (Exception ex) { if (isAuthError(ex) && refreshTokenSync()) tabs = SheetsClient.getTabs(token, SHEET_ID); else throw ex; }
                 String match = null;
                 for (String t : tabs) if (t.equals(target)) { match = t; break; }
                 if (match == null) for (String t : tabs) if (t.equalsIgnoreCase(target)) { match = t; break; }
@@ -578,7 +580,9 @@ public class MainActivity extends AppCompatActivity {
         agentError.setText("List check kora hocche...");
         new Thread(() -> {
             try {
-                List<String> tabs = SheetsClient.getTabs(token, SHEET_ID);
+                List<String> tabs;
+                try { tabs = SheetsClient.getTabs(token, SHEET_ID); }
+                catch (Exception ex) { if (isAuthError(ex) && refreshTokenSync()) tabs = SheetsClient.getTabs(token, SHEET_ID); else throw ex; }
                 String match = null;
                 for (String t : tabs) if (t.equals(id)) { match = t; break; }
                 if (match == null) for (String t : tabs) if (t.equalsIgnoreCase(id)) { match = t; break; }
