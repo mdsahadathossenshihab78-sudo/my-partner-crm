@@ -56,8 +56,15 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 <label for="adminAgentInput">Agent ID</label><input id="adminAgentInput" placeholder="Agent ID লিখুন">
 <label for="adminNumbersInput" style="margin-top:12px">Numbers</label><textarea id="adminNumbersInput" rows="8" placeholder="Number-gulo paste korun — proti line-e ekta, ba comma diye"></textarea>
 <div class="row" style="margin-top:12px"><button class="btn btn-grad" id="adminAddBtn">Numbers Add korun</button><button class="btn btn-light" id="adminLogoutBtn">লগআউট</button></div>
-<p class="muted" id="adminMsg"></p></div>
+<p class="muted" id="adminMsg"></p>
+<div style="margin-top:20px;border-top:1px solid rgba(255,255,255,.14);padding-top:16px"><h3 style="margin:0 0 8px">⚙️ Sheet Settings</h3><p class="muted">প্রতিটা শিটের জন্য নতুন শিটের লিংক বা আইডি বসিয়ে যাচাই করে বদলাতে পারবেন। আইডি হলো শিটের লিংকে /d/ আর /edit-এর মাঝের লম্বা কোড। আগের ডাটা দেখা যাবে, কিছু মুছবে না।</p><p class="muted" id="ssStatus"></p>
+<div style="margin-top:12px"><label>নাম্বার শিট</label><p class="muted" id="ssCurNUMBERS">জানা যায়নি</p><div class="row"><input id="ssInNUMBERS" placeholder="নতুন শিটের লিংক বা আইডি" style="flex:1"><button class="btn btn-light btn-sm" id="ssVerifyNUMBERS">যাচাই</button><button class="btn btn-grad btn-sm" id="ssSwitchNUMBERS">বদলাও</button></div><p class="muted" id="ssHistNUMBERS"></p></div>
+<div style="margin-top:12px"><label>স্ট্যাটাস লগ শিট</label><p class="muted" id="ssCurSTATUS_LOG">জানা যায়নি</p><div class="row"><input id="ssInSTATUS_LOG" placeholder="নতুন শিটের লিংক বা আইডি" style="flex:1"><button class="btn btn-light btn-sm" id="ssVerifySTATUS_LOG">যাচাই</button><button class="btn btn-grad btn-sm" id="ssSwitchSTATUS_LOG">বদলাও</button></div><p class="muted" id="ssHistSTATUS_LOG"></p></div>
+<div style="margin-top:12px"><label>রিপোর্ট শিট</label><p class="muted" id="ssCurREPORTS">জানা যায়নি</p><div class="row"><input id="ssInREPORTS" placeholder="নতুন শিটের লিংক বা আইডি" style="flex:1"><button class="btn btn-light btn-sm" id="ssVerifyREPORTS">যাচাই</button><button class="btn btn-grad btn-sm" id="ssSwitchREPORTS">বদলাও</button></div><p class="muted" id="ssHistREPORTS"></p></div>
+<div style="margin-top:12px"><label>ডেইলি রিপোর্ট শিট</label><p class="muted" id="ssCurDAILY">জানা যায়নি</p><div class="row"><input id="ssInDAILY" placeholder="নতুন শিটের লিংক বা আইডি" style="flex:1"><button class="btn btn-light btn-sm" id="ssVerifyDAILY">যাচাই</button><button class="btn btn-grad btn-sm" id="ssSwitchDAILY">বদলাও</button></div><p class="muted" id="ssHistDAILY"></p></div>
+</div>
 
+</div>
 <div id="mainView" style="display:none">
 <div class="card"><div class="row" style="justify-content:space-between"><span>👤 <b id="userEmail"></b> • <span id="agentLabel"></span></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
 <div class="row" style="margin-top:12px"><button class="btn btn-light" id="reportBtn" style="flex:1">📋 Report</button></div>
@@ -92,15 +99,20 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 <div style="margin-top:16px"><h3 style="margin:0 0 8px">Invalid Number (অটো)</h3><p class="muted" id="invAutoSummary">হিসাব হচ্ছে...</p><div id="invAutoList"></div><p class="muted">এই সংখ্যা লগ থেকে অটো হিসাব হয় (Not Connected + Valid No, এক দিনে এক নাম্বার একবার)। পুরোনো হাতে লেখা Invalid রো শিটে ইতিহাস হিসেবে থাকবে, কিন্তু কাউন্টে ধরা হবে না।</p></div>
 <div style="margin-top:16px"><h3 style="margin:0 0 8px">Problems</h3><div class="row" id="probAddRow"><input id="probText" placeholder="সমস্যা লিখুন" style="flex:1"><button class="btn btn-primary btn-sm" id="probAddBtn">+ যোগ করুন</button></div><div id="probList"></div></div>
 <div class="row" style="margin-top:20px"><button class="btn btn-grad" id="genBtn" style="flex:1">📄 Generate Report</button></div>
-<div id="reportOut" style="display:none;margin-top:16px"><pre class="out" id="reportText"></pre><button class="btn btn-primary" id="copyReportBtn">📋 কপি করুন</button></div>
+<div id="reportOut" style="display:none;margin-top:16px"><pre class="out" id="reportText"></pre><button class="btn btn-primary" id="copyReportBtn">📋 কপি করুন</button><p class="muted" id="dailyNote"></p></div>
 </div></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
 // PUBLISH NOTE: restore SHEET_ID, firebaseConfig.apiKey and ADMIN_EMAIL from the repo index.html before deploying.
 const SHEET_ID='10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE';
+const SHARED_STATUS_LOG_ID='1t22IL9miZ_5QYWD3rJVioXZlKsGwlk6X8bW_TQCjbfQ';
+const SHARED_REPORT_ID='1jYB5KeGw1LDH4FnjbwBr9qL-IHgmzPIhWU7GNeb5uhk';
+const DAILY_REPORTS_ID='1BPaQrV6Znqcs45pNEUib8AOHnxzz93Z8Y8vEMAAHOzg';
+const CONFIG_FILE_ID=SHARED_STATUS_LOG_ID;
 const firebaseConfig={apiKey:"AIzaSyB03sx0s65ycG3MYcSbB2HfGMigs9DI-r4",authDomain:"fir-a-topup-bazar.firebaseapp.com",databaseURL:"https://fir-a-topup-bazar-default-rtdb.firebaseio.com",projectId:"fir-a-topup-bazar",storageBucket:"fir-a-topup-bazar.firebasestorage.app",messagingSenderId:"928168996366",appId:"1:928168996366:web:fd879d795202891ee9965f",measurementId:"G-9QBLYHR817"};
 let auth=null, token=null, agentId=null, userEmail=null, rows=[], tab='pending', lastStatusMap={};
+let calledRows=[]; let sheetConfigCache=null; let ensuredLogSheets={}; let ensuredReportSheets={}; let verifiedSheets={}; let logMigratedThisSession=false; let lastLogPartialFail=false; let lastReportPartialFail=false; let lastLogReadUsedLegacy=false;
 let selectedDate=dhakaToday();
 let reportDate=dhakaToday();
 function updateRepDateBtn(){$('repDateBtn').textContent=displayDay(reportDate)+(reportDate===dhakaToday()?' • আজ':'');const past=reportDate<dhakaToday();$('repDateNote').textContent=past?'শুধু দেখা যাবে — এই তারিখে যোগ/ডিলিট বন্ধ।':'';['regAddRow','probAddRow'].forEach(id=>{const el=$(id);if(el)el.style.display=past?'none':'';});const fs=$('ftdStepRow');if(fs)fs.style.display=past?'none':'';const fa=$('ftdStepAmountRow');if(fa)fa.style.display='none';}
@@ -123,7 +135,7 @@ function showLogin(){$('loginCard').style.display='block';$('agentCard').style.d
 function showAgent(){$('loginCard').style.display='none';$('agentCard').style.display='block';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none'}
 function showMain(){$('loginCard').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='block';$('reportView').style.display='none';$('adminCard').style.display='none';$('agentLabel').textContent='Agent: '+agentId;updateDateBtn();loadDayStats()}
 const ADMIN_EMAIL='shihabno.18@gmail.com';
-function showAdmin(){$('loginCard').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='block';$('adminMsg').textContent='';}
+function showAdmin(){$('loginCard').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='block';$('adminMsg').textContent='';refreshAdminSheetSection();}
 function showReport(){reportDate=dhakaToday();updateRepDateBtn();$('mainView').style.display='none';$('reportView').style.display='block';loadReportData()}
 function updateDateBtn(){$('dateBtn').textContent=displayDay(selectedDate)+(selectedDate===dhakaToday()?' • আজ':'')}
 function shiftDay(d){const nd=addDays(selectedDate,d);if(nd>dhakaToday())return;selectedDate=nd;updateDateBtn();loadDayStats()}
@@ -151,7 +163,8 @@ $('agentBtn').onclick=async()=>{
   const id=$('agentInput').value.trim(); if(!id){$('agentMsg').textContent='Agent ID লিখুন।';return;}
   $('agentMsg').textContent='যাচাই হচ্ছে...';
   try{
-    const titles=await getTabs();
+    await tryRefreshConfig();
+    const titles=await getTabsFor(currentNumbersId());
     let match=titles.find(t=>t===id)||titles.find(t=>t.toLowerCase()===id.toLowerCase());
     if(!match){$('agentMsg').textContent='এই Agent ID-তে কোনো লিস্ট পাইনি।';return;}
     agentId=match; localStorage.setItem('agent_id',match); if(userEmail) localStorage.setItem('agent_email',userEmail); showMain(); loadRows();
@@ -166,10 +179,11 @@ $('adminAddBtn').onclick=async()=>{
   if(!pasted.trim()){$('adminMsg').textContent='Number paste করুন।';return;}
   $('adminMsg').textContent='যোগ করা হচ্ছে...';
   try{
-    const titles=await getTabs();
+    await tryRefreshConfig();
+    const titles=await getTabsFor(currentNumbersId());
     const match=titles.find(t=>t===target)||titles.find(t=>t.toLowerCase()===target.toLowerCase());
     if(!match){$('adminMsg').textContent='এই Agent ID-তে কোনো লিস্ট পাইনি।';return;}
-    const d=await api(encodeURIComponent(match)+'!A6:F');
+    const d=await apiSid(currentNumbersId(),encodeURIComponent(match)+'!A6:F');
     const existing=new Set((d.values||[]).map(r=>normAdminNum(r[0]||'')).filter(n=>/^0\d{10}$/.test(n)));
     const toAdd=[];const seen=new Set();let dup=0,bad=0;
     for(const part of pasted.split(/[\n,;\s]+/)){
@@ -180,11 +194,103 @@ $('adminAddBtn').onclick=async()=>{
       seen.add(n);toAdd.push(n);
     }
     if(!toAdd.length){$('adminMsg').textContent='নতুন কোনো number পাইনি'+(dup?' ('+dup+'টা duplicate skip)':'')+(bad?' ('+bad+'টা ঠিক number না)':'')+'।';return;}
-    await api(encodeURIComponent(match)+'!A6:A:append?valueInputOption=RAW','POST',{values:toAdd.map(n=>[n])});
+    await apiSid(currentNumbersId(),encodeURIComponent(match)+'!A6:A:append?valueInputOption=RAW','POST',{values:toAdd.map(n=>[n])});
     $('adminMsg').textContent=toAdd.length+'টা number '+match+'-এর লিস্টে যোগ হয়েছে'+(dup?' ('+dup+'টা duplicate skip)':'')+(bad?' ('+bad+'টা ঠিক number না)':'')+'।';
     $('adminNumbersInput').value='';
   }catch(e){$('adminMsg').textContent='হয়নি, আবার চেষ্টা করুন।';}
 };
+function storeLabel(store){ return store==='NUMBERS'?'নাম্বার শিট':store==='STATUS_LOG'?'স্ট্যাটাস লগ শিট':store==='REPORTS'?'রিপোর্ট শিট':'ডেইলি রিপোর্ট শিট'; }
+async function refreshAdminSheetSection(){
+  if(!token) return;
+  try{
+    try{
+      await ensureConfigTab(CONFIG_FILE_ID);
+      const rows=await getConfigRows(CONFIG_FILE_ID);
+      if(!rows||!rows.length){
+        await appendConfigRow(CONFIG_FILE_ID,['NUMBERS',SHEET_ID,'','seed']);
+        await appendConfigRow(CONFIG_FILE_ID,['STATUS_LOG',SHARED_STATUS_LOG_ID,'','seed']);
+        await appendConfigRow(CONFIG_FILE_ID,['REPORTS',SHARED_REPORT_ID,'','seed']);
+        await appendConfigRow(CONFIG_FILE_ID,['DAILY',DAILY_REPORTS_ID,'','seed']);
+      }
+    }catch(e){}
+    await tryRefreshConfig();
+    const cfg=currentConfig(); const stores=['NUMBERS','STATUS_LOG','REPORTS','DAILY'];
+    for(const store of stores){
+      const cur=writeSheetFor(cfg,store,dhakaToday());
+      let curTitle='জানা যায়নি', known=false;
+      try{ const info=await getSpreadsheetName(cur); if(info[0]){curTitle=info[0];known=true;} }catch(e){}
+      const curEl=$('ssCur'+store); if(curEl) curEl.textContent=storeLabel(store)+': '+curTitle;
+      let hist='';
+      (cfg[store]||[]).forEach(e=>{ hist+=storeLabel(store)+': '+(e.fromDate?e.fromDate+' থেকে':'আগে থেকে')+' — '+(e.sheetId===cur&&known?curTitle:e.sheetId)+'\n'; });
+      const hEl=$('ssHist'+store); if(hEl) hEl.textContent=hist.trim();
+    }
+  }catch(e){ const s=$('ssStatus'); if(s) s.textContent='শিট সেটিংস লোড হয়নি'; }
+}
+async function verifySheetForStore(store){
+  const input=$('ssIn'+store); const id=extractSpreadsheetId(input?input.value:'');
+  const s=$('ssStatus'); if(!id){ if(s) s.textContent='আইডি বা লিংক দিন'; return; }
+  if(s) s.textContent='যাচাই হচ্ছে...';
+  try{
+    const info=await getSpreadsheetName(id);
+    if(info[1]!=='application/vnd.google-apps.spreadsheet') throw new Error('not-spreadsheet');
+    const tabs=await getTabsFor(id);
+    verifiedSheets[store]={id:id,title:info[0],tabs:tabs.length};
+    if(s) s.textContent='ঠিক আছে: '+info[0]+' ('+tabs.length+'টা ট্যাব) — এবার বদলাও চাপুন';
+  }catch(e){ if(s) s.textContent='যাচাই হয়নি: এটা স্প্রেডশিট নয় বা খোলা যায়নি'; }
+}
+async function switchSheetForStore(store){
+  const input=$('ssIn'+store); const id=extractSpreadsheetId(input?input.value:'');
+  const v=verifiedSheets[store]; const s=$('ssStatus');
+  if(!v||v.id!==id){ if(s) s.textContent='আগে যাচাই চাপুন, তারপর বদলাও'; return; }
+  if(!confirm(storeLabel(store)+' এখন থেকে \''+v.title+'\' শিটে চলবে। আগের ডাটা দেখা যাবে, কিছু মুছবে না। বদলাবেন?')) return;
+  if(s) s.textContent='বদলানো হচ্ছে...';
+  try{
+    await tryRefreshConfig();
+    const prevId=writeSheetFor(currentConfig(),store,dhakaToday());
+    await appendConfigRow(CONFIG_FILE_ID,[store,v.id,dhakaToday(),'admin switch']);
+    await tryRefreshConfig();
+    delete verifiedSheets[store];
+    let extra='';
+    if(prevId&&prevId!==v.id){
+      if(store==='NUMBERS') extra=await copyNumbersTabs(prevId,v.id);
+      else if(store==='STATUS_LOG') extra=await copyAgentTabs(prevId,v.id,true);
+      else if(store==='REPORTS') extra=await copyAgentTabs(prevId,v.id,false);
+      else if(store==='DAILY'){ try{ await ensureDailyTab(v.id); extra='Reports tab toiri ache'; }catch(e){ extra='Reports tab banano hoyni'; } }
+    }
+    if(s) s.textContent='\''+v.title+'\' চালু হয়েছে'+(extra?' — '+extra:'');
+    refreshAdminSheetSection();
+  }catch(e){ if(s) s.textContent='বদলানো হয়নি, আবার চেষ্টা করুন'; }
+}
+async function copyNumbersTabs(prevId,newId){
+  try{
+    const prevTabs=await getTabsFor(prevId); const newTabs=await getTabsFor(newId); const have=new Set(newTabs);
+    const fallback=['MOBILE NUMBER','CALLING STATUS','Valid Conversation','1ST CALL REMARK','2ND CALL REMAR','Others number'];
+    let created=0, existed=0, failed=0;
+    for(const t of prevTabs){
+      if(!t) continue;
+      if(have.has(t)){ existed++; continue; }
+      try{ let h=null; try{ h=await getHeaderRow5(prevId,t); }catch(e){} if(!h||!h.length) h=fallback; await ensureNumbersTab(newId,t,h); created++; }catch(e){ failed++; }
+    }
+    return created+'টা ট্যাব বানানো হয়েছে, '+existed+'টা আগে থেকেই ছিল'+(failed?', '+failed+'টা হয়নি':'');
+  }catch(e){ return 'ট্যাব কপি হয়নি'; }
+}
+async function copyAgentTabs(prevId,newId,isLog){
+  try{
+    const prevTabs=await getTabsFor(prevId); const newTabs=await getTabsFor(newId); const have=new Set(newTabs);
+    const skip=new Set(['Guide','Registry','SheetConfig','Reports']);
+    let created=0, existed=0, failed=0;
+    for(const t of prevTabs){
+      if(!t||skip.has(t)) continue;
+      if(have.has(t)){ existed++; continue; }
+      try{ if(isLog) await ensureSheetTab(newId,t); else await ensureReportTab(newId,t); created++; }catch(e){ failed++; }
+    }
+    return created+'ta agent tab banano hoyeche, '+existed+'ta age thekei chilo'+(failed?', '+failed+'ta hoyni':'');
+  }catch(e){ return 'agent tab kopi hoyni'; }
+}
+['NUMBERS','STATUS_LOG','REPORTS','DAILY'].forEach(store=>{
+  const vb=$('ssVerify'+store); if(vb) vb.onclick=()=>verifySheetForStore(store);
+  const sb=$('ssSwitch'+store); if(sb) sb.onclick=()=>switchSheetForStore(store);
+});
 $('reportBtn').onclick=showReport;
 $('reportBackBtn').onclick=()=>{showMain();};
 $('prevDayBtn').onclick=()=>shiftDay(-1);
@@ -204,8 +310,8 @@ let dirty=false;
 $('mainView').addEventListener('input',()=>{dirty=true;});
 $('mainView').addEventListener('change',()=>{dirty=true;});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&$('mainView').style.display!=='none'&&!dirty)loadRows();});
-async function api(path,method,body){
-  const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+path,{method:method||'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+async function apiSid(sid,path,method,body){
+  const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+sid+'/values/'+path,{method:method||'GET',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
   if(!r.ok) throw new Error('sheet-error');
   return r.json();
 }
@@ -226,14 +332,17 @@ async function findFileByName(name){
     return (d.files&&d.files[0])?d.files[0].id:null;
   }catch(e){return null;}
 }
-async function getTabs(){
-  const d=await api2('spreadsheets/'+SHEET_ID+'?fields=sheets.properties.title');
+async function getTabsFor(sid){
+  const d=await api2('spreadsheets/'+sid+'?fields=sheets.properties.title');
   return (d.sheets||[]).map(s=>s.properties.title);
 }
+async function getTabs(){ return getTabsFor(currentNumbersId()); }
 async function loadRows(){
   try{
+    await tryRefreshConfig();
     $('syncStatus').textContent='🔄 শিট থেকে লোড হচ্ছে...';
-    const data=await api(encodeURIComponent(agentId)+'!A6:F');
+    const numsId=currentNumbersId();
+    const data=await apiSid(numsId,encodeURIComponent(agentId)+'!A6:F');
     rows=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||'',status:v[1]||'',valid:v[2]||'',remark1:v[3]||'',remark2:v[4]||'',others:v[5]||''})).filter(r=>r.number||r.status||r.valid||r.remark1||r.remark2||r.others);
     lastStatusMap={}; rows.forEach(r=>{lastStatusMap[(r.number||'').trim()]=(r.status||'')+'|'+(r.valid||'');});
     render(); loadDayStats();
@@ -242,14 +351,25 @@ async function loadRows(){
 }
 function filteredRows(){
   const q=digits($('search').value.trim());
-  let list=rows.filter(r=>tab==='pending'?!r.status:!!r.status);
+  let list;
+  if(tab==='done'){ list=calledRows.slice(); }
+  else { list=rows.filter(r=>!r.status); }
   if(q) list=list.filter(r=>digits(r.number).includes(q)||digits(dialNumber(r.number)).includes(q));
   return list;
 }
 function render(){
   const list=filteredRows();
-  $('list').innerHTML=list.length?list.map(r=>{
+  $('list').innerHTML=list.length?list.map((r,idx)=>{
     const badge=r.status==='call connected'?'badge-ok':r.status==='not connected'?'badge-no':'badge-blank';
+    if(r.viewOnly){
+      return `<div class="report"><div class="row"><b>${esc(dialNumber(r.number))}</b><span class="badge ${badge}">${r.status==='call connected'?'● call connected':r.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">লগ থেকে</span>${r.valid?`<span class="badge">Valid: ${esc(r.valid)}</span>`:''}</div>
+    <div style="margin-top:10px"><label>CALLING STATUS</label><select id="st-log-${idx}" disabled><option value="" ${!r.status?'selected':''}>— খালি —</option><option value="call connected" ${r.status==='call connected'?'selected':''}>call connected</option><option value="not connected" ${r.status==='not connected'?'selected':''}>not connected</option></select></div>
+    <div style="margin-top:8px"><label>Valid Conversation</label><select id="vc-log-${idx}" disabled><option value="" ${!r.valid?'selected':''}>— খালি —</option><option value="Yes" ${r.valid==='Yes'?'selected':''}>Yes</option><option value="No" ${r.valid==='No'?'selected':''}>No</option></select></div>
+    <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-log-${idx}" value="${esc(r.remark1)}" disabled></div>
+    <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-log-${idx}" value="${esc(r.remark2)}" disabled></div>
+    <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-log-${idx}" value="${esc(r.others)}" disabled></div>
+    <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none">📞 Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')">📋 Copy</button></div></div>`;
+    }
     return `<div class="report"><div class="row"><b>${esc(dialNumber(r.number))}</b><span class="badge ${badge}">${r.status==='call connected'?'● call connected':r.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${r.row}</span>${r.valid?`<span class="badge">Valid: ${esc(r.valid)}</span>`:''}</div>
     <div style="margin-top:10px"><label>CALLING STATUS</label><select id="st-${r.row}"><option value="" ${!r.status?'selected':''}>— খালি —</option><option value="call connected" ${r.status==='call connected'?'selected':''}>call connected</option><option value="not connected" ${r.status==='not connected'?'selected':''}>not connected</option></select></div>
     <div style="margin-top:8px"><label>Valid Conversation</label><select id="vc-${r.row}"><option value="" ${!r.valid?'selected':''}>— খালি —</option><option value="Yes" ${r.valid==='Yes'?'selected':''}>Yes</option><option value="No" ${r.valid==='No'?'selected':''}>No</option></select></div>
@@ -276,61 +396,65 @@ window.saveRow=async (rowNum)=>{
   const r=rows.find(x=>x.row===rowNum); if(!r)return;
   const val=$('st-'+rowNum).value, vc=$('vc-'+rowNum).value, r1=$('r1-'+rowNum).value.trim(), r2=$('r2-'+rowNum).value.trim(), ot=$('ot-'+rowNum).value.trim();
   try{
-    const cur=await api(encodeURIComponent(agentId)+'!A'+rowNum);
+    await tryRefreshConfig();
+    const numsId=currentNumbersId();
+    const cur=await apiSid(numsId,encodeURIComponent(agentId)+'!A'+rowNum);
     const curNum=(cur.values&&cur.values[0]&&cur.values[0][0])||'';
     if(curNum!==r.number){toast('শিটে রো বদলে গেছে — রিফ্রেশ করে আবার সেভ করুন');await loadRows();return;}
-    await api(encodeURIComponent(agentId)+'!B'+rowNum+':F'+rowNum+'?valueInputOption=USER_ENTERED','PUT',{values:[[val,vc,r1,r2,ot]]});
+    await apiSid(numsId,encodeURIComponent(agentId)+'!B'+rowNum+':F'+rowNum+'?valueInputOption=USER_ENTERED','PUT',{values:[[val,vc,r1,r2,ot]]});
     const key=(r.number||'').trim(), now=val+'|'+vc, old=lastStatusMap[key];
+    const changed=now!==old;
+    const isClear=!val&&!vc;
     r.status=val; r.valid=vc; r.remark1=r1; r.remark2=r2; r.others=ot;
-    if(now!==old){
+    let cleared=false;
+    if(changed){
       try{
-        await ensureLogSheet();
-        await appendRowRaw(logSheetId,logSheetTab,[dhakaToday(),dialNumber(r.number),val,vc]);
+        const today=dhakaToday();
+        if(isClear){ await deleteLogRowsEverywhere(today,dialNumber(r.number)); cleared=true; }
+        else { const t=await logWriteTarget(today); await appendRowRaw(t.id,t.tab,[today,dialNumber(r.number),val,vc]); }
         lastStatusMap[key]=now;
-        if(!localStorage.getItem('log_anchor_date_'+agentId)) localStorage.setItem('log_anchor_date_'+agentId,dhakaToday());
+        if(!localStorage.getItem('log_anchor_date_'+agentId)) localStorage.setItem('log_anchor_date_'+agentId,today);
       }catch(e){toast('শিটে সেভ হয়েছে, লগে জমা হয়নি');}
     }
-    render(); loadDayStats(); dirty=false; toast('✅ রো '+rowNum+' শিটে আপডেট হয়েছে');
+    render(); loadDayStats(); dirty=false; toast('✅ রো '+rowNum+' শিটে আপডেট হয়েছে'+(cleared?' (ajker log row muche geche)':''));
   }catch(e){toast('❌ সেভ হয়নি, আবার চেষ্টা করুন');}
 };
-let reportSheetId=null, logSheetId=null, logSheetTab='Status Log'; const SHARED_LOG_TITLE='Telesales Status Log';
-async function createSheet(title,tabs){
-  const d=await api2('spreadsheets','POST',{properties:{title:title},sheets:tabs.map(t=>({properties:{title:t}}))});
-  return d.spreadsheetId;
-}
-async function writeHeader(sid,tab,headers){
-  await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:'+String.fromCharCode(64+headers.length)+'1?valueInputOption=USER_ENTERED','PUT',{values:[headers]});
-}
-async function appendRow(sid,tab,vals){
-  await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=USER_ENTERED','POST',{values:[vals]});
-}
-async function appendRowRaw(sid,tab,vals){
-  await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=RAW','POST',{values:[vals]});
-}
-async function appendRowsRaw(sid,tab,rows){
-  await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=RAW','POST',{values:rows});
-}
-async function getTabRows(sid,tab){
-  const d=await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A2:Z');
-  return (d.values||[]).map((v,i)=>({cells:v,sheetRow:i+2}));
-}
-async function ensureReportSheet(){
-  if(reportSheetId) return;
-  reportSheetId=localStorage.getItem('report_sheet_id_'+agentId);
-  if(!reportSheetId && agentId==='bdxsukuna30') reportSheetId=localStorage.getItem('report_sheet_id');
-  if(!reportSheetId){reportSheetId=await findFileByName('Telesales Report - '+agentId);if(reportSheetId)localStorage.setItem('report_sheet_id_'+agentId,reportSheetId);}
-  if(!reportSheetId){
-    reportSheetId=await createSheet('Telesales Report - '+agentId,['Registration','FTD','Invalid','Problems']);
-    await writeHeader(reportSheetId,'Registration',['Date','Number']);
-    await writeHeader(reportSheetId,'FTD',['Date','Number','Amount']);
-    await writeHeader(reportSheetId,'Invalid',['Date','Number','Reason']);
-    await writeHeader(reportSheetId,'Problems',['Date','Problem']);
-    localStorage.setItem('report_sheet_id_'+agentId,reportSheetId);
-  }
-}
-async function ensureSheetTab(sid, tab){ let meta = await api2('spreadsheets/' + sid + '?fields=sheets.properties.title'); let tabs = (meta.sheets || []).map(s => s.properties.title); if (tabs.includes(tab)) return; await api2('spreadsheets/' + sid + ':batchUpdate', 'POST', {requests:[{addSheet:{properties:{title:tab}}}] }); await writeHeader(sid, tab, ['Date','Number','Status','Valid']); } let logMigratedThisSession=false;
+function defaultConfigMap(){ return {NUMBERS:[{sheetId:SHEET_ID,fromDate:''}],STATUS_LOG:[{sheetId:SHARED_STATUS_LOG_ID,fromDate:''}],REPORTS:[{sheetId:SHARED_REPORT_ID,fromDate:''}],DAILY:[{sheetId:DAILY_REPORTS_ID,fromDate:''}]}; }
+function currentConfig(){ return sheetConfigCache||defaultConfigMap(); }
+function writeSheetFor(cfg,store,date){ const chain=(cfg&&cfg[store])||[]; if(!chain.length) return null; let best=null,bestFrom=null; for(const e of chain){ if(e.fromDate===''||e.fromDate<=date){ if(bestFrom===null||e.fromDate>=bestFrom){best=e.sheetId;bestFrom=e.fromDate;} } } if(best!==null) return best; let early=null,earlyFrom=null; for(const e of chain){ if(earlyFrom===null||e.fromDate<earlyFrom){early=e.sheetId;earlyFrom=e.fromDate;} } return early; }
+function readSheetsFor(cfg,store,date){ const out=[]; const chain=(cfg&&cfg[store])||[]; if(chain.length){ const w=writeSheetFor(cfg,store,date); const isSwitchDay=chain.some(e=>e.fromDate===date); let prev=null,prevFrom=null; if(isSwitchDay){ for(const e of chain){ if(e.fromDate<date){ if(prevFrom===null||e.fromDate>=prevFrom){prev=e.sheetId;prevFrom=e.fromDate;} } } } for(const e of chain){ if(e.sheetId===w||e.fromDate===date||(isSwitchDay&&e.sheetId===prev)){ if(!out.includes(e.sheetId)) out.push(e.sheetId); } } } if(!out.length){ const d=writeSheetFor(defaultConfigMap(),store,date); if(d) out.push(d); } return out; }
+function currentNumbersId(){ return writeSheetFor(currentConfig(),'NUMBERS',dhakaToday()); }
+function logReadIds(date){ return readSheetsFor(currentConfig(),'STATUS_LOG',date); }
+function reportReadIds(date){ return readSheetsFor(currentConfig(),'REPORTS',date); }
+function parseConfigRows(rows){ if(!rows) return null; const m=defaultConfigMap(); const seenStores=new Set(); for(const r of rows){ if(!r||r.length<2) continue; const store=(r[0]||'').trim(); const id=(r[1]||'').trim(); if(!id) continue; if(store!=='NUMBERS'&&store!=='STATUS_LOG'&&store!=='REPORTS'&&store!=='DAILY') continue; if(!seenStores.has(store)){ m[store]=[]; seenStores.add(store); } m[store].push({sheetId:id,fromDate:r.length>2?(r[2]||'').trim():''}); } for(const k in m) m[k].sort((a,b)=>a.fromDate<b.fromDate?-1:a.fromDate>b.fromDate?1:0); return m; }
+async function tryRefreshConfig(){ try{ if(!token) return; const rows=await getConfigRows(CONFIG_FILE_ID); const m=parseConfigRows(rows); if(m) sheetConfigCache=m; }catch(e){} }
+async function readLogRowsForDate(date){ lastLogReadUsedLegacy=false; lastLogPartialFail=false; const ids=logReadIds(date); if(agentId){ const w=writeSheetFor(currentConfig(),'STATUS_LOG',date); if(w&&!ensuredLogSheets[w]){ try{ await ensureSheetTab(w,agentId); ensuredLogSheets[w]=true; }catch(e){} } } const out=[]; let first=null; for(let si=0;si<ids.length;si++){ const id=ids[si]; try{ const rs=await getTabRows(id,agentId); rs.forEach(e=>out.push({cells:e.cells,sheetRow:e.sheetRow,sourceSheet:id,sourceOrder:si})); }catch(e){ lastLogPartialFail=true; if(!first) first=e; } } if(out.length||!first) return out; const legacy=await resolveLegacyLogTarget(); if(legacy){ try{ await migrateMissingLogRows(writeSheetFor(currentConfig(),'STATUS_LOG',date)); }catch(e){} const lrows=await getTabRows(legacy.id,legacy.tab); lastLogReadUsedLegacy=true; return lrows.map(e=>({cells:e.cells,sheetRow:e.sheetRow,sourceSheet:legacy.id,sourceOrder:0})); } throw first; }
+async function readReportRowsForDate(date){ lastReportPartialFail=false; const ids=reportReadIds(date); if(agentId){ const w=writeSheetFor(currentConfig(),'REPORTS',date); if(w&&!ensuredReportSheets[w]){ try{ await ensureReportTab(w,agentId); ensuredReportSheets[w]=true; }catch(e){} } } const out=[]; let first=null; for(let si=0;si<ids.length;si++){ const id=ids[si]; try{ const rs=await getTabRows(id,agentId); rs.forEach(e=>out.push({cells:e.cells,sheetRow:e.sheetRow,sourceSheet:id,sourceOrder:si})); }catch(e){ lastReportPartialFail=true; if(!first) first=e; } } if(out.length||!first) return out; throw first; }
+async function logWriteTarget(date){ const w=writeSheetFor(currentConfig(),'STATUS_LOG',date); try{ await ensureSheetTab(w,agentId); return {id:w,tab:agentId}; }catch(e){ const legacy=await resolveLegacyLogTarget(); if(legacy) return legacy; throw e; } }
+async function reportWriteSheet(){ const w=writeSheetFor(currentConfig(),'REPORTS',dhakaToday())||SHARED_REPORT_ID; await ensureReportTab(w,agentId); return w; }
+async function deleteLogRowsEverywhere(date,number){ const ids=logReadIds(date); let primaryError=null; for(const id of ids){ try{ await deleteLogRowsForDateNumber(id,agentId,date,number); }catch(e){ if(!primaryError) primaryError=e; } } if(primaryError) throw primaryError; }
+async function deleteLogRowsForDateNumber(sid,tab,date,number){ const norm=normLogNum(number); if(!norm) return; const rows=await getTabRows(sid,tab); const toDelete=[]; rows.forEach(e=>{ const d=(e.cells[0]||''); const n=normLogNum(e.cells[1]||''); if(d===date&&n===norm) toDelete.push(e.sheetRow); }); for(let k=toDelete.length-1;k>=0;k--) await deleteSheetRow(sid,tab,toDelete[k]); }
+function projectReportRow(u,type){ const d=cellE(u,0), n=cellE(u,2); let old; if(type==='FTD') old=[d,n,cellE(u,3)]; else if(type==='Invalid') old=[d,n,cellE(u,4)]; else if(type==='Problems') old=[d,cellE(u,4)]; else old=[d,n]; return {cells:old,sheetRow:u.sheetRow,sourceSheet:u.sourceSheet,sourceOrder:u.sourceOrder,rawCells:u.cells}; }
+function splitReportRows(unified){ const s={reg:[],ftd:[],inv:[],prob:[]}; unified.forEach(u=>{ const t=(cellE(u,1)||'').trim(); if(t==='Registration') s.reg.push(projectReportRow(u,t)); else if(t==='FTD') s.ftd.push(projectReportRow(u,t)); else if(t==='Invalid') s.inv.push(projectReportRow(u,t)); else if(t==='Problems') s.prob.push(projectReportRow(u,t)); }); return s; }
+async function getSheetNumericId(sid,tab){ const meta=await api2('spreadsheets/'+sid+'?fields=sheets.properties'); const sh=(meta.sheets||[]).find(s=>s.properties.title===tab); if(!sh) throw new Error('sheet-error'); return sh.properties.sheetId; }
+async function deleteSheetRow(sid,tab,sheetRow){ const gid=await getSheetNumericId(sid,tab); await api2('spreadsheets/'+sid+':batchUpdate','POST',{requests:[{deleteDimension:{range:{sheetId:gid,dimension:'ROWS',startIndex:sheetRow-1,endIndex:sheetRow}}}]}); }
+async function readRowCells(sid,tab,sheetRow){ const d=await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A'+sheetRow+':Z'+sheetRow); return (d.values&&d.values[0])||[]; }
+async function writeHeader(sid,tab,headers){ await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:'+String.fromCharCode(64+headers.length)+'1?valueInputOption=USER_ENTERED','PUT',{values:[headers]}); }
+async function appendRow(sid,tab,vals){ await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=USER_ENTERED','POST',{values:[vals]}); }
+async function appendRowRaw(sid,tab,vals){ await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=RAW','POST',{values:[vals]}); }
+async function appendRowsRaw(sid,tab,rows){ await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=RAW','POST',{values:rows}); }
+async function getTabRows(sid,tab){ const d=await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A2:Z'); return (d.values||[]).map((v,i)=>({cells:v,sheetRow:i+2})); }
+async function ensureSheetTab(sid,tab){ const meta=await api2('spreadsheets/'+sid+'?fields=sheets.properties.title'); const tabs=(meta.sheets||[]).map(s=>s.properties.title); if(tabs.includes(tab)) return; await api2('spreadsheets/'+sid+':batchUpdate','POST',{requests:[{addSheet:{properties:{title:tab}}}]}); await writeHeader(sid,tab,['Date','Number','Status','Valid']); }
+async function ensureReportTab(sid,tab){ const tabs=await getTabsFor(sid); if(tabs.includes(tab)) return; try{ await api2('spreadsheets/'+sid+':batchUpdate','POST',{requests:[{addSheet:{properties:{title:tab}}}]}); }catch(e){ const t2=await getTabsFor(sid); if(t2.includes(tab)) return; throw e; } await writeHeader(sid,tab,['Date','Type','Number','Amount','Note']); }
+async function ensureDailyTab(sid){ const tabs=await getTabsFor(sid); if(tabs.includes('Reports')) return; try{ await api2('spreadsheets/'+sid+':batchUpdate','POST',{requests:[{addSheet:{properties:{title:'Reports'}}}]}); }catch(e){ const t2=await getTabsFor(sid); if(t2.includes('Reports')) return; throw e; } await writeHeader(sid,'Reports',['Date','Agent ID','Total Calls','Connected','Registration','FTD','Total Amount','Invalid','Problems','Generated At']); }
+async function ensureConfigTab(sid){ const tabs=await getTabsFor(sid); if(tabs.includes('SheetConfig')) return; try{ await api2('spreadsheets/'+sid+':batchUpdate','POST',{requests:[{addSheet:{properties:{title:'SheetConfig'}}}]}); }catch(e){ const t2=await getTabsFor(sid); if(t2.includes('SheetConfig')) return; throw e; } await writeHeader(sid,'SheetConfig',['Store','SheetId','FromDate','Note']); }
+async function getConfigRows(sid){ return getTabRows(sid,'SheetConfig'); }
+async function appendConfigRow(sid,vals){ return appendRowRaw(sid,'SheetConfig',vals); }
+async function getSpreadsheetName(sid){ const d=await apiDrive('files/'+encodeURIComponent(sid)+'?fields=id,name,mimeType'); return [d.name||'',d.mimeType||'']; }
+function extractSpreadsheetId(raw){ if(!raw) return ''; const s=raw.trim(); const d=s.indexOf('/d/'); if(d>=0){ let rest=s.substring(d+3); const sl=rest.indexOf('/'); if(sl>=0) rest=rest.substring(0,sl); const qm=rest.indexOf('?'); if(qm>=0) rest=rest.substring(0,qm); const h=rest.indexOf('#'); if(h>=0) rest=rest.substring(0,h); return rest.trim(); } return s; }
+async function getHeaderRow5(sid,tab){ const d=await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A5:F5'); const out=['','','','','','']; const v=(d.values&&d.values[0])||[]; for(let k=0;k<v.length&&k<6;k++) out[k]=v[k]; return out; }
+async function ensureNumbersTab(sid,tab,headerRow5){ const tabs=await getTabsFor(sid); if(tabs.includes(tab)) return; try{ await api2('spreadsheets/'+sid+':batchUpdate','POST',{requests:[{addSheet:{properties:{title:tab}}}]}); }catch(e){ const t2=await getTabsFor(sid); if(t2.includes(tab)) return; throw e; } let h=headerRow5; if(!h||!h.length) h=['MOBILE NUMBER','CALLING STATUS','Valid Conversation','1ST CALL REMARK','2ND CALL REMAR','Others number']; const row6=[]; for(let k=0;k<6;k++) row6.push(k<h.length&&h[k]!=null?h[k]:''); await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A5:F5?valueInputOption=RAW','PUT',{values:[row6]}); }
 async function resolveLegacyLogTarget(){ const legacyId=await findFileByName('Telesales Status Log - '+agentId); return legacyId?{id:legacyId,tab:'Status Log'}:null; }
-async function createStatusLogSheet(){ const sid=await createSheet('Telesales Status Log - '+agentId,['Status Log']); await writeHeader(sid,'Status Log',['Date','Number','Status','Valid']); return sid; }
 async function migrateMissingLogRows(sharedId){
   if(logMigratedThisSession) return; logMigratedThisSession=true;
   try{
@@ -346,8 +470,6 @@ async function migrateMissingLogRows(sharedId){
     if(missing.length) await appendRowsRaw(sharedId,agentId,missing);
   }catch(e){}
 }
-async function resolveLogTarget(){ const sharedId=await findFileByName(SHARED_LOG_TITLE); if(sharedId){ try{ await ensureSheetTab(sharedId,agentId); }catch(e){ const legacy=await resolveLegacyLogTarget(); if(legacy) return legacy; throw e; } try{ await migrateMissingLogRows(sharedId); }catch(e){} return {id:sharedId,tab:agentId}; } return await resolveLegacyLogTarget(); }
-async function ensureLogSheet(){ const t=await resolveLogTarget(); if(t){ logSheetId=t.id; logSheetTab=t.tab; return; } logSheetId=await createStatusLogSheet(); logSheetTab='Status Log'; localStorage.setItem('status_log_sheet_id_'+agentId,logSheetId); }
 function cellE(e,i){return (e.cells&&e.cells[i])||''}
 function isFtdCountRow(e){const n=cellE(e,1);return n!==''&&!n.startsWith('0')&&!n.startsWith('+')&&/^\d+$/.test(n);}
 function ftdCountOf(e){return isFtdCountRow(e)?(parseInt(cellE(e,1),10)||1):1;}
@@ -362,14 +484,11 @@ async function loadDayStats(){
   if(!token||!agentId) return;
   const day=selectedDate;
   try{
-    let logTarget=await resolveLogTarget(); let lid=logTarget?logTarget.id:null;
-    if(!lid){lid=await findFileByName('Telesales Status Log - '+agentId);if(lid)localStorage.setItem('status_log_sheet_id_'+agentId,lid);}
-    let rid=localStorage.getItem('report_sheet_id_'+agentId);
-    if(!rid && agentId==='bdxsukuna30') rid=localStorage.getItem('report_sheet_id');
-    if(!rid){rid=await findFileByName('Telesales Report - '+agentId);if(rid)localStorage.setItem('report_sheet_id_'+agentId,rid);}
-    const logs=lid?await getTabRows(lid,logTarget?logTarget.tab:'Status Log'):[];
-    const regs=rid?await getTabRows(rid,'Registration'):[];
-    const ftds=rid?await getTabRows(rid,'FTD'):[];
+    await tryRefreshConfig();
+    let logs=[];
+    try{ logs=await readLogRowsForDate(day); }catch(e){ $('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।'; calledRows=[]; if(tab==='done'&&!dirty) render(); return; }
+    let regs=[], ftds=[];
+    try{ const s=splitReportRows(await readReportRowsForDate(day)); regs=s.reg; ftds=s.ftd; }catch(e){}
     let conn=0, valid=0, notConn=0;
     logs.forEach(e=>{if(cellE(e,0)===day){if(cellE(e,2)==='call connected')conn++;if(cellE(e,2)==='not connected')notConn++;if(cellE(e,3)==='Yes')valid++;}});
     const inv=autoInvalidNumbers(logs,day).length, reg=regTotalCount(filterTodayE(regs,day));
@@ -385,61 +504,99 @@ async function loadDayStats(){
     $('stConn').textContent=conn; $('stNotConn').textContent=notConn; $('stValid').textContent=valid; $('stInv').textContent=inv; $('stReg').textContent=reg;
     $('heroCalls').textContent=logs.filter(e=>cellE(e,0)===day).length; $('heroNums').textContent=rows.length;
     $('stFtd').textContent=ftdTotalCount(ftdToday); $('stFtdAmt').textContent='৳'+fmtAmt(ftdSum);
-    $('weekSummary').textContent='Ei 7 din ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • FTD '+ftdTotalCount(ftdWeek)+' (৳'+fmtAmt(ftdSumW)+')';
+    $('weekSummary').textContent='Ei 7 din ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • FTD '+ftdTotalCount(ftdWeek)+' (৳'+fmtAmt(ftdSumW)+')'+(lastLogReadUsedLegacy?' • Purono log file use hocche (shared file pai ni)':'')+((lastLogPartialFail||lastReportPartialFail)?' • ekta sheet porte parini (hisab asompurno hote pare)':'');
+    buildCalledRows(logs,day);
+    if(tab==='done'&&!dirty) render();
   }catch(e){$('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।';}
+}
+function buildCalledRows(logs,day){
+  try{
+    const mainByNorm={}; rows.forEach(r=>{mainByNorm[normLogNum(r.number||'')]=r;});
+    const latest={}, displayNum={}, lastPos={}, lastOrder={};
+    (logs||[]).forEach(e=>{
+      if(cellE(e,0)!==day) return;
+      const st=cellE(e,2); if(!st) return;
+      const norm=normLogNum(cellE(e,1)); if(!norm) return;
+      latest[norm]=[st,cellE(e,3)];
+      displayNum[norm]=cellE(e,1);
+      lastPos[norm]=e.sheetRow;
+      lastOrder[norm]=e.sourceOrder||0;
+    });
+    const called=[];
+    Object.keys(latest).forEach(norm=>{
+      const m=mainByNorm[norm];
+      if(m) called.push(m);
+      else called.push({row:-1,number:displayNum[norm],status:latest[norm][0],valid:latest[norm][1],remark1:'',remark2:'',others:'',viewOnly:true});
+    });
+    called.sort((a,b)=>{
+      const na=normLogNum(a.number||''), nb=normLogNum(b.number||'');
+      const oa=lastOrder[na]||0, ob=lastOrder[nb]||0;
+      if(oa!==ob) return ob-oa;
+      return (lastPos[nb]||0)-(lastPos[na]||0);
+    });
+    calledRows=called;
+  }catch(e){}
 }
 async function loadReportData(){
   try{
-    await ensureReportSheet();
+    await tryRefreshConfig();
     const day=reportDate;
-    const regsAll=await getTabRows(reportSheetId,'Registration');
-    const ftdsAll=await getTabRows(reportSheetId,'FTD');
-    const probsAll=await getTabRows(reportSheetId,'Problems');
-    const regs=filterTodayE(regsAll,day), ftds=filterTodayE(ftdsAll,day), probs=filterTodayE(probsAll,day);
+    const s=splitReportRows(await readReportRowsForDate(day));
+    const regs=filterTodayE(s.reg,day), ftds=filterTodayE(s.ftd,day), probs=filterTodayE(s.prob,day);
     const past=day<dhakaToday();
     renderEntryList('regList',regs,e=>isRegCountRow(e)?esc(cellE(e,1))+'টা':esc(cellE(e,1)),!past);
     refreshFtdStepper(day,ftds);
     renderEntryList('probList',probs,e=>esc(cellE(e,1)),!past);
     let autoInv=[];
-    try{ const lt=await resolveLogTarget(); if(lt){ const lrows=await getTabRows(lt.id,lt.tab); autoInv=autoInvalidNumbers(lrows,day); } }catch(e){}
+    try{ const lrows=await readLogRowsForDate(day); autoInv=autoInvalidNumbers(lrows,day); }catch(e){}
     $('invAutoSummary').textContent=displayDay(day)+' — Invalid (অটো): '+autoInv.length+'টা';
     $('invAutoList').innerHTML=autoInv.length?autoInv.map(n=>'<div class="entry"><span>'+esc(n)+'</span></div>').join(''):'<p class="muted">এই তারিখে কোনো Invalid নেই।</p>';
-    window._rep={regs:regs,ftds:ftds,invs:[],probs:probs,autoInv:autoInv,repDay:day};
+    window._rep={regs:regs,ftds:ftds,invs:s.inv,probs:probs,autoInv:autoInv,repDay:day};
   }catch(e){toast('Report লোড হয়নি, আবার চেষ্টা করুন');}
 }
-function renderEntryList(id,list,fmt,showDelete){ $(id).innerHTML=list.length?list.map(e=>{const x=showDelete===false?'':'<button class="xbtn" onclick="deleteEntry(\''+id+'\','+e.sheetRow+')">✕</button>';return '<div class="entry"><span>'+fmt(e)+'</span>'+x+'</div>';}).join(''):'<p class="muted">কোনো এন্ট্রি নেই।</p>'; }
-async function deleteEntry(listId,sheetRow){
-  const tabMap={regList:'Registration',ftdList:'FTD',probList:'Problems'};
-  const tabName=tabMap[listId];
+function renderEntryList(id,list,fmt,showDelete){ $(id).innerHTML=list.length?list.map(e=>{const x=showDelete===false?'':'<button class="xbtn" onclick="deleteEntry(\''+id+'\','+e.sheetRow+',\''+(e.sourceSheet||'')+'\')">✕</button>';return '<div class="entry"><span>'+fmt(e)+'</span>'+x+'</div>';}).join(''):'<p class="muted">কোনো এন্ট্রি নেই।</p>'; }
+async function deleteEntry(listId,sheetRow,sourceSheet){
   try{
-    await ensureReportSheet();
-    const meta=await api2('spreadsheets/'+reportSheetId+'?fields=sheets.properties');
-    const sh=(meta.sheets||[]).find(s=>s.properties.title===tabName);
-    if(!sh) throw new Error('sheet-error');
-    await api2('spreadsheets/'+reportSheetId+':batchUpdate','POST',{requests:[{deleteDimension:{range:{sheetId:sh.properties.sheetId,dimension:'ROWS',startIndex:sheetRow-1,endIndex:sheetRow}}}]});
+    const sid=sourceSheet||await reportWriteSheet();
+    const lists={regList:window._rep?window._rep.regs:[],ftdList:window._rep?window._rep.ftds:[],probList:window._rep?window._rep.probs:[]};
+    const entry=(lists[listId]||[]).find(e=>e.sheetRow===sheetRow&&(e.sourceSheet||'')===(sourceSheet||''));
+    if(entry&&entry.rawCells){
+      const cur=await readRowCells(sid,agentId,sheetRow);
+      let match=true; for(let k=0;k<entry.rawCells.length;k++){ if((cur[k]||'')!==(entry.rawCells[k]||'')){match=false;break;} }
+      if(!match){ toast('শিটে রো বদলে গেছে — রিফ্রেশ করে আবার চেষ্টা করুন'); await loadReportData(); return; }
+    }
+    await deleteSheetRow(sid,agentId,sheetRow);
     $('reportOut').style.display='none'; await loadReportData();
   }catch(e){toast('ডিলিট হয়নি, আবার চেষ্টা করুন');}
 }
-$('regAddBtn').onclick=async()=>{const c=parseInt($('regCount').value.trim(),10);if(!(c>0))return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await ensureReportSheet();await appendRow(reportSheetId,'Registration',[dhakaToday(),String(c)]);$('regCount').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('regAddBtn').onclick=async()=>{const c=parseInt($('regCount').value.trim(),10);if(!(c>0))return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await tryRefreshConfig();const wid=await reportWriteSheet();await appendRowRaw(wid,agentId,[dhakaToday(),'Registration',String(c),'','']);$('regCount').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 function ftdTodayRows(){const t=dhakaToday();return (window._rep&&window._rep.ftds?window._rep.ftds:[]).filter(e=>cellE(e,0)===t);}
 function refreshFtdStepper(day,ftds){const rows=(ftds!==undefined)?ftds:ftdTodayRows();let sum=0;rows.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))sum+=v;});$('ftdStepCount').textContent=ftdTotalCount(rows);const d=day||dhakaToday();$('ftdStepSummary').textContent=(d===dhakaToday()?'আজ: ':displayDay(d)+' — ')+ftdTotalCount(rows)+'টা • মোট ৳'+fmtAmt(sum);}
 $('ftdPlusBtn').onclick=()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}const r=$('ftdStepAmountRow');if(r.style.display!=='none'){$('ftdStepAmt').focus();return;}const next=ftdTotalCount(ftdTodayRows())+1;$('ftdStepAmt').placeholder=next+' নম্বর FTD কত টাকার?';r.style.display='flex';$('ftdStepAmt').focus();};
-$('ftdStepAddBtn').onclick=async()=>{const a=$('ftdStepAmt').value.trim();if(!a)return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await ensureReportSheet();await appendRow(reportSheetId,'FTD',[dhakaToday(),'1',a]);$('ftdStepAmt').value='';$('ftdStepAmountRow').style.display='none';$('reportOut').style.display='none';await loadReportData();await loadDayStats();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
-$('ftdMinusBtn').onclick=async()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে বদলানো যাবে না');return;}const rows=ftdTodayRows();if(!rows.length){toast('আজ কোনো FTD নেই');return;}let last=rows[0];rows.forEach(e=>{if(e.sheetRow>last.sheetRow)last=e;});await deleteEntry('ftdList',last.sheetRow);await loadDayStats();};
-$('probAddBtn').onclick=async()=>{const t=$('probText').value.trim();if(!t)return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await ensureReportSheet();await appendRow(reportSheetId,'Problems',[dhakaToday(),t]);$('probText').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
-$('genBtn').onclick=()=>{
+$('ftdStepAddBtn').onclick=async()=>{const a=$('ftdStepAmt').value.trim();if(!a)return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await tryRefreshConfig();const wid=await reportWriteSheet();await appendRowRaw(wid,agentId,[dhakaToday(),'FTD','1',a,'']);$('ftdStepAmt').value='';$('ftdStepAmountRow').style.display='none';$('reportOut').style.display='none';await loadReportData();await loadDayStats();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('ftdMinusBtn').onclick=async()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে বদলানো যাবে না');return;}const rows=ftdTodayRows();if(!rows.length){toast('আজ কোনো FTD নেই');return;}let last=rows[0];rows.forEach(e=>{const so=e.sourceOrder||0, lso=last.sourceOrder||0; if(so>lso||(so===lso&&e.sheetRow>last.sheetRow)) last=e;});await deleteEntry('ftdList',last.sheetRow,last.sourceSheet);await loadDayStats();};
+$('probAddBtn').onclick=async()=>{const t=$('probText').value.trim();if(!t)return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await tryRefreshConfig();const wid=await reportWriteSheet();await appendRowRaw(wid,agentId,[dhakaToday(),'Problems','','',t]);$('probText').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('genBtn').onclick=async()=>{
   const r=window._rep||{regs:[],ftds:[],invs:[],probs:[],autoInv:[]};
   const now=dhakaNow();
   const day=r.repDay||reportDate;
   const total=rows.filter(x=>x.status).length, conn=rows.filter(x=>x.status==='call connected').length;
   let ftdSum=0; r.ftds.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSum+=v;});
   let out='Date: '+displayDay(day)+'\nTime: '+now.time+'\nAgent ID: '+agentId+'\nTotal Calls: '+total+'\nConnected: '+conn;
-  out+='\nRegistration ('+regTotalCount(r.regs)+'): '+r.regs.map(e=>isRegCountRow(e)?cellE(e,1)+'টা':cellE(e,1)).join(', ');
+  out+='\nRegistration: '+regTotalCount(r.regs);
   out+='\nFTD: '+ftdTotalCount(r.ftds);
   out+='\nTotal Amount Recharged: '+fmtAmt(ftdSum);
   out+='\nInvalid Number ('+(r.autoInv?r.autoInv.length:0)+'): '+(r.autoInv||[]).join(', ');
   out+='\nProblems ('+r.probs.length+'): '+r.probs.map(e=>cellE(e,1)).join(', ');
   $('reportText').textContent=out; $('reportOut').style.display='block';
+  $('dailyNote').textContent='';
+  try{
+    await tryRefreshConfig();
+    const dailyId=writeSheetFor(currentConfig(),'DAILY',day)||DAILY_REPORTS_ID;
+    await ensureDailyTab(dailyId);
+    const probsText=r.probs.length?r.probs.map(e=>cellE(e,1)).join('; '):'-';
+    await appendRowRaw(dailyId,'Reports',[displayDay(day),agentId,String(total),String(conn),String(regTotalCount(r.regs)),String(ftdTotalCount(r.ftds)),fmtAmt(ftdSum),String(r.autoInv?r.autoInv.length:0),probsText,displayDay(day)+' '+now.time]);
+  }catch(e){ $('dailyNote').textContent='Daily Reports file-e joma hoyni — report text thik ache, copy korte parben'; }
 };
 $('copyReportBtn').onclick=async()=>{try{await navigator.clipboard.writeText($('reportText').textContent);toast('Copy হয়েছে');}catch(e){toast('কপি হয়নি');}};
 $('repPrevDayBtn').onclick=()=>shiftRepDay(-1);
