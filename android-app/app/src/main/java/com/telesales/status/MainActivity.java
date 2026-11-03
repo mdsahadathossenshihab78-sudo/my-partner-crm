@@ -65,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
     private String token;
     private String agentId;
     private String statusLogSheetId; private String statusLogTab = "Status Log"; private static final String SHARED_STATUS_LOG_ID = "1t22IL9miZ_5QYWD3rJVioXZlKsGwlk6X8bW_TQCjbfQ";
+    // v4.25: shared Report file "Telesales Agent Reports" — ID code-e (log file-er moto);
+    // prottek agent-er tab (agentId) -e Date|Type|Number|Amount|Note row thake.
+    private static final String SHARED_REPORT_ID = "1jYB5KeGw1LDH4FnjbwBr9qL-IHgmzPIhWU7GNeb5uhk";
     private String selectedDate = dhakaDate(); private String reportDate = dhakaDate();
     private Map<String,String> lastStatusMap = new HashMap<>();
     // v4.24 optimistic save: Save tap-er sathe sathe UI update, network background-e.
@@ -107,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
     private Spinner invReason;
     private String reportSheetId;
     /** Report sheet-er ekta row: cells + sheet-er row number (delete korar jonno). */
-    static class REntry { final String[] cells; final int sheetRow; REntry(String[] c, int r) { cells = c; sheetRow = r; } }
+    static class REntry { final String[] cells; final int sheetRow; final String[] rawCells; REntry(String[] c, int r) { this(c, r, null); } REntry(String[] c, int r, String[] raw) { cells = c; sheetRow = r; rawCells = raw; } }
     private List<REntry> regToday = new ArrayList<>(), ftdToday = new ArrayList<>(), invToday = new ArrayList<>(), probToday = new ArrayList<>();
     private final String[] reasons = {"কল ধরেনি", "Not connected", "বন্ধ", "ভুল নাম্বার"};
 
@@ -806,12 +809,15 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 String logId = logTarget.sheetId;
-                String repId = resolveSharedId("report_sheet_id_" + agentId,
-                        "bdxsukuna30".equals(agentId) ? "report_sheet_id" : null, "Telesales Report - " + agentId);
                 List<REntry> logs = logId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, logId, logTarget.tab));
-                // v4.19: Invalid tab pora bad — Invalid ekhon log theke auto-count hoy, ei read bekar chilo.
-                List<REntry> regs = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "Registration"));
-                List<REntry> ftds = repId == null ? new ArrayList<>() : withRows(SheetsClient.getReportRows(token, repId, "FTD"));
+                // v4.25: report ekhon shared file-er agent tab theke (Type-onujayi vag);
+                // report file na pele agekar motoi khali list (dashboard-er log tile atkabe na).
+                List<REntry> regs = new ArrayList<>(), ftds = new ArrayList<>();
+                try {
+                    ensureReportSheet();
+                    ReportSplit rs = splitReportRows(withRows(SheetsClient.getReportRows(token, reportSheetId, agentId)));
+                    regs = rs.reg; ftds = rs.ftd;
+                } catch (Exception ignored) { }
                 int conn = 0, valid = 0, notConn = 0, totalCall = 0;
                 for (REntry e : logs) if (day.equals(cellE(e, 0))) { totalCall++; if ("call connected".equals(cellE(e, 2))) conn++;
                     if ("Yes".equals(cellE(e, 3))) valid++;
@@ -958,6 +964,31 @@ public class MainActivity extends AppCompatActivity {
         if (v == Math.floor(v)) return String.valueOf((long) v);
         return String.valueOf(v);
     }
+    /** v4.25: shared Report file-er agent tab-er row (Date|Type|Number|Amount|Note) theke
+     *  purono shape-e project — counting/display/Generate code bodlay ni. sheetRow + rawCells thake
+     *  (delete-er age puro row miliye dekhar jonno rawCells lage). */
+    private static REntry projectReportRow(REntry u, String type) {
+        String d = cellE(u, 0), n = cellE(u, 2);
+        String[] old;
+        if ("FTD".equals(type)) old = new String[]{d, n, cellE(u, 3)};
+        else if ("Invalid".equals(type)) old = new String[]{d, n, cellE(u, 4)};
+        else if ("Problems".equals(type)) old = new String[]{d, cellE(u, 4)};
+        else old = new String[]{d, n}; // Registration
+        return new REntry(old, u.sheetRow, u.cells);
+    }
+    /** v4.25: agent tab-er sob row ekbar pore Type-onujayi 4 list-e vag kora. */
+    private static class ReportSplit { List<REntry> reg = new ArrayList<>(); List<REntry> ftd = new ArrayList<>(); List<REntry> inv = new ArrayList<>(); List<REntry> prob = new ArrayList<>(); }
+    private static ReportSplit splitReportRows(List<REntry> unified) {
+        ReportSplit s = new ReportSplit();
+        for (REntry u : unified) {
+            String t = cellE(u, 1).trim();
+            if ("Registration".equals(t)) s.reg.add(projectReportRow(u, t));
+            else if ("FTD".equals(t)) s.ftd.add(projectReportRow(u, t));
+            else if ("Invalid".equals(t)) s.inv.add(projectReportRow(u, t));
+            else if ("Problems".equals(t)) s.prob.add(projectReportRow(u, t));
+        }
+        return s;
+    }
     private static List<REntry> withRows(List<String[]> rows) {
         List<REntry> out = new ArrayList<>();
         for (int i = 0; i < rows.size(); i++) out.add(new REntry(rows.get(i), i + 2)); // A2:Z pora hoy, tai i-tomo row = sheet row i+2
@@ -1005,22 +1036,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void ensureReportSheet() throws Exception {
         if (reportSheetId != null) return;
-        SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
-        // v4.19 registry first (shared log-er vitore; main sheet-e kokhono noy).
-        String[] reg = registryEntryForAgent();
-        if (reg != null && reg[0] != null && !reg[0].isEmpty()) {
-            reportSheetId = reg[0];
-            p.edit().putString("report_sheet_id_" + agentId, reportSheetId).apply();
-            return;
-        }
-        reportSheetId = resolveSharedId("report_sheet_id_" + agentId,
-                "bdxsukuna30".equals(agentId) ? "report_sheet_id" : null, "Telesales Report - " + agentId);
-        if (reportSheetId == null) {
-            reportSheetId = SheetsClient.createReportSpreadsheet(token, agentId);
-            p.edit().putString("report_sheet_id_" + agentId, reportSheetId).apply();
-        }
-        // Drive search-e pawa ID registry-te backfill (best-effort, kokhono block korbe na).
-        backfillRegistry(reportSheetId, null);
+        // v4.25: shared Report file — ID code-e (log file-er moto); agent-er tab na thakle
+        // header-soho khola hoy. Registry/Drive-search/per-agent file resolution ar nei
+        // (Registry-r reportId column ekhon report-er jonno bebohar hoy na; legacy log
+        // path-er registryEntryForAgent/backfillRegistry alada, seta thakbe).
+        reportSheetId = SHARED_REPORT_ID;
+        SheetsClient.ensureReportTab(token, reportSheetId, agentId);
     }
 
     private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regPlusBtn, R.id.regMinusBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
@@ -1031,20 +1052,16 @@ public class MainActivity extends AppCompatActivity {
                 ensureReportSheet();
                 final int seq = ++reportSeq;
                 String today = reportDate;
-                regToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Registration")), today);
-                ftdToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "FTD")), today);
-                invToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Invalid")), today);
-                probToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Problems")), today);
+                ReportSplit s = splitReportRows(withRows(SheetsClient.getReportRows(token, reportSheetId, agentId)));
+                regToday = filterTodayE(s.reg, today);
+                ftdToday = filterTodayE(s.ftd, today);
+                invToday = filterTodayE(s.inv, today);
+                probToday = filterTodayE(s.prob, today);
                 runOnUiThread(() -> { if (seq != reportSeq || !reportDate.equals(today)) return; reportLoadFallbackUsed = false; refreshReportLists(); reportStatus.setText(""); loadAutoInvalidForReport(); });
             } catch (Exception e) {
                 if (isNotFoundError(e) && !reportLoadFallbackUsed) {
                     reportLoadFallbackUsed = true;
                     clearReportCache();
-                    try {
-                        String sid = sharedLogCacheId;
-                        if (sid == null) sid = SHARED_STATUS_LOG_ID;
-                        if (sid != null) SheetsClient.clearRegistryReportId(token, sid, agentId);
-                    } catch (Exception ignored) {}
                     loadReportData(); return;
                 }
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; loadReportData(); return; }
@@ -1106,7 +1123,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Sheet thekeo row-ta muche fele, tarpor list abar load kore. */
+    /** Sheet thekeo row-ta muche fele, tarpor list abar load kore.
+     *  v4.25: tab ekhon agentId (shared file-er agent tab); tab param ekhon Type
+     *  (delete-er API-te lage na, shudhu caller-er chenar jonno). Guard-e rawCells
+     *  (asol unified row) miliye dekha hoy. */
     private void deleteReportEntry(String tab, REntry e) { if (!isReportToday()) { Toast.makeText(this, "অতীতের রিপোর্ট শুধু দেখা ও কপি করা যাবে", Toast.LENGTH_SHORT).show(); return; }
         if (token == null) { showLogin(); return; }
         reportStatus.setText("Delete hocche...");
@@ -1115,15 +1135,16 @@ public class MainActivity extends AppCompatActivity {
                 ensureReportSheet();
                 // v4.20: delete-er age PURO row miliye dekha — sudhu date millei hobe na
                 // (eki diner onek row thake, row sore gele vul row muchto).
-                String[] current = SheetsClient.readRowCells(token, reportSheetId, tab, e.sheetRow);
+                String[] current = SheetsClient.readRowCells(token, reportSheetId, agentId, e.sheetRow);
+                String[] expect = e.rawCells != null ? e.rawCells : e.cells;
                 boolean same = true;
-                for (int ci = 0; ci < e.cells.length; ci++) {
+                for (int ci = 0; ci < expect.length; ci++) {
                     String cur = ci < current.length ? current[ci] : "";
-                    String exp = e.cells[ci] == null ? "" : e.cells[ci];
+                    String exp = expect[ci] == null ? "" : expect[ci];
                     if (!cur.trim().equals(exp.trim())) { same = false; break; }
                 }
                 if (!same) throw new Exception("Sheet-e row bodle geche — Refresh kore abar delete korun");
-                SheetsClient.deleteReportRow(token, reportSheetId, tab, e.sheetRow);
+                SheetsClient.deleteReportRow(token, reportSheetId, agentId, e.sheetRow);
                 runOnUiThread(() -> { reportOutputCard.setVisibility(View.GONE); loadReportData(); loadDayStats(); });
             } catch (Exception ex) {
                 if (isAuthError(ex) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; deleteReportEntry(tab, e); return; }
@@ -1132,13 +1153,24 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    /** v4.25: tab param ekhon Type (Registration/FTD/Invalid/Problems); caller-ra ager
+     *  motoi purono shape-e vals pathay, ekhane unified row-te map kore agent tab-e lekha hoy:
+     *  [Date, Type, Number, Amount, Note]. */
     private void addReportEntry(String tab, String[] vals, Runnable clear) { if (!isReportToday()) { Toast.makeText(this, "অতীতের রিপোর্ট শুধু দেখা ও কপি করা যাবে", Toast.LENGTH_SHORT).show(); return; }
         if (token == null) { showLogin(); return; }
         reportStatus.setText("Add hocche...");
         new Thread(() -> {
             try {
                 ensureReportSheet();
-                SheetsClient.appendReportRow(token, reportSheetId, tab, vals);
+                String v0 = vals.length > 0 ? vals[0] : "";
+                String v1 = vals.length > 1 ? vals[1] : "";
+                String v2 = vals.length > 2 ? vals[2] : "";
+                String[] u;
+                if ("FTD".equals(tab)) u = new String[]{v0, "FTD", v1, v2, ""};
+                else if ("Invalid".equals(tab)) u = new String[]{v0, "Invalid", v1, "", v2};
+                else if ("Problems".equals(tab)) u = new String[]{v0, "Problems", "", "", v1};
+                else u = new String[]{v0, "Registration", v1, "", ""};
+                SheetsClient.appendReportRow(token, reportSheetId, agentId, u);
                 runOnUiThread(() -> { if (clear != null) clear.run(); loadReportData(); loadDayStats(); });
             } catch (Exception e) {
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; addReportEntry(tab, vals, clear); return; }
@@ -1162,10 +1194,11 @@ public class MainActivity extends AppCompatActivity {
                 }
                 ensureReportSheet();
                 String today = reportDate;
-                regToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Registration")), today);
-                ftdToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "FTD")), today);
-                invToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Invalid")), today);
-                probToday = filterTodayE(withRows(SheetsClient.getReportRows(token, reportSheetId, "Problems")), today);
+                ReportSplit s = splitReportRows(withRows(SheetsClient.getReportRows(token, reportSheetId, agentId)));
+                regToday = filterTodayE(s.reg, today);
+                ftdToday = filterTodayE(s.ftd, today);
+                invToday = filterTodayE(s.inv, today);
+                probToday = filterTodayE(s.prob, today);
                 double sum = 0;
                 for (REntry r : ftdToday) {
                     try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}

@@ -294,6 +294,39 @@ public class SheetsClient {
         if (code != 200) throw new Exception("Tab format failed: " + code + " " + readAll(conn.getErrorStream()));
     }
 
+    /** v4.25 shared Report file: agent-er tab na thakle khule report header bosay
+     *  (Date|Type|Number|Amount|Note). Log tab-er ensureSheetTab-er motoi race-safe:
+     *  "already exists" hole header abar lekha hoy na. */
+    public static void ensureReportTab(String token, String spreadsheetId, String title) throws Exception {
+        List<String> tabs = getTabs(token, spreadsheetId);
+        for (String t : tabs) if (title.equals(t)) return;
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate");
+        HttpURLConnection c = open(url, token);
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray reqs = new JSONArray();
+        JSONObject req = new JSONObject();
+        JSONObject add = new JSONObject();
+        JSONObject props = new JSONObject();
+        props.put("title", title);
+        add.put("properties", props);
+        req.put("addSheet", add);
+        reqs.put(req);
+        body.put("requests", reqs);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) {
+            String err = readAll(c.getErrorStream());
+            if (err != null && err.toLowerCase().contains("already exists")) return;
+            throw new Exception("Report tab create failed: " + code + " " + err);
+        }
+        writeHeader(token, spreadsheetId, title, new String[]{"Date", "Type", "Number", "Amount", "Note"});
+        try { formatStatusLogTab(token, spreadsheetId, title); } catch (Exception ignored) { /* format na bosleo tab + header thik thakbe */ }
+    }
+
     /** Ekta range-e (jemon Registry!B5:C5) RAW diye lekha — formula hisebe noy, literal thakbe. */
     public static void updateCells(String token, String sheetId, String rangePlain, String[][] vals) throws Exception {
         String range = URLEncoder.encode(rangePlain, "UTF-8");
