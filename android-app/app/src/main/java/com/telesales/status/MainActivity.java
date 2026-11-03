@@ -67,6 +67,11 @@ public class MainActivity extends AppCompatActivity {
     private String statusLogSheetId; private String statusLogTab = "Status Log"; private static final String SHARED_STATUS_LOG_ID = "1t22IL9miZ_5QYWD3rJVioXZlKsGwlk6X8bW_TQCjbfQ";
     private String selectedDate = dhakaDate(); private String reportDate = dhakaDate();
     private Map<String,String> lastStatusMap = new HashMap<>();
+    // v4.24 optimistic save: Save tap-er sathe sathe UI update, network background-e.
+    // savingRows = in-flight double-tap guard (key = sheet row + number); optimisticTileKeys =
+    // tile +1 ekbar-i hobe (retry/re-save-e double-count noy).
+    private java.util.Set<String> savingRows = new java.util.HashSet<>();
+    private java.util.Set<String> optimisticTileKeys = new java.util.HashSet<>();
     private RowAdapter adapter;
     private View loginView, mainView;
     private View agentView;
@@ -314,7 +319,17 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recycler = findViewById(R.id.recycler);
         recycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RowAdapter((row, btn) -> {
-            btn.setEnabled(false); btn.setText("সেভ হচ্ছে...");
+            // v4.24: button disable/spinner noy — tap-er sathe sathe row + tile UI-te update,
+            // network (sheet + log) background-e cholbe; double-tap guard-e ekoi row-e ektai flight.
+            String optKey = row.row + "|" + (row.number == null ? "" : row.number.trim());
+            if (savingRows.contains(optKey)) return;
+            savingRows.add(optKey);
+            String optNow = (row.status == null ? "" : row.status) + "|" + (row.valid == null ? "" : row.valid);
+            String optOld = lastStatusMap.get(row.number == null ? "" : row.number.trim());
+            boolean optChanged = !optNow.equals(optOld);
+            boolean optClear = (row.status == null || row.status.isEmpty()) && (row.valid == null || row.valid.isEmpty());
+            if (optChanged && !optClear && optimisticTileKeys.add(optKey)) applyLocalSaveToTiles(row.status, row.valid);
+            adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
             new Thread(() -> {
                 String key = row.number == null ? "" : row.number.trim();
                 String now = (row.status == null ? "" : row.status) + "|" + (row.valid == null ? "" : row.valid);
@@ -358,17 +373,18 @@ public class MainActivity extends AppCompatActivity {
                     boolean finalLogCleared = logCleared;
                     runOnUiThread(() -> {
                         authRetryUsed = false;
+                        savingRows.remove(optKey); optimisticTileKeys.remove(optKey);
                         btn.setEnabled(true); btn.setText("Save korun");
                         Toast.makeText(this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (log pore sync hobe)" : (finalLogCleared ? " (ajker log row muche geche)" : "")), Toast.LENGTH_LONG).show();
                         adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
-                        if (finalLogAppended) { applyLocalSaveToTiles(row.status, row.valid); refreshInvalidTileAfterSave(); }
+                        if (finalLogAppended) { refreshInvalidTileAfterSave(); }
                         else if (finalLogCleared) loadDayStats();
                         drainOutboxAsync(); drainPendingLogsAsync();
                     });
                 } catch (Exception e) {
                     if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) {
                         authRetryUsed = true;
-                        runOnUiThread(() -> { btn.setEnabled(true); btn.setText("Save korun"); btn.performClick(); });
+                        runOnUiThread(() -> { savingRows.remove(optKey); btn.setEnabled(true); btn.setText("Save korun"); btn.performClick(); });
                     } else {
                         queueOutbox(row);
                         // main update hoyni — log side-o pore drain-e hobe (outbox clear howar por).
@@ -377,6 +393,7 @@ public class MainActivity extends AppCompatActivity {
                             else queuePendingLog(dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid);
                         }
                         runOnUiThread(() -> {
+                            savingRows.remove(optKey);
                             btn.setEnabled(true); btn.setText("Save korun");
                             Toast.makeText(this, "সেভ হয়নি — pore abar chesta hobe (joma ache): " + e.getMessage(), Toast.LENGTH_LONG).show();
                         });
