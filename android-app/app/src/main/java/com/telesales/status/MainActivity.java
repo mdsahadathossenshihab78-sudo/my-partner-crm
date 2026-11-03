@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView guideText;
     private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
     private int currentSection = 0;
-    private static final String DAILY_REPORTS_TITLE = "Telesales Daily Reports";
+    private static final String DAILY_REPORTS_ID = "1BPaQrV6Znqcs45pNEUib8AOHnxzz93Z8Y8vEMAAHOzg";
     // v4.19 cache/guards: shared log ID + tab ekbar confirm hole protibar Drive search noy;
     // load-er sequence diye purono response notun data-r upor boshbe na.
     private String sharedLogCacheAgent = null, sharedLogCacheId = null;
@@ -1501,7 +1501,7 @@ public class MainActivity extends AppCompatActivity {
     private String appendDailyReport(int total, int conn, List<REntry> regs, List<REntry> ftds, double sum, List<REntry> logs, String day, List<REntry> probs) {
         try {
             if (token == null || agentId == null) return "";
-            String dailyId = resolveSharedId("daily_reports_sheet_id", null, DAILY_REPORTS_TITLE);
+            String dailyId = DAILY_REPORTS_ID;
             if (dailyId == null) return "Daily Reports file-e joma hoyni (file pai ni) — report text thik ache, copy korte parben";
             StringBuilder probsText = new StringBuilder();
             for (REntry r : probs) { if (probsText.length() > 0) probsText.append("; "); probsText.append(cellE(r, 1)); }
