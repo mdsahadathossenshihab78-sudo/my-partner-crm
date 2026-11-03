@@ -63,6 +63,10 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 <div class="row" style="margin-top:12px"><button class="btn btn-light" id="reportBtn" style="flex:1">📋 Report</button></div>
 <div class="row" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn">◀</button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn">▶</button></div>
 <div class="row" style="margin-top:12px">
+<div class="stat s-blue"><b id="heroCalls">0</b><span>মোট কল (এই দিন)</span></div>
+<div class="stat s-violet"><b id="heroNums">0</b><span>মোট নাম্বার (লিস্ট)</span></div>
+</div>
+<div class="row" style="margin-top:12px">
 <div class="stat s-blue"><b id="stConn">0</b><span>Connected</span></div>
 <div class="stat s-violet"><b id="stNotConn">0</b><span>Not Connected</span></div>
 <div class="stat s-green"><b id="stValid">0</b><span>Valid</span></div>
@@ -81,20 +85,26 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 
 <div id="reportView" style="display:none"><div class="card">
 <div class="row" style="justify-content:space-between"><h2 style="margin:0">📋 Report</h2><button class="btn btn-light btn-sm" id="reportBackBtn">← ফিরে যান</button></div>
-<div style="margin-top:16px"><h3 style="margin:0 0 8px">Registration</h3><div class="row"><input id="regCount" placeholder="Registration সংখ্যা" inputmode="numeric" style="flex:1"><button class="btn btn-primary btn-sm" id="regAddBtn">+ যোগ করুন</button></div><div id="regList"></div></div>
-<div style="margin-top:16px"><h3 style="margin:0 0 8px">FTD</h3><div class="row" style="align-items:center"><button class="btn btn-sm" id="ftdMinusBtn">-</button><b id="ftdStepCount" style="flex:1;text-align:center;font-size:22px">0</b><button class="btn btn-primary btn-sm" id="ftdPlusBtn">+</button></div><div class="row" id="ftdStepAmountRow" style="display:none"><input id="ftdStepAmt" placeholder="এই FTD কত টাকার?" inputmode="decimal" style="flex:1"><button class="btn btn-primary btn-sm" id="ftdStepAddBtn">টাকা যোগ করুন</button></div><p class="muted" id="ftdStepSummary">আজ: 0টা • মোট ৳0</p></div>
-<div style="margin-top:16px"><h3 style="margin:0 0 8px">Invalid Number</h3><div class="row"><input id="invNum" placeholder="নাম্বার" inputmode="tel" style="flex:1"><select id="invReason" style="flex:1"><option>কল ধরেনি</option><option>Not connected</option><option>বন্ধ</option><option>ভুল নাম্বার</option></select><button class="btn btn-primary btn-sm" id="invAddBtn">+ যোগ করুন</button></div><div id="invList"></div></div>
-<div style="margin-top:16px"><h3 style="margin:0 0 8px">Problems</h3><div class="row"><input id="probText" placeholder="সমস্যা লিখুন" style="flex:1"><button class="btn btn-primary btn-sm" id="probAddBtn">+ যোগ করুন</button></div><div id="probList"></div></div>
+<div class="row" style="margin-top:12px"><button class="btn btn-light" id="repPrevDayBtn">◀</button><button class="btn btn-light" id="repDateBtn" style="flex:1"></button><button class="btn btn-light" id="repNextDayBtn">▶</button></div>
+<p class="muted" id="repDateNote"></p>
+<div style="margin-top:16px"><h3 style="margin:0 0 8px">Registration</h3><div class="row" id="regAddRow"><input id="regCount" placeholder="Registration সংখ্যা" inputmode="numeric" style="flex:1"><button class="btn btn-primary btn-sm" id="regAddBtn">+ যোগ করুন</button></div><div id="regList"></div></div>
+<div style="margin-top:16px"><h3 style="margin:0 0 8px">FTD</h3><div class="row" style="align-items:center" id="ftdStepRow"><button class="btn btn-sm" id="ftdMinusBtn">-</button><b id="ftdStepCount" style="flex:1;text-align:center;font-size:22px">0</b><button class="btn btn-primary btn-sm" id="ftdPlusBtn">+</button></div><div class="row" id="ftdStepAmountRow" style="display:none"><input id="ftdStepAmt" placeholder="এই FTD কত টাকার?" inputmode="decimal" style="flex:1"><button class="btn btn-primary btn-sm" id="ftdStepAddBtn">টাকা যোগ করুন</button></div><p class="muted" id="ftdStepSummary">আজ: 0টা • মোট ৳0</p></div>
+<div style="margin-top:16px"><h3 style="margin:0 0 8px">Invalid Number (অটো)</h3><p class="muted" id="invAutoSummary">হিসাব হচ্ছে...</p><div id="invAutoList"></div><p class="muted">এই সংখ্যা লগ থেকে অটো হিসাব হয় (Not Connected + Valid No, এক দিনে এক নাম্বার একবার)। পুরোনো হাতে লেখা Invalid রো শিটে ইতিহাস হিসেবে থাকবে, কিন্তু কাউন্টে ধরা হবে না।</p></div>
+<div style="margin-top:16px"><h3 style="margin:0 0 8px">Problems</h3><div class="row" id="probAddRow"><input id="probText" placeholder="সমস্যা লিখুন" style="flex:1"><button class="btn btn-primary btn-sm" id="probAddBtn">+ যোগ করুন</button></div><div id="probList"></div></div>
 <div class="row" style="margin-top:20px"><button class="btn btn-grad" id="genBtn" style="flex:1">📄 Generate Report</button></div>
 <div id="reportOut" style="display:none;margin-top:16px"><pre class="out" id="reportText"></pre><button class="btn btn-primary" id="copyReportBtn">📋 কপি করুন</button></div>
 </div></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
+// PUBLISH NOTE: restore SHEET_ID, firebaseConfig.apiKey and ADMIN_EMAIL from the repo index.html before deploying.
 const SHEET_ID='10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE';
 const firebaseConfig={apiKey:"AIzaSyB03sx0s65ycG3MYcSbB2HfGMigs9DI-r4",authDomain:"fir-a-topup-bazar.firebaseapp.com",databaseURL:"https://fir-a-topup-bazar-default-rtdb.firebaseio.com",projectId:"fir-a-topup-bazar",storageBucket:"fir-a-topup-bazar.firebasestorage.app",messagingSenderId:"928168996366",appId:"1:928168996366:web:fd879d795202891ee9965f",measurementId:"G-9QBLYHR817"};
 let auth=null, token=null, agentId=null, userEmail=null, rows=[], tab='pending', lastStatusMap={};
 let selectedDate=dhakaToday();
+let reportDate=dhakaToday();
+function updateRepDateBtn(){$('repDateBtn').textContent=displayDay(reportDate)+(reportDate===dhakaToday()?' • আজ':'');const past=reportDate<dhakaToday();$('repDateNote').textContent=past?'শুধু দেখা যাবে — এই তারিখে যোগ/ডিলিট বন্ধ।':'';['regAddRow','probAddRow'].forEach(id=>{const el=$(id);if(el)el.style.display=past?'none':'';});const fs=$('ftdStepRow');if(fs)fs.style.display=past?'none':'';const fa=$('ftdStepAmountRow');if(fa)fa.style.display='none';}
+function shiftRepDay(d){const nd=addDays(reportDate,d);if(nd>dhakaToday())return;reportDate=nd;updateRepDateBtn();$('reportOut').style.display='none';loadReportData();}
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
 function esc(v){return (v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
@@ -107,12 +117,14 @@ function addDays(day,n){return fmtDay(parseDay(day)+n*86400000)}
 function daysBetween(a,b){return Math.floor((parseDay(b)-parseDay(a))/86400000)}
 function dialNumber(n){n=(n||'').replace(/[^0-9+]/g,'');if(!n)return '';if(n.startsWith('+'))return n;if(n.startsWith('0'))return n;return '0'+n}
 function digits(n){return (n||'').replace(/[^0-9]/g,'')}
+function normLogNum(n){let d=(n||'').replace(/[^0-9]/g,'');if(!d)return '';if(d.startsWith('880')&&d.length===13)d='0'+d.slice(3);else if(!d.startsWith('0'))d='0'+d;return d;}
+function autoInvalidNumbers(logs,day){const seen=new Set(),out=[];logs.forEach(e=>{if(cellE(e,0)!==day)return;if(cellE(e,2)!=='not connected')return;if(cellE(e,3)!=='No')return;const n=normLogNum(cellE(e,1));if(!n||seen.has(n))return;seen.add(n);out.push(n);});return out;}
 function showLogin(){$('loginCard').style.display='block';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none'}
 function showAgent(){$('loginCard').style.display='none';$('agentCard').style.display='block';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none'}
 function showMain(){$('loginCard').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='block';$('reportView').style.display='none';$('adminCard').style.display='none';$('agentLabel').textContent='Agent: '+agentId;updateDateBtn();loadDayStats()}
 const ADMIN_EMAIL='shihabno.18@gmail.com';
 function showAdmin(){$('loginCard').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='block';$('adminMsg').textContent='';}
-function showReport(){$('mainView').style.display='none';$('reportView').style.display='block';loadReportData()}
+function showReport(){reportDate=dhakaToday();updateRepDateBtn();$('mainView').style.display='none';$('reportView').style.display='block';loadReportData()}
 function updateDateBtn(){$('dateBtn').textContent=displayDay(selectedDate)+(selectedDate===dhakaToday()?' • আজ':'')}
 function shiftDay(d){const nd=addDays(selectedDate,d);if(nd>dhakaToday())return;selectedDate=nd;updateDateBtn();loadDayStats()}
 try{if(window.firebase){firebase.initializeApp(firebaseConfig);auth=firebase.auth();}}catch(e){}
@@ -273,7 +285,7 @@ window.saveRow=async (rowNum)=>{
     if(now!==old){
       try{
         await ensureLogSheet();
-        await appendRow(logSheetId,logSheetTab,[dhakaToday(),dialNumber(r.number),val,vc]);
+        await appendRowRaw(logSheetId,logSheetTab,[dhakaToday(),dialNumber(r.number),val,vc]);
         lastStatusMap[key]=now;
         if(!localStorage.getItem('log_anchor_date_'+agentId)) localStorage.setItem('log_anchor_date_'+agentId,dhakaToday());
       }catch(e){toast('শিটে সেভ হয়েছে, লগে জমা হয়নি');}
@@ -291,6 +303,12 @@ async function writeHeader(sid,tab,headers){
 }
 async function appendRow(sid,tab,vals){
   await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=USER_ENTERED','POST',{values:[vals]});
+}
+async function appendRowRaw(sid,tab,vals){
+  await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=RAW','POST',{values:[vals]});
+}
+async function appendRowsRaw(sid,tab,rows){
+  await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A1:append?valueInputOption=RAW','POST',{values:rows});
 }
 async function getTabRows(sid,tab){
   const d=await api2('spreadsheets/'+sid+'/values/'+encodeURIComponent(tab)+'!A2:Z');
@@ -310,16 +328,26 @@ async function ensureReportSheet(){
     localStorage.setItem('report_sheet_id_'+agentId,reportSheetId);
   }
 }
-async function ensureSheetTab(sid, tab){ let meta = await api2('spreadsheets/' + sid + '?fields=sheets.properties.title'); let tabs = (meta.sheets || []).map(s => s.properties.title); if (tabs.includes(tab)) return; await api2('spreadsheets/' + sid + ':batchUpdate', 'POST', {requests:[{addSheet:{properties:{title:tab}}}] }); await writeHeader(sid, tab, ['Date','Number','Status','Valid']); } async function resolveLegacyLogTarget(){ let legacyId = await resolveSharedId('status_log_sheet_id_', 'Telesales Status Log - ' + agentId); return legacyId ? {id:legacyId, tab:'Status Log'} : null; } async function migrateLegacyLogToShared(sharedId){ let flagKey = 'status_log_migrated_to_shared_' + agentId; if (localStorage.getItem(flagKey) === '1') return; let legacy = await resolveLegacyLogTarget(); if (!legacy || legacy.id === sharedId) { localStorage.setItem(flagKey, '1'); return; } let legacyRows = await getTabRows(legacy.id, 'Status Log'); let sharedRows = await getTabRows(sharedId, agentId); let seen = new Set(sharedRows.map(e => [cellE(e,0), cellE(e,1), cellE(e,2), cellE(e,3)].join('|'))); let missing = legacyRows.map(e => [cellE(e,0), cellE(e,1), cellE(e,2), cellE(e,3)]).filter(r => r.join('|') !== '|||').filter(r => !seen.has(r.join('|'))); if (missing.length) await api2('spreadsheets/' + sharedId + '/values/' + encodeURIComponent(agentId + '!A:Z') + ':append?valueInputOption=USER_ENTERED', 'POST', {values:missing}); localStorage.setItem(flagKey, '1'); } async function resolveLogTarget(){ let sharedId = await findFileByName(SHARED_LOG_TITLE); if (sharedId) { try { await ensureSheetTab(sharedId, agentId); } catch(e) { let legacy = await resolveLegacyLogTarget(); if (legacy) return legacy; throw e; } try { await migrateLegacyLogToShared(sharedId); } catch(e) {} return {id:sharedId, tab:agentId}; } return await resolveLegacyLogTarget(); } async function ensureLogSheet(){ let t = await resolveLogTarget(); if (t) { logSheetId = t.id; logSheetTab = t.tab; return; } logSheetId = await createStatusLogSheet(); logSheetTab = 'Status Log'; localStorage.setItem('status_log_sheet_id_' + agentId, logSheetId); } async function ensureLogSheetLegacyUnused(){
-  if(logSheetId) return;
-  logSheetId=localStorage.getItem('status_log_sheet_id_'+agentId);
-  if(!logSheetId){logSheetId=await findFileByName('Telesales Status Log - '+agentId);if(logSheetId)localStorage.setItem('status_log_sheet_id_'+agentId,logSheetId);}
-  if(!logSheetId){
-    logSheetId=await createSheet('Telesales Status Log - '+agentId,['Status Log']);
-    await writeHeader(logSheetId,'Status Log',['Date','Number','Status','Valid']);
-    localStorage.setItem('status_log_sheet_id_'+agentId,logSheetId);
-  }
+async function ensureSheetTab(sid, tab){ let meta = await api2('spreadsheets/' + sid + '?fields=sheets.properties.title'); let tabs = (meta.sheets || []).map(s => s.properties.title); if (tabs.includes(tab)) return; await api2('spreadsheets/' + sid + ':batchUpdate', 'POST', {requests:[{addSheet:{properties:{title:tab}}}] }); await writeHeader(sid, tab, ['Date','Number','Status','Valid']); } let logMigratedThisSession=false;
+async function resolveLegacyLogTarget(){ const legacyId=await findFileByName('Telesales Status Log - '+agentId); return legacyId?{id:legacyId,tab:'Status Log'}:null; }
+async function createStatusLogSheet(){ const sid=await createSheet('Telesales Status Log - '+agentId,['Status Log']); await writeHeader(sid,'Status Log',['Date','Number','Status','Valid']); return sid; }
+async function migrateMissingLogRows(sharedId){
+  if(logMigratedThisSession) return; logMigratedThisSession=true;
+  try{
+    const sharedRows=await getTabRows(sharedId,agentId);
+    const seen=new Set(sharedRows.map(e=>[cellE(e,0),normLogNum(cellE(e,1)),cellE(e,2),cellE(e,3)].join('|')));
+    const sources=[];
+    const legacy=await resolveLegacyLogTarget();
+    if(legacy&&legacy.id!==sharedId){ try{ sources.push(await getTabRows(legacy.id,'Status Log')); }catch(e){} }
+    const backupId=await findFileByName('Telesales Status Log (backup)');
+    if(backupId&&backupId!==sharedId){ try{ sources.push(await getTabRows(backupId,agentId)); }catch(e){} }
+    const missing=[];
+    sources.forEach(list=>{ list.forEach(e=>{ const r=[cellE(e,0),normLogNum(cellE(e,1)),cellE(e,2),cellE(e,3)]; if(r.join('|')==='|||')return; if(seen.has(r.join('|')))return; seen.add(r.join('|')); missing.push(r); }); });
+    if(missing.length) await appendRowsRaw(sharedId,agentId,missing);
+  }catch(e){}
 }
+async function resolveLogTarget(){ const sharedId=await findFileByName(SHARED_LOG_TITLE); if(sharedId){ try{ await ensureSheetTab(sharedId,agentId); }catch(e){ const legacy=await resolveLegacyLogTarget(); if(legacy) return legacy; throw e; } try{ await migrateMissingLogRows(sharedId); }catch(e){} return {id:sharedId,tab:agentId}; } return await resolveLegacyLogTarget(); }
+async function ensureLogSheet(){ const t=await resolveLogTarget(); if(t){ logSheetId=t.id; logSheetTab=t.tab; return; } logSheetId=await createStatusLogSheet(); logSheetTab='Status Log'; localStorage.setItem('status_log_sheet_id_'+agentId,logSheetId); }
 function cellE(e,i){return (e.cells&&e.cells[i])||''}
 function isFtdCountRow(e){const n=cellE(e,1);return n!==''&&!n.startsWith('0')&&!n.startsWith('+')&&/^\d+$/.test(n);}
 function ftdCountOf(e){return isFtdCountRow(e)?(parseInt(cellE(e,1),10)||1):1;}
@@ -339,13 +367,12 @@ async function loadDayStats(){
     let rid=localStorage.getItem('report_sheet_id_'+agentId);
     if(!rid && agentId==='bdxsukuna30') rid=localStorage.getItem('report_sheet_id');
     if(!rid){rid=await findFileByName('Telesales Report - '+agentId);if(rid)localStorage.setItem('report_sheet_id_'+agentId,rid);}
-    const logs=lid?await getTabRows(lid,logTarget.tab):[];
-    const invs=rid?await getTabRows(rid,'Invalid'):[];
+    const logs=lid?await getTabRows(lid,logTarget?logTarget.tab:'Status Log'):[];
     const regs=rid?await getTabRows(rid,'Registration'):[];
     const ftds=rid?await getTabRows(rid,'FTD'):[];
     let conn=0, valid=0, notConn=0;
     logs.forEach(e=>{if(cellE(e,0)===day){if(cellE(e,2)==='call connected')conn++;if(cellE(e,2)==='not connected')notConn++;if(cellE(e,3)==='Yes')valid++;}});
-    const inv=filterTodayE(invs,day).length, reg=regTotalCount(filterTodayE(regs,day));
+    const inv=autoInvalidNumbers(logs,day).length, reg=regTotalCount(filterTodayE(regs,day));
     const ftdToday=filterTodayE(ftds,day); let ftdSum=0;
     ftdToday.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSum+=v;});
     let minLog=null;logs.forEach(e=>{const d=cellE(e,0);if(d&&(minLog===null||d<minLog))minLog=d;});
@@ -356,6 +383,7 @@ async function loadDayStats(){
     const ftdWeek=filterRangeE(ftds,blockStart,blockEnd); let ftdSumW=0;
     ftdWeek.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSumW+=v;});
     $('stConn').textContent=conn; $('stNotConn').textContent=notConn; $('stValid').textContent=valid; $('stInv').textContent=inv; $('stReg').textContent=reg;
+    $('heroCalls').textContent=logs.filter(e=>cellE(e,0)===day).length; $('heroNums').textContent=rows.length;
     $('stFtd').textContent=ftdTotalCount(ftdToday); $('stFtdAmt').textContent='৳'+fmtAmt(ftdSum);
     $('weekSummary').textContent='Ei 7 din ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • FTD '+ftdTotalCount(ftdWeek)+' (৳'+fmtAmt(ftdSumW)+')';
   }catch(e){$('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।';}
@@ -363,22 +391,25 @@ async function loadDayStats(){
 async function loadReportData(){
   try{
     await ensureReportSheet();
-    const regs=await getTabRows(reportSheetId,'Registration');
-    const ftds=await getTabRows(reportSheetId,'FTD');
-    const invs=await getTabRows(reportSheetId,'Invalid');
-    const probs=await getTabRows(reportSheetId,'Problems');
-    renderEntryList('regList',regs,e=>isRegCountRow(e)?esc(cellE(e,1))+'টা':esc(cellE(e,1)));
-    refreshFtdStepper();
-    renderEntryList('invList',invs,e=>esc(cellE(e,1))+' ('+esc(cellE(e,2))+')');
-    renderEntryList('probList',probs,e=>esc(cellE(e,1)));
-    window._rep={regs:regs,ftds:ftds,invs:invs,probs:probs}; refreshFtdStepper();
+    const day=reportDate;
+    const regsAll=await getTabRows(reportSheetId,'Registration');
+    const ftdsAll=await getTabRows(reportSheetId,'FTD');
+    const probsAll=await getTabRows(reportSheetId,'Problems');
+    const regs=filterTodayE(regsAll,day), ftds=filterTodayE(ftdsAll,day), probs=filterTodayE(probsAll,day);
+    const past=day<dhakaToday();
+    renderEntryList('regList',regs,e=>isRegCountRow(e)?esc(cellE(e,1))+'টা':esc(cellE(e,1)),!past);
+    refreshFtdStepper(day,ftds);
+    renderEntryList('probList',probs,e=>esc(cellE(e,1)),!past);
+    let autoInv=[];
+    try{ const lt=await resolveLogTarget(); if(lt){ const lrows=await getTabRows(lt.id,lt.tab); autoInv=autoInvalidNumbers(lrows,day); } }catch(e){}
+    $('invAutoSummary').textContent=displayDay(day)+' — Invalid (অটো): '+autoInv.length+'টা';
+    $('invAutoList').innerHTML=autoInv.length?autoInv.map(n=>'<div class="entry"><span>'+esc(n)+'</span></div>').join(''):'<p class="muted">এই তারিখে কোনো Invalid নেই।</p>';
+    window._rep={regs:regs,ftds:ftds,invs:[],probs:probs,autoInv:autoInv,repDay:day};
   }catch(e){toast('Report লোড হয়নি, আবার চেষ্টা করুন');}
 }
-function renderEntryList(id,list,fmt){
-  $(id).innerHTML=list.length?list.map(e=>`<div class="entry"><span>${fmt(e)}</span><button class="xbtn" onclick="deleteEntry('${id}',${e.sheetRow})">✕</button></div>`).join(''):'<p class="muted">কোনো এন্ট্রি নেই।</p>';
-}
+function renderEntryList(id,list,fmt,showDelete){ $(id).innerHTML=list.length?list.map(e=>{const x=showDelete===false?'':'<button class="xbtn" onclick="deleteEntry(\''+id+'\','+e.sheetRow+')">✕</button>';return '<div class="entry"><span>'+fmt(e)+'</span>'+x+'</div>';}).join(''):'<p class="muted">কোনো এন্ট্রি নেই।</p>'; }
 async function deleteEntry(listId,sheetRow){
-  const tabMap={regList:'Registration',ftdList:'FTD',invList:'Invalid',probList:'Problems'};
+  const tabMap={regList:'Registration',ftdList:'FTD',probList:'Problems'};
   const tabName=tabMap[listId];
   try{
     await ensureReportSheet();
@@ -389,27 +420,30 @@ async function deleteEntry(listId,sheetRow){
     $('reportOut').style.display='none'; await loadReportData();
   }catch(e){toast('ডিলিট হয়নি, আবার চেষ্টা করুন');}
 }
-$('regAddBtn').onclick=async()=>{const c=parseInt($('regCount').value.trim(),10);if(!(c>0))return;try{await ensureReportSheet();await appendRow(reportSheetId,'Registration',[dhakaToday(),String(c)]);$('regCount').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('regAddBtn').onclick=async()=>{const c=parseInt($('regCount').value.trim(),10);if(!(c>0))return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await ensureReportSheet();await appendRow(reportSheetId,'Registration',[dhakaToday(),String(c)]);$('regCount').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 function ftdTodayRows(){const t=dhakaToday();return (window._rep&&window._rep.ftds?window._rep.ftds:[]).filter(e=>cellE(e,0)===t);}
-function refreshFtdStepper(){const rows=ftdTodayRows();let sum=0;rows.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))sum+=v;});$('ftdStepCount').textContent=ftdTotalCount(rows);$('ftdStepSummary').textContent='আজ: '+ftdTotalCount(rows)+'টা • মোট ৳'+fmtAmt(sum);}
-$('ftdPlusBtn').onclick=()=>{const r=$('ftdStepAmountRow');if(r.style.display!=='none'){$('ftdStepAmt').focus();return;}const next=ftdTotalCount(ftdTodayRows())+1;$('ftdStepAmt').placeholder=next+' নম্বর FTD কত টাকার?';r.style.display='flex';$('ftdStepAmt').focus();};
-$('ftdStepAddBtn').onclick=async()=>{const a=$('ftdStepAmt').value.trim();if(!a)return;try{await ensureReportSheet();await appendRow(reportSheetId,'FTD',[dhakaToday(),'1',a]);$('ftdStepAmt').value='';$('ftdStepAmountRow').style.display='none';$('reportOut').style.display='none';await loadReportData();await loadDayStats();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
-$('ftdMinusBtn').onclick=async()=>{const rows=ftdTodayRows();if(!rows.length){toast('আজ কোনো FTD নেই');return;}let last=rows[0];rows.forEach(e=>{if(e.sheetRow>last.sheetRow)last=e;});await deleteEntry('ftdList',last.sheetRow);await loadDayStats();};
-$('invAddBtn').onclick=async()=>{const n=$('invNum').value.trim();if(!n)return;try{await ensureReportSheet();await appendRow(reportSheetId,'Invalid',[dhakaToday(),dialNumber(n),$('invReason').value]);$('invNum').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
-$('probAddBtn').onclick=async()=>{const t=$('probText').value.trim();if(!t)return;try{await ensureReportSheet();await appendRow(reportSheetId,'Problems',[dhakaToday(),t]);$('probText').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+function refreshFtdStepper(day,ftds){const rows=(ftds!==undefined)?ftds:ftdTodayRows();let sum=0;rows.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))sum+=v;});$('ftdStepCount').textContent=ftdTotalCount(rows);const d=day||dhakaToday();$('ftdStepSummary').textContent=(d===dhakaToday()?'আজ: ':displayDay(d)+' — ')+ftdTotalCount(rows)+'টা • মোট ৳'+fmtAmt(sum);}
+$('ftdPlusBtn').onclick=()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}const r=$('ftdStepAmountRow');if(r.style.display!=='none'){$('ftdStepAmt').focus();return;}const next=ftdTotalCount(ftdTodayRows())+1;$('ftdStepAmt').placeholder=next+' নম্বর FTD কত টাকার?';r.style.display='flex';$('ftdStepAmt').focus();};
+$('ftdStepAddBtn').onclick=async()=>{const a=$('ftdStepAmt').value.trim();if(!a)return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await ensureReportSheet();await appendRow(reportSheetId,'FTD',[dhakaToday(),'1',a]);$('ftdStepAmt').value='';$('ftdStepAmountRow').style.display='none';$('reportOut').style.display='none';await loadReportData();await loadDayStats();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
+$('ftdMinusBtn').onclick=async()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে বদলানো যাবে না');return;}const rows=ftdTodayRows();if(!rows.length){toast('আজ কোনো FTD নেই');return;}let last=rows[0];rows.forEach(e=>{if(e.sheetRow>last.sheetRow)last=e;});await deleteEntry('ftdList',last.sheetRow);await loadDayStats();};
+$('probAddBtn').onclick=async()=>{const t=$('probText').value.trim();if(!t)return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await ensureReportSheet();await appendRow(reportSheetId,'Problems',[dhakaToday(),t]);$('probText').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 $('genBtn').onclick=()=>{
-  const r=window._rep||{regs:[],ftds:[],invs:[],probs:[]};
+  const r=window._rep||{regs:[],ftds:[],invs:[],probs:[],autoInv:[]};
   const now=dhakaNow();
+  const day=r.repDay||reportDate;
   const total=rows.filter(x=>x.status).length, conn=rows.filter(x=>x.status==='call connected').length;
   let ftdSum=0; r.ftds.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSum+=v;});
-  let out='Date: '+displayDay(now.date)+'\nTime: '+now.time+'\nAgent ID: '+agentId+'\nTotal Calls: '+total+'\nConnected: '+conn;
+  let out='Date: '+displayDay(day)+'\nTime: '+now.time+'\nAgent ID: '+agentId+'\nTotal Calls: '+total+'\nConnected: '+conn;
   out+='\nRegistration ('+regTotalCount(r.regs)+'): '+r.regs.map(e=>isRegCountRow(e)?cellE(e,1)+'টা':cellE(e,1)).join(', ');
   out+='\nFTD: '+ftdTotalCount(r.ftds);
   out+='\nTotal Amount Recharged: '+fmtAmt(ftdSum);
-  out+='\nInvalid Number ('+r.invs.length+'): '+r.invs.map(e=>cellE(e,1)+' ('+cellE(e,2)+')').join(', ');
+  out+='\nInvalid Number ('+(r.autoInv?r.autoInv.length:0)+'): '+(r.autoInv||[]).join(', ');
   out+='\nProblems ('+r.probs.length+'): '+r.probs.map(e=>cellE(e,1)).join(', ');
   $('reportText').textContent=out; $('reportOut').style.display='block';
 };
 $('copyReportBtn').onclick=async()=>{try{await navigator.clipboard.writeText($('reportText').textContent);toast('Copy হয়েছে');}catch(e){toast('কপি হয়নি');}};
+$('repPrevDayBtn').onclick=()=>shiftRepDay(-1);
+$('repNextDayBtn').onclick=()=>shiftRepDay(1);
+$('repDateBtn').onclick=()=>{const inp=document.createElement('input');inp.type='date';inp.value=reportDate;inp.max=dhakaToday();inp.style.position='fixed';inp.style.opacity='0';document.body.appendChild(inp);inp.onchange=()=>{if(inp.value){reportDate=inp.value;updateRepDateBtn();$('reportOut').style.display='none';loadReportData();}inp.remove();};if(inp.showPicker)inp.showPicker();else inp.click();};
 setTabUI(); updateDateBtn();
 </script></body></html>
