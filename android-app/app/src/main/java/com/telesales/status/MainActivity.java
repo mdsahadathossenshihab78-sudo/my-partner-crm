@@ -1214,15 +1214,7 @@ public class MainActivity extends AppCompatActivity {
                 sb.append("Total Calls: ").append(total).append("\n");
                 sb.append("Connected: ").append(conn).append("\n");
                 sb.append("Registration: ").append(regTotalCount(regToday)).append("\n");
-                if (!regToday.isEmpty()) {
-                    sb.append("Registration Details: ");
-                    for (int i = 0; i < regToday.size(); i++) {
-                        if (i > 0) sb.append(", ");
-                        REntry re = regToday.get(i);
-                        sb.append(isRegCountRow(re) ? cellE(re, 1) + "টা" : cellE(re, 1));
-                    }
-                    sb.append("\n");
-                }
+                // v4.27: Registration details ar dekhabo na — sudhu count (user order).
                 sb.append("FTD: ").append(ftdTotalCount(ftdToday)).append("\n");
                 sb.append("Total Amount Recharged: ").append(fmtAmount(sum)).append("\n");
                 sb.append("Invalid: ").append(countAutoInvalid(logs, today)).append("\n");
