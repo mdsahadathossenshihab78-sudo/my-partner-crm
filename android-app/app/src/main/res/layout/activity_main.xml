@@ -347,6 +347,32 @@
                 android:layout_gravity="center" android:layout_marginTop="8dp"
                 android:text="Number paste kore Agent-er list-e jog korun" android:textSize="13sp"
                 android:textColor="@color/lavender" />
+            <!-- v4.30 Admin tabs: Number / Team / Sheet Settings / Admins -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="20dp">
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminTabNumber"
+                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                    android:text="Number" android:textSize="12sp" android:minWidth="0dp" android:paddingHorizontal="0dp" android:maxLines="2"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminTabTeam"
+                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                    android:layout_marginStart="6dp" android:text="Team" android:textSize="12sp" android:minWidth="0dp" android:paddingHorizontal="0dp" android:maxLines="2"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/glass_field" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminTabSheet"
+                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                    android:layout_marginStart="6dp" android:text="Sheet Settings" android:textSize="12sp" android:minWidth="0dp" android:paddingHorizontal="0dp" android:maxLines="2"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/glass_field" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminTabAdmins"
+                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                    android:layout_marginStart="6dp" android:text="Admins" android:textSize="12sp" android:minWidth="0dp" android:paddingHorizontal="0dp" android:maxLines="2"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/glass_field" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/adminSectionNumber" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical">
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/adminAgentInput"
                 android:layout_width="match_parent" android:layout_height="56dp"
                 android:layout_marginTop="30dp" android:hint="Agent ID"
@@ -367,6 +393,55 @@
             <TextView android:id="@+id/adminStatus" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:layout_marginTop="12dp"
                 android:textColor="@color/lavender" android:textSize="13sp" />
+            <!-- v4.30 Test sheet: live sheet-e na giye alada test sheet-e number bosan -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="Test sheet" android:textSize="20sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Test korar jonno alada sheet-er link ba ID save korun — ekhane number bosale live sheet-e kichu jabe na."
+                android:textSize="13sp" android:textColor="@color/lavender" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/testSheetInput"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:hint="Test sheet-er link ba ID"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/testSheetSaveBtn"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="14dp" android:text="Test sheet save korun"
+                android:textSize="15sp" android:textStyle="bold" android:textColor="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+            <TextView android:id="@+id/testSheetStatus" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                android:textColor="@color/lavender" android:textSize="13sp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Test sheet-e number bosan" android:textSize="15sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/testSheetTabInput"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:hint="Tab / Agent ID"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/testSheetNumbersInput"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:minLines="5" android:gravity="top"
+                android:layout_marginTop="14dp" android:hint="Number-gulo paste korun — proti line-e ekta, ba comma diye"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light"
+                android:inputType="textMultiLine" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/testSheetAddBtn"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="14dp" android:text="Test sheet-e number bosan"
+                android:textSize="15sp" android:textStyle="bold" android:textColor="@color/white"
+                app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+            <TextView android:id="@+id/testSheetNumbersStatus" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                android:textColor="@color/lavender" android:textSize="13sp" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/adminSectionSheet" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:visibility="gone">
             <!-- v4.28 Sheet Settings: prottek store-er sheet ID bodlano -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
@@ -478,6 +553,9 @@
             <TextView android:id="@+id/adminSheetStatus" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:layout_marginTop="8dp"
                 android:textColor="@color/lavender" android:textSize="13sp" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/adminSectionAdmins" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:visibility="gone">
             <!-- v4.29 Admin add: Admin Panel theke arekjon admin -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
@@ -500,6 +578,9 @@
             <TextView android:id="@+id/adminAdminStatus" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:layout_marginTop="12dp"
                 android:textColor="@color/lavender" android:textSize="13sp" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/adminSectionTeam" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:visibility="gone">
             <!-- v4.29 Notun team-er sheet: banale live bodlabe na, Active='No' thakbe -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
@@ -560,6 +641,7 @@
             <TextView android:id="@+id/teamNumbersStatus" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:layout_marginTop="12dp"
                 android:textColor="@color/lavender" android:textSize="13sp" />
+            </LinearLayout>
             <com.google.android.material.button.MaterialButton android:id="@+id/adminLogoutBtn"
                 android:layout_width="match_parent" android:layout_height="48dp"
                 android:layout_marginTop="20dp" android:text="Logout"

@@ -89,6 +89,9 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText adminNewAdminInput, teamNameInput, teamAgentsInput, teamTabInput, teamNumbersInput;
     private TextView adminAdminStatus, teamStatus, teamSelectedLabel, teamNumbersStatus;
     private LinearLayout teamListContainer;
+    private LinearLayout adminSectionNumber, adminSectionTeam, adminSectionSheet, adminSectionAdmins;
+    private TextInputEditText testSheetInput, testSheetTabInput, testSheetNumbersInput;
+    private TextView testSheetStatus, testSheetNumbersStatus;
     private volatile java.util.Set<String> adminEmailsCache = null;
     private TeamRow selectedTeam = null;
     private java.util.List<TeamRow> teamRowsCache = new ArrayList<>();
@@ -265,6 +268,15 @@ public class MainActivity extends AppCompatActivity {
         teamTabInput = findViewById(R.id.teamTabInput);
         teamNumbersInput = findViewById(R.id.teamNumbersInput);
         teamNumbersStatus = findViewById(R.id.teamNumbersStatus);
+        adminSectionNumber = findViewById(R.id.adminSectionNumber);
+        adminSectionTeam = findViewById(R.id.adminSectionTeam);
+        adminSectionSheet = findViewById(R.id.adminSectionSheet);
+        adminSectionAdmins = findViewById(R.id.adminSectionAdmins);
+        testSheetInput = findViewById(R.id.testSheetInput);
+        testSheetStatus = findViewById(R.id.testSheetStatus);
+        testSheetTabInput = findViewById(R.id.testSheetTabInput);
+        testSheetNumbersInput = findViewById(R.id.testSheetNumbersInput);
+        testSheetNumbersStatus = findViewById(R.id.testSheetNumbersStatus);
         agentError = findViewById(R.id.agentError);
         agentSubtitle = findViewById(R.id.agentSubtitle);
 
@@ -347,6 +359,12 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.adminAddAdminBtn).setOnClickListener(v -> submitAddAdmin());
         findViewById(R.id.teamCreateBtn).setOnClickListener(v -> createTeamSheet());
         findViewById(R.id.teamNumbersAddBtn).setOnClickListener(v -> submitTeamNumbers());
+        findViewById(R.id.adminTabNumber).setOnClickListener(v -> showAdminSection("NUMBER"));
+        findViewById(R.id.adminTabTeam).setOnClickListener(v -> showAdminSection("TEAM"));
+        findViewById(R.id.adminTabSheet).setOnClickListener(v -> showAdminSection("SHEET"));
+        findViewById(R.id.adminTabAdmins).setOnClickListener(v -> showAdminSection("ADMINS"));
+        findViewById(R.id.testSheetSaveBtn).setOnClickListener(v -> saveTestSheet());
+        findViewById(R.id.testSheetAddBtn).setOnClickListener(v -> submitTestSheetNumbers());
         findViewById(R.id.adminLogoutBtn).setOnClickListener(v -> {
             signInClient.signOut().addOnCompleteListener(t -> {
                 token = null; agentId = null; reportSheetId = null; statusLogSheetId = null;
@@ -614,6 +632,8 @@ public class MainActivity extends AppCompatActivity {
         adminView.setVisibility(View.VISIBLE);
         guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
         adminStatus.setText("");
+        showAdminSection("NUMBER");
+        refreshTestSheetStatus();
         refreshAdminSheetSection();
         refreshTeamsSection();
     }
@@ -665,6 +685,100 @@ public class MainActivity extends AppCompatActivity {
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> adminStatus.setText("Hoyni: " + e.getMessage()));
+            }
+        }).start();
+    }
+    /** v4.30: Admin Panel tab — sudhu ekta section dekhabe, bakigulo lukabe. Default: Number. */
+    private void showAdminSection(String section) {
+        if (adminSectionNumber != null) adminSectionNumber.setVisibility("NUMBER".equals(section) ? View.VISIBLE : View.GONE);
+        if (adminSectionTeam != null) adminSectionTeam.setVisibility("TEAM".equals(section) ? View.VISIBLE : View.GONE);
+        if (adminSectionSheet != null) adminSectionSheet.setVisibility("SHEET".equals(section) ? View.VISIBLE : View.GONE);
+        if (adminSectionAdmins != null) adminSectionAdmins.setVisibility("ADMINS".equals(section) ? View.VISIBLE : View.GONE);
+        MaterialButton[] tabs = new MaterialButton[]{(MaterialButton) findViewById(R.id.adminTabNumber), (MaterialButton) findViewById(R.id.adminTabTeam), (MaterialButton) findViewById(R.id.adminTabSheet), (MaterialButton) findViewById(R.id.adminTabAdmins)};
+        String[] keys = new String[]{"NUMBER", "TEAM", "SHEET", "ADMINS"};
+        int dim = Color.parseColor("#9AA3C7");
+        for (int i = 0; i < tabs.length; i++) {
+            MaterialButton b = tabs[i];
+            if (b == null) continue;
+            boolean on = keys[i].equals(section);
+            b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field);
+            b.setTextColor(on ? Color.WHITE : dim);
+            b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL);
+        }
+    }
+    /** v4.30: save kora test sheet-er ID (telesales_prefs — Agent ID-er motoi pattern). */
+    private String savedTestSheetId() {
+        return getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).getString("test_sheet_id", null);
+    }
+    /** v4.30: test sheet status line — title thakle title, na thakle ID, kichu na thakle khali-barta. */
+    private void refreshTestSheetStatus() {
+        if (testSheetStatus == null) return;
+        SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+        String id = p.getString("test_sheet_id", null);
+        if (id == null || id.isEmpty()) { testSheetStatus.setText("Kono test sheet save kora hoyni — age link/ID diye save korun"); return; }
+        String title = p.getString("test_sheet_title", null);
+        testSheetStatus.setText("Test sheet: " + (title != null && !title.isEmpty() ? title : id));
+    }
+    /** v4.30: test sheet link/ID jachai kore save — Drive files.get + spreadsheet mimeType (Sheet Settings-er motoi). Fail hole ager save bodlabe na. */
+    private void saveTestSheet() {
+        String id = SheetsClient.extractSpreadsheetId(txt(testSheetInput));
+        if (id.isEmpty()) { if (testSheetStatus != null) testSheetStatus.setText("Link ba ID din"); return; }
+        if (token == null) { showLogin(); return; }
+        if (testSheetStatus != null) testSheetStatus.setText("Jachai hocche...");
+        new Thread(() -> {
+            try {
+                String[] info = SheetsClient.getSpreadsheetName(token, id);
+                if (!"application/vnd.google-apps.spreadsheet".equals(info[1])) throw new Exception("Eta spreadsheet noy — sheet-er link/ID din");
+                getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().putString("test_sheet_id", id).putString("test_sheet_title", info[0]).apply();
+                runOnUiThread(() -> { if (testSheetStatus != null) testSheetStatus.setText("Test sheet save hoyeche: " + info[0]); if (testSheetInput != null) testSheetInput.setText(""); });
+            } catch (Exception e) {
+                runOnUiThread(() -> { if (testSheetStatus != null) testSheetStatus.setText("Jachai hoyni: " + e.getMessage()); });
+            }
+        }).start();
+    }
+    /** v4.30: test sheet-e number bosan — legacy admin logic-i (normalize/dedupe/append A6:A RAW), sudhu target save kora test sheet, live sheet-e noy. */
+    private void submitTestSheetNumbers() {
+        String sheetId = savedTestSheetId();
+        if (sheetId == null || sheetId.isEmpty()) { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Age test sheet-er link/ID bosan"); return; }
+        String target = txt(testSheetTabInput);
+        String pasted = testSheetNumbersInput.getText() == null ? "" : testSheetNumbersInput.getText().toString();
+        if (target.isEmpty()) { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Tab / Agent ID din"); return; }
+        if (pasted.trim().isEmpty()) { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Number paste korun"); return; }
+        if (token == null) { showLogin(); return; }
+        if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Jog kora hocche...");
+        new Thread(() -> {
+            try {
+                List<String> tabs = SheetsClient.getTabs(token, sheetId);
+                String match = null;
+                for (String t : tabs) if (t.equals(target)) { match = t; break; }
+                if (match == null) for (String t : tabs) if (t.equalsIgnoreCase(target)) { match = t; break; }
+                if (match == null) throw new Exception("Ei test sheet-e '" + target + "' tab pai ni");
+                String finalMatch = match;
+                java.util.Set<String> existing = new java.util.HashSet<>();
+                for (Row r : SheetsClient.getRows(token, sheetId, finalMatch)) {
+                    String n = normalizeAdminNumber(r.number);
+                    if (validAdminNumber(n)) existing.add(n);
+                }
+                java.util.List<String> toAdd = new java.util.ArrayList<>();
+                java.util.Set<String> seen = new java.util.HashSet<>();
+                int dup = 0, bad = 0;
+                for (String part : pasted.split("[\\n,;\\s]+")) {
+                    if (part.isEmpty()) continue;
+                    String n = normalizeAdminNumber(part);
+                    if (!validAdminNumber(n)) { bad++; continue; }
+                    if (existing.contains(n) || !seen.add(n)) { dup++; continue; }
+                    toAdd.add(n);
+                }
+                if (toAdd.isEmpty()) throw new Exception("Notun kono number pai ni" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
+                SheetsClient.appendNumbers(token, sheetId, finalMatch, toAdd);
+                int added = toAdd.size();
+                int dupFinal = dup, badFinal = bad;
+                runOnUiThread(() -> {
+                    if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText(added + "ta number " + finalMatch + "-er list-e jog hoyeche (test sheet)" + (dupFinal > 0 ? " (" + dupFinal + "ta duplicate skip)" : "") + (badFinal > 0 ? " (" + badFinal + "ta thik number na)" : ""));
+                    if (testSheetNumbersInput != null) testSheetNumbersInput.setText("");
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Hoyni: " + e.getMessage()); });
             }
         }).start();
     }
