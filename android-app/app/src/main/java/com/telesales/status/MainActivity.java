@@ -798,6 +798,7 @@ public class MainActivity extends AppCompatActivity {
         if (agents.isEmpty()) { if (teamStatus != null) teamStatus.setText("Ontoto ekta Agent ID din (proti line-e ekta)"); return; }
         if (token == null) { showLogin(); return; }
         if (teamStatus != null) teamStatus.setText("Sheet banano hocche...");
+        final int badAgentsFinal = badAgents;
         new Thread(() -> {
             try {
                 for (TeamRow t : getTeamRowsQuiet()) {
@@ -821,7 +822,7 @@ public class MainActivity extends AppCompatActivity {
                 String newId = SheetsClient.createTeamSpreadsheet(token, title, new ArrayList<>(agents), header);
                 SheetsClient.ensureTeamsTab(token, CONFIG_FILE_ID);
                 SheetsClient.appendReportRow(token, CONFIG_FILE_ID, "Teams", new String[]{name, newId, dhakaDate(), "No"});
-                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("'" + title + "' sheet toiri — " + agents.size() + "ta tab, ekhon Active noy (sobai-er jonno add korle cholbe)" + (badAgents > 0 ? " (" + badAgents + "ta Agent ID bad deoa hoyeche)" : "")); if (teamAgentsInput != null) teamAgentsInput.setText(""); refreshTeamsSection(); });
+                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("'" + title + "' sheet toiri — " + agents.size() + "ta tab, ekhon Active noy (sobai-er jonno add korle cholbe)" + (badAgentsFinal > 0 ? " (" + badAgentsFinal + "ta Agent ID bad deoa hoyeche)" : "")); if (teamAgentsInput != null) teamAgentsInput.setText(""); refreshTeamsSection(); });
             } catch (Exception e) {
                 runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("Sheet banano hoyni: " + e.getMessage()); });
             }
