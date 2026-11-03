@@ -367,6 +367,117 @@
             <TextView android:id="@+id/adminStatus" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:layout_marginTop="12dp"
                 android:textColor="@color/lavender" android:textSize="13sp" />
+            <!-- v4.28 Sheet Settings: prottek store-er sheet ID bodlano -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="শিট সেটিংস" android:textSize="20sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:id="@+id/adminSheetHint" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                android:text="শিটের লিংক থেকে /d/ এর পরের লম্বা কোডটাই আইডি। লিংক পুরোটা পেস্ট করলেও চলবে — অ্যাপ নিজে আইডি বের করে নেবে। যাচাই চাপলে শিট ঠিক আছে কিনা দেখাবে, তারপর বদলাও চাপলে সাথে সাথে চালু হবে। আগের ডাটা দেখা যাবে, কিছু মুছবে না।"
+                android:textSize="13sp" android:textColor="@color/lavender" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="নাম্বার শিট" android:textSize="15sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:id="@+id/adminCurNumbers" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                android:textSize="13sp" android:textColor="@color/lavender" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/adminInNumbers"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:hint="নতুন শিটের লিংক বা আইডি"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="10dp">
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminVerifyNumbers"
+                    android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                    android:text="যাচাই" android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/glass_field" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminSwitchNumbers"
+                    android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                    android:layout_marginStart="10dp" android:text="বদলাও"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="স্ট্যাটাস লগ শিট" android:textSize="15sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:id="@+id/adminCurLog" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                android:textSize="13sp" android:textColor="@color/lavender" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/adminInLog"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:hint="নতুন শিটের লিংক বা আইডি"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="10dp">
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminVerifyLog"
+                    android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                    android:text="যাচাই" android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/glass_field" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminSwitchLog"
+                    android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                    android:layout_marginStart="10dp" android:text="বদলাও"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="রিপোর্ট শিট" android:textSize="15sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:id="@+id/adminCurReports" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                android:textSize="13sp" android:textColor="@color/lavender" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/adminInReports"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:hint="নতুন শিটের লিংক বা আইডি"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="10dp">
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminVerifyReports"
+                    android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                    android:text="যাচাই" android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/glass_field" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminSwitchReports"
+                    android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                    android:layout_marginStart="10dp" android:text="বদলাও"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="ডেইলি রিপোর্ট শিট" android:textSize="15sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:id="@+id/adminCurDaily" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                android:textSize="13sp" android:textColor="@color/lavender" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/adminInDaily"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:layout_marginTop="8dp" android:hint="নতুন শিটের লিংক বা আইডি"
+                android:background="@drawable/glass_field" android:padding="12dp"
+                android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="10dp">
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminVerifyDaily"
+                    android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                    android:text="যাচাই" android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/glass_field" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminSwitchDaily"
+                    android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                    android:layout_marginStart="10dp" android:text="বদলাও"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
+            </LinearLayout>
+            <TextView android:id="@+id/adminSheetHistory" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="16dp"
+                android:textSize="12sp" android:textColor="@color/lavender" />
+            <TextView android:id="@+id/adminSheetStatus" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                android:textColor="@color/lavender" android:textSize="13sp" />
             <com.google.android.material.button.MaterialButton android:id="@+id/adminLogoutBtn"
                 android:layout_width="match_parent" android:layout_height="48dp"
                 android:layout_marginTop="20dp" android:text="Logout"
