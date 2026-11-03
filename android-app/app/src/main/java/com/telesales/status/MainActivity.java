@@ -875,7 +875,7 @@ public class MainActivity extends AppCompatActivity {
                     // tarpor install korte hobe; dialog-e sei nirdesh-i thakbe.
                     runOnUiThread(() -> { if (isFinishing()) return; new AlertDialog.Builder(MainActivity.this)
                             .setTitle("অ্যাপ আপডেট করা জরুরি")
-                            .setMessage("এই ভার্সন আর চলবে না। নতুন ভার্সন " + remoteName + " পেতে আগে অ্যাপে Refresh চেপে জমা সেভগুলো সিঙ্ক করুন, তারপর পুরোনো অ্যাপটা Uninstall করে আপডেট চাপুন — নতুন করে ইনস্টল হবে।")
+                            .setMessage("এই ভার্সন আর চলবে না। নতুন ভার্সন " + remoteName + " পেতে আপডেট চাপুন — ফাইল ডাউনলোড হবে। তারপর পুরোনো অ্যাপটা Uninstall করে Downloads থেকে ফাইলটা ইনস্টল করুন। (আগে Refresh চেপে জমা সেভ সিঙ্ক করে নিন।)")
                             .setCancelable(false)
                             .setPositiveButton("আপডেট", (d, w) -> startUpdateDownload(apkUrl))
                             .show(); });
