@@ -36,6 +36,11 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     private String calledDate = null;
     public void setCalledRows(List<Row> rows, String date) { calledRows = rows == null ? null : new ArrayList<>(rows); calledDate = date; filter(lastQ); }
     public String getCalledDate() { return calledDate; }
+    /** v4.26: notun call sathe sathe called tab-er upore (Save-er por Refresh charai).
+     *  Ekoi Row object all + calledRows — duitotei thake, tai reference-e sorano nirapad. */
+    public void moveCalledToTop(Row r, String q) { if (calledRows == null || r == null) { filter(q); return; } calledRows.remove(r); calledRows.add(0, r); filter(q); }
+    /** v4.26: clear-save (status+valid khali) hole row-ta called tab theke sorbe. */
+    public void removeCalledRow(Row r, String q) { if (calledRows == null || r == null) { filter(q); return; } calledRows.remove(r); filter(q); }
 
     public void setRows(List<Row> rows) {
         all = new ArrayList<>(rows); filter(lastQ);

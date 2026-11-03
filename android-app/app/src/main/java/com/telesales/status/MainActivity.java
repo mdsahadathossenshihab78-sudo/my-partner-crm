@@ -332,7 +332,11 @@ public class MainActivity extends AppCompatActivity {
             boolean optChanged = !optNow.equals(optOld);
             boolean optClear = (row.status == null || row.status.isEmpty()) && (row.valid == null || row.valid.isEmpty());
             if (optChanged && !optClear && optimisticTileKeys.add(optKey)) applyLocalSaveToTiles(row.status, row.valid);
-            adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
+            // v4.26: notun call sathe sathe called tab-er upore; clear hole called theke sorbe.
+            String optQ = searchBox.getText() == null ? "" : searchBox.getText().toString();
+            if (optChanged && !optClear) adapter.moveCalledToTop(row, optQ);
+            else if (optClear) adapter.removeCalledRow(row, optQ);
+            else adapter.filter(optQ);
             new Thread(() -> {
                 String key = row.number == null ? "" : row.number.trim();
                 String now = (row.status == null ? "" : row.status) + "|" + (row.valid == null ? "" : row.valid);
@@ -1498,6 +1502,7 @@ public class MainActivity extends AppCompatActivity {
             for (Row r : adapter.getAll()) mainByNorm.put(SheetsClient.normLogNumber(r.number), r);
             java.util.Map<String, String[]> latest = new java.util.HashMap<>();
             java.util.Map<String, String> displayNum = new java.util.HashMap<>();
+            java.util.Map<String, Integer> lastPos = new java.util.HashMap<>();
             if (logs != null) for (REntry e : logs) {
                 if (e == null || !day.equals(cellE(e, 0))) continue;
                 String st = cellE(e, 2);
@@ -1506,6 +1511,7 @@ public class MainActivity extends AppCompatActivity {
                 if (norm.isEmpty()) continue;
                 latest.put(norm, new String[]{st, cellE(e, 3)});
                 displayNum.put(norm, cellE(e, 1));
+                lastPos.put(norm, e.sheetRow);
             }
             java.util.List<Row> called = new java.util.ArrayList<>();
             for (java.util.Map.Entry<String, String[]> en : latest.entrySet()) {
@@ -1517,6 +1523,13 @@ public class MainActivity extends AppCompatActivity {
                     called.add(s);
                 }
             }
+            // v4.26: notun call upore, purono niche — log-er sesh row (boro sheetRow)
+            // age; HashMap order-e ar ultapalta dekhabe na.
+            java.util.Collections.sort(called, (a, b) -> {
+                int pa = lastPos.getOrDefault(SheetsClient.normLogNumber(a.number), -1);
+                int pb = lastPos.getOrDefault(SheetsClient.normLogNumber(b.number), -1);
+                return Integer.compare(pb, pa);
+            });
             adapter.setCalledRows(called, day);
         } catch (Exception ignored) {}
     }
