@@ -3,7 +3,15 @@ package com.telesales.status;
 import android.app.DatePickerDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.Manifest;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.TimePickerDialog;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.provider.Settings;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -92,6 +100,12 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout adminSectionNumber, adminSectionTeam, adminSectionSheet, adminSectionAdmins;
     private TextInputEditText testSheetInput, testSheetTabInput, testSheetNumbersInput;
     private TextView testSheetStatus, testSheetNumbersStatus;
+    /** v4.31: call reminder — dashboard section views + pending notification-permission retry. */
+    private LinearLayout reminderListContainer;
+    private TextView reminderEmptyText;
+    private String pendingReminderNumber = null;
+    private long pendingReminderTime = 0;
+    private static final int REQ_NOTIFY_REMINDER = 9101;
     private volatile java.util.Set<String> adminEmailsCache = null;
     private TeamRow selectedTeam = null;
     private java.util.List<TeamRow> teamRowsCache = new ArrayList<>();
@@ -225,6 +239,8 @@ public class MainActivity extends AppCompatActivity {
         guideText = findViewById(R.id.guideText);
         guideText.setText(GUIDE_TEXT);
         dashboardView = findViewById(R.id.dashboardView);
+        reminderListContainer = findViewById(R.id.reminderList);
+        reminderEmptyText = findViewById(R.id.reminderEmptyText);
         listContent = findViewById(R.id.listContent);
         reportOutputCard = findViewById(R.id.reportOutputCard);
         reportStatus = findViewById(R.id.reportStatus);
@@ -509,6 +525,7 @@ public class MainActivity extends AppCompatActivity {
             }).start();
         });
         recycler.setAdapter(adapter);
+        adapter.setOnRemind(row -> showReminderDialog(row));
         setTabUI();
 
         searchBox.addTextChangedListener(new TextWatcher() {
@@ -540,7 +557,7 @@ public class MainActivity extends AppCompatActivity {
         adminView.setVisibility(View.GONE);
         guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
     }
-    @Override protected void onResume() { super.onResume(); if (mainView != null && mainView.getVisibility() == View.VISIBLE && token != null) { checkForUpdate(); } } private void showMain() {
+    @Override protected void onResume() { super.onResume(); if (mainView != null && mainView.getVisibility() == View.VISIBLE && token != null) { checkForUpdate(); refreshReminderList(); } } private void showMain() {
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.VISIBLE);
         applySection(currentSection);
@@ -550,6 +567,7 @@ public class MainActivity extends AppCompatActivity {
         guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE);
         setAgentSubtitle();
         loadDayStats();
+        refreshReminderList();
         checkForUpdate();
     }
     /** Niche menu: 0 = Dashboard (date + sob hisab), 1 = Home (number list). */
@@ -1070,6 +1088,145 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> { if (teamNumbersStatus != null) teamNumbersStatus.setText("Hoyni: " + e.getMessage()); });
             }
         }).start();
+    }
+
+    /** v4.31: call reminder — somoy dekhano (Dhaka time). */
+    private static String fmtReminderTime(long epoch) {
+        try {
+            java.text.SimpleDateFormat f = new java.text.SimpleDateFormat("dd MMM, hh:mm a", Locale.US);
+            f.setTimeZone(TimeZone.getTimeZone("Asia/Dhaka"));
+            return f.format(new Date(epoch));
+        } catch (Exception e) { return ""; }
+    }
+
+    private static long atDhaka(int dayOffset, int hour, int minute) {
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Dhaka"));
+        c.add(Calendar.DAY_OF_YEAR, dayOffset);
+        c.set(Calendar.HOUR_OF_DAY, hour);
+        c.set(Calendar.MINUTE, minute);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        return c.getTimeInMillis();
+    }
+
+    /** Dashboard-er "Mone koriye deoa" section — bhabishyoter reminder + prottek-tar cancel (X).
+     *  Somoy par hoye gele alarm cancel + storage theke bad (fired/stale kichui jhulbe na). */
+    private void refreshReminderList() {
+        if (reminderListContainer == null) return;
+        long now = System.currentTimeMillis();
+        List<ReminderStore.Item> items = ReminderStore.list(this);
+        List<ReminderStore.Item> future = new ArrayList<>();
+        for (ReminderStore.Item it : items) {
+            if (it.time > now) future.add(it);
+            else { ReminderReceiver.cancel(this, it.number); ReminderStore.remove(this, it.number); }
+        }
+        future.sort((a, b) -> Long.compare(a.time, b.time));
+        reminderListContainer.removeAllViews();
+        if (reminderEmptyText != null) reminderEmptyText.setVisibility(future.isEmpty() ? View.VISIBLE : View.GONE);
+        for (ReminderStore.Item it : future) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            TextView tv = new TextView(this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            tv.setLayoutParams(lp);
+            tv.setText(fmtReminderTime(it.time) + " — " + it.number);
+            tv.setTextSize(13);
+            tv.setTextColor(Color.WHITE);
+            MaterialButton x = new MaterialButton(this);
+            x.setText("✕");
+            x.setTextSize(14);
+            final String num = it.number;
+            x.setOnClickListener(v -> {
+                ReminderReceiver.cancel(MainActivity.this, num);
+                ReminderStore.remove(MainActivity.this, num);
+                refreshReminderList();
+            });
+            row.addView(tv);
+            row.addView(x);
+            reminderListContainer.addView(row);
+        }
+    }
+
+    /** Row-er "Mone koriye dao" — somoy bachun: aj bikel 4ta / agamikal sokal 10ta / nijer somoy. */
+    private void showReminderDialog(Row row) {
+        if (row == null) return;
+        final String number = RowAdapter.dialNumber(row.number);
+        if (number.isEmpty()) { Toast.makeText(this, "Number pai ni", Toast.LENGTH_SHORT).show(); return; }
+        final String[] opts = {"Aj bikel 4ta", "Agamikal sokal 10ta", "Nijer somoy"};
+        new AlertDialog.Builder(this)
+                .setTitle("Kokhon mone koriye debo?")
+                .setItems(opts, (d, which) -> {
+                    if (which == 0) scheduleReminder(number, atDhaka(0, 16, 0));
+                    else if (which == 1) scheduleReminder(number, atDhaka(1, 10, 0));
+                    else pickCustomReminderTime(number);
+                })
+                .show();
+    }
+
+    private void pickCustomReminderTime(final String number) {
+        final String[] days = {"Aj", "Agamikal"};
+        new AlertDialog.Builder(this)
+                .setTitle("Kon din?")
+                .setItems(days, (d, which) -> {
+                    final int dayOffset = which;
+                    Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Asia/Dhaka"));
+                    new TimePickerDialog(MainActivity.this, (view, hour, minute) -> {
+                        scheduleReminder(number, atDhaka(dayOffset, hour, minute));
+                    }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), false).show();
+                })
+                .show();
+    }
+
+    private void scheduleReminder(String number, long epoch) {
+        if (epoch <= System.currentTimeMillis()) {
+            Toast.makeText(this, "Ei somoy par hoye geche — bhabishyoter somoy din", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Android 13+: notification onumoti age (prothom reminder-e chawa hobe)
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            pendingReminderNumber = number;
+            pendingReminderTime = epoch;
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIFY_REMINDER);
+            return;
+        }
+        scheduleReminderNow(number, epoch);
+    }
+
+    private void scheduleReminderNow(String number, long epoch) {
+        // Android 12+: thik somoyer alarm onumoti na thakle settings khulbe — chupchap inexact noy
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (am != null && !am.canScheduleExactAlarms()) {
+                Toast.makeText(this, "Thik somoye reminder-er jonno alarm onumoti din", Toast.LENGTH_LONG).show();
+                try {
+                    Intent i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                    i.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(i);
+                } catch (Exception ignored) {}
+                return;
+            }
+        }
+        ReminderReceiver.cancel(this, number); // purono thakle bodle jabe (ek number-e ektai)
+        ReminderStore.save(this, number, epoch);
+        ReminderReceiver.schedule(this, number, epoch);
+        refreshReminderList();
+        Toast.makeText(this, "Mone koriye deoa holo: " + fmtReminderTime(epoch), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_NOTIFY_REMINDER) {
+            String num = pendingReminderNumber;
+            long t = pendingReminderTime;
+            pendingReminderNumber = null;
+            pendingReminderTime = 0;
+            if (num != null && t > 0 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                scheduleReminderNow(num, t);
+            } else {
+                Toast.makeText(this, "Notification onumoti na dile reminder asbe na", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private static String storeLabel(String store) {

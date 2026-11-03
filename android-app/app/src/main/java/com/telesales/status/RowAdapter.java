@@ -22,6 +22,10 @@ import java.util.List;
 
 public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     public interface OnSave { void onSave(Row row, MaterialButton btn); }
+    /** v4.31: row-er "Mone koriye dao" — MainActivity somoy-bachai dialog khulbe. */
+    public interface OnRemind { void onRemind(Row row); }
+    private OnRemind onRemind;
+    public void setOnRemind(OnRemind r) { onRemind = r; }
     private List<Row> all = new ArrayList<>();
     private List<Row> shown = new ArrayList<>();
     private final OnSave onSave;
@@ -170,13 +174,14 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             r.others = h.etOthers.getText() == null ? "" : h.etOthers.getText().toString().trim();
             onSave.onSave(r, h.btnSave);
         });
+        h.btnRemind.setOnClickListener(v -> { if (onRemind != null) onRemind.onRemind(r); });
     }
     @Override public int getItemCount() { return shown.size(); }
 
     static class Holder extends RecyclerView.ViewHolder {
         TextView tvNumber, tvRow, tvChipStatus, tvChipValid; Spinner spStatus, spValid;
         TextInputEditText etRemark1, etRemark2, etOthers;
-        android.widget.Button btnCall, btnCopy; MaterialButton btnSave;
+        android.widget.Button btnCall, btnCopy, btnRemind; MaterialButton btnSave;
         Holder(View v) {
             super(v);
             tvNumber = v.findViewById(R.id.tvNumber); tvRow = v.findViewById(R.id.tvRow);
@@ -184,7 +189,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             spStatus = v.findViewById(R.id.spStatus); spValid = v.findViewById(R.id.spValid);
             etRemark1 = v.findViewById(R.id.etRemark1); etRemark2 = v.findViewById(R.id.etRemark2);
             etOthers = v.findViewById(R.id.etOthers); btnCall = v.findViewById(R.id.btnCall);
-            btnCopy = v.findViewById(R.id.btnCopy);
+            btnCopy = v.findViewById(R.id.btnCopy); btnRemind = v.findViewById(R.id.remindBtn);
             btnSave = v.findViewById(R.id.btnSave);
         }
     }
