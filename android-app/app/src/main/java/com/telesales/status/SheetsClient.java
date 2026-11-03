@@ -752,4 +752,101 @@ public class SheetsClient {
     public static void appendConfigRow(String token, String spreadsheetId, String[] vals) throws Exception {
         appendReportRow(token, spreadsheetId, CONFIG_TAB, vals);
     }
+    /** v4.29 TEAM SHEET: notun spreadsheet banano (Sheets API — ager create-calls-er motoi,
+     *  spreadsheets scope-ei hoy, Drive create lage na) + prottek agent tab-e row 5 header.
+     *  Sheet banalei live bodlay na — register/activate na howa porjonto alada thake. */
+    public static String createTeamSpreadsheet(String token, String title, List<String> agentTabs, String[] headerRow5) throws Exception {
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets");
+        HttpURLConnection c = open(url, token);
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONObject props = new JSONObject();
+        props.put("title", title);
+        body.put("properties", props);
+        JSONArray sheets = new JSONArray();
+        for (String t : agentTabs) {
+            JSONObject sh = new JSONObject();
+            JSONObject pr = new JSONObject();
+            pr.put("title", t);
+            sh.put("properties", pr);
+            sheets.put(sh);
+        }
+        body.put("sheets", sheets);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Team sheet create failed: " + code + " " + readAll(c.getErrorStream()));
+        String id = new JSONObject(readAll(c.getInputStream())).optString("spreadsheetId");
+        if (id.isEmpty()) throw new Exception("Team sheet ID paini");
+        String[] h = headerRow5;
+        if (h == null || h.length == 0) h = new String[]{"MOBILE NUMBER", "CALLING STATUS", "Valid Conversation", "1ST CALL REMARK", "2ND CALL REMAR", "Others number"};
+        String[] row5 = new String[6];
+        for (int k = 0; k < 6; k++) row5[k] = k < h.length && h[k] != null ? h[k] : "";
+        for (String t : agentTabs) updateCells(token, id, q(t) + "!A5:F5", new String[][]{row5});
+        return id;
+    }
+
+    /** v4.29 ADMINS: Admins tab (Email|AddedBy|AddedDate) — na thakle khule header bosay.
+     *  ensureConfigTab-er motoi race-safe ("already exists" hole header abar lekha hoy na). */
+    public static void ensureAdminsTab(String token, String spreadsheetId) throws Exception {
+        List<String> tabs = getTabs(token, spreadsheetId);
+        for (String t : tabs) if ("Admins".equals(t)) return;
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate");
+        HttpURLConnection c = open(url, token);
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray reqs = new JSONArray();
+        JSONObject req = new JSONObject();
+        JSONObject add = new JSONObject();
+        JSONObject props = new JSONObject();
+        props.put("title", "Admins");
+        add.put("properties", props);
+        req.put("addSheet", add);
+        reqs.put(req);
+        body.put("requests", reqs);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) {
+            String err = readAll(c.getErrorStream());
+            if (err != null && err.toLowerCase().contains("already exists")) return;
+            throw new Exception("Admins tab create failed: " + code + " " + err);
+        }
+        writeHeader(token, spreadsheetId, "Admins", new String[]{"Email", "AddedBy", "AddedDate"});
+    }
+
+    /** v4.29 TEAMS: Teams tab (TeamName|SheetId|CreatedDate|Active) — na thakle khule header bosay. */
+    public static void ensureTeamsTab(String token, String spreadsheetId) throws Exception {
+        List<String> tabs = getTabs(token, spreadsheetId);
+        for (String t : tabs) if ("Teams".equals(t)) return;
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + ":batchUpdate");
+        HttpURLConnection c = open(url, token);
+        c.setRequestMethod("POST");
+        c.setDoOutput(true);
+        c.setRequestProperty("Content-Type", "application/json");
+        JSONObject body = new JSONObject();
+        JSONArray reqs = new JSONArray();
+        JSONObject req = new JSONObject();
+        JSONObject add = new JSONObject();
+        JSONObject props = new JSONObject();
+        props.put("title", "Teams");
+        add.put("properties", props);
+        req.put("addSheet", add);
+        reqs.put(req);
+        body.put("requests", reqs);
+        OutputStream os = c.getOutputStream();
+        os.write(body.toString().getBytes("UTF-8")); os.flush(); os.close();
+        int code = c.getResponseCode();
+        if (code != 200) {
+            String err = readAll(c.getErrorStream());
+            if (err != null && err.toLowerCase().contains("already exists")) return;
+            throw new Exception("Teams tab create failed: " + code + " " + err);
+        }
+        writeHeader(token, spreadsheetId, "Teams", new String[]{"TeamName", "SheetId", "CreatedDate", "Active"});
+    }
+
 }

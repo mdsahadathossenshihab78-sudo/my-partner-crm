@@ -59,7 +59,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String SHEET_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
     private static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
     private static final String SHEET_ID = "10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE";
-    /** Admin gate: mul sheet-er malik login korlei Admin Panel khulbe (Drive ownedByMe check) — kono Gmail code-e lekha nei. */
+    /** v4.29 admin gate: config file-er malik BA bortoman numbers sheet-er malik BA user-er bola admin Gmail BA Admins tab-er list — je kono ekta holei Admin Panel khulbe. Lookup fail hole fail-closed. */
+    private static final String ADMIN_EMAIL = "shihabno.18@gmail.com";
 
     private GoogleSignInClient signInClient;
     private String token;
@@ -85,6 +86,14 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText adminAgentInput, adminNumbersInput;
     private TextInputEditText adminInNumbers, adminInLog, adminInReports, adminInDaily;
     private TextView adminCurNumbers, adminCurLog, adminCurReports, adminCurDaily, adminSheetHistory, adminSheetStatus;
+    private TextInputEditText adminNewAdminInput, teamNameInput, teamAgentsInput, teamTabInput, teamNumbersInput;
+    private TextView adminAdminStatus, teamStatus, teamSelectedLabel, teamNumbersStatus;
+    private LinearLayout teamListContainer;
+    private volatile java.util.Set<String> adminEmailsCache = null;
+    private TeamRow selectedTeam = null;
+    private java.util.List<TeamRow> teamRowsCache = new ArrayList<>();
+    /** v4.29 team row: Teams tab-er ekta row (sheetRow = tab-er row number, header bad diye). */
+    private static class TeamRow { final int sheetRow; final String name, sheetId, created, active; TeamRow(int r, String n, String s, String c, String a) { sheetRow = r; name = n; sheetId = s; created = c; active = a; } }
     private static class VerifiedSheet { final String id; final String title; final int tabs; VerifiedSheet(String i, String t, int n) { id = i; title = t; tabs = n; } }
     private Map<String, VerifiedSheet> verifiedSheets = new HashMap<>();
     private TextView loginError, avatarView, statusText, weekSummary;
@@ -246,6 +255,16 @@ public class MainActivity extends AppCompatActivity {
         adminCurDaily = findViewById(R.id.adminCurDaily);
         adminSheetHistory = findViewById(R.id.adminSheetHistory);
         adminSheetStatus = findViewById(R.id.adminSheetStatus);
+        adminNewAdminInput = findViewById(R.id.adminNewAdminInput);
+        adminAdminStatus = findViewById(R.id.adminAdminStatus);
+        teamNameInput = findViewById(R.id.teamNameInput);
+        teamAgentsInput = findViewById(R.id.teamAgentsInput);
+        teamStatus = findViewById(R.id.teamStatus);
+        teamListContainer = findViewById(R.id.teamListContainer);
+        teamSelectedLabel = findViewById(R.id.teamSelectedLabel);
+        teamTabInput = findViewById(R.id.teamTabInput);
+        teamNumbersInput = findViewById(R.id.teamNumbersInput);
+        teamNumbersStatus = findViewById(R.id.teamNumbersStatus);
         agentError = findViewById(R.id.agentError);
         agentSubtitle = findViewById(R.id.agentSubtitle);
 
@@ -325,6 +344,9 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.adminSwitchLog).setOnClickListener(v -> switchSheetForStore("STATUS_LOG", adminInLog));
         findViewById(R.id.adminSwitchReports).setOnClickListener(v -> switchSheetForStore("REPORTS", adminInReports));
         findViewById(R.id.adminSwitchDaily).setOnClickListener(v -> switchSheetForStore("DAILY", adminInDaily));
+        findViewById(R.id.adminAddAdminBtn).setOnClickListener(v -> submitAddAdmin());
+        findViewById(R.id.teamCreateBtn).setOnClickListener(v -> createTeamSheet());
+        findViewById(R.id.teamNumbersAddBtn).setOnClickListener(v -> submitTeamNumbers());
         findViewById(R.id.adminLogoutBtn).setOnClickListener(v -> {
             signInClient.signOut().addOnCompleteListener(t -> {
                 token = null; agentId = null; reportSheetId = null; statusLogSheetId = null;
@@ -404,7 +426,7 @@ public class MainActivity extends AppCompatActivity {
                 String dialNum = RowAdapter.dialNumber(row.number);
                 try {
                     tryRefreshConfig();
-                    SheetsClient.updateRow(token, currentNumbersId(), agentId, row);
+                    SheetsClient.updateRow(token, resolveNumbersIdForAgent(agentId), agentId, row);
                     String logError = null;
                     boolean logAppended = false;
                     boolean logCleared = false;
@@ -593,6 +615,7 @@ public class MainActivity extends AppCompatActivity {
         guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
         adminStatus.setText("");
         refreshAdminSheetSection();
+        refreshTeamsSection();
     }
     private void setAgentSubtitle() {
         if (agentSubtitle != null && agentId != null) agentSubtitle.setText("Agent: " + agentId);
@@ -646,11 +669,294 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
     /** v4.28 admin gate: config file-er malik (kokhono bodlay na) BA bortoman numbers
-     *  sheet-er malik — kono Gmail code-e lekha nei. Lookup fail hole fail-closed. */
+     *  sheet-er malik. Lookup fail hole fail-closed. (v4.29: + admin Gmail + Admins tab — checkIsAdminWithEmail dekho.) */
     private boolean checkIsAdmin() {
         try { if (SheetsClient.isFileOwnedByMe(token, CONFIG_FILE_ID)) return true; } catch (Exception ignored) {}
         try { return SheetsClient.isFileOwnedByMe(token, currentNumbersId()); } catch (Exception ignored) { return false; }
     }
+    /** v4.29 admin gate (purno): malik-check (ager moto) BA user-er bola admin Gmail BA Admins tab-er list. Fail-closed. */
+    private boolean checkIsAdminWithEmail(String email) {
+        try { if (checkIsAdmin()) return true; } catch (Exception ignored) {}
+        if (email != null && ADMIN_EMAIL.equalsIgnoreCase(email.trim())) return true;
+        return isListedAdmin(email);
+    }
+    private boolean isListedAdmin(String email) {
+        if (email == null) return false;
+        java.util.Set<String> c = adminEmailsCache;
+        if (c == null) return false;
+        return c.contains(email.trim().toLowerCase(Locale.US));
+    }
+    /** v4.29: Admins tab pora — SUDHU background thread theke dakbe. Sofol hole cache bosbe, fail hole ager cache thakbe (kokhono crash noy). */
+    private void refreshAdminsCacheSync() {
+        if (token == null) return;
+        try {
+            List<String[]> rows = SheetsClient.getReportRows(token, CONFIG_FILE_ID, "Admins");
+            java.util.Set<String> s = new java.util.HashSet<>();
+            for (String[] r : rows) {
+                if (r == null || r.length < 1 || r[0] == null) continue;
+                String e = r[0].trim().toLowerCase(Locale.US);
+                if (!e.isEmpty()) s.add(e);
+            }
+            adminEmailsCache = s;
+        } catch (Exception ignored) { /* tab na thakle / fail hole ager cache (ba khali) cholbe */ }
+    }
+    /** v4.29: Teams tab pora — fail hole khali list (Team-03 agent-der kichu bodlabe na). */
+    private List<TeamRow> getTeamRowsQuiet() {
+        List<TeamRow> out = new ArrayList<>();
+        if (token == null) return out;
+        try {
+            List<String[]> rows = SheetsClient.getReportRows(token, CONFIG_FILE_ID, "Teams");
+            for (int i = 0; i < rows.size(); i++) {
+                String[] r = rows.get(i);
+                if (r == null || r.length < 2) continue;
+                String n = r[0] == null ? "" : r[0].trim();
+                String s = r[1] == null ? "" : r[1].trim();
+                if (n.isEmpty() || s.isEmpty()) continue;
+                out.add(new TeamRow(i + 2, n, s, r.length > 2 && r[2] != null ? r[2] : "", r.length > 3 && r[3] != null ? r[3].trim() : ""));
+            }
+        } catch (Exception ignored) {}
+        return out;
+    }
+    /** v4.29: agent-er numbers source — age Active team sheet-e tab khunja (Teams tab order-e, error hole skip), na pele ager config NUMBERS resolution. */
+    private String resolveNumbersIdForAgent(String agent) {
+        if (agent != null && token != null) {
+            for (TeamRow t : getTeamRowsQuiet()) {
+                if (!"Yes".equalsIgnoreCase(t.active)) continue;
+                try {
+                    List<String> tabs = SheetsClient.getTabs(token, t.sheetId);
+                    for (String tb : tabs) if (agent.equals(tb)) return t.sheetId;
+                } catch (Exception ignored) { /* ei sheet-e error — porer team dekha hobe */ }
+            }
+        }
+        return currentNumbersId();
+    }
+    /** v4.29: submitAgent-er jonno — Active team sheet-e tab khunja (exact, na pele case-insensitive). Na pele null. */
+    private String findAgentTabInActiveTeams(String agent) {
+        if (agent == null || token == null) return null;
+        for (TeamRow t : getTeamRowsQuiet()) {
+            if (!"Yes".equalsIgnoreCase(t.active)) continue;
+            try {
+                List<String> tabs = SheetsClient.getTabs(token, t.sheetId);
+                for (String tb : tabs) if (agent.equals(tb)) return tb;
+                for (String tb : tabs) if (agent.equalsIgnoreCase(tb)) return tb;
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+    /** v4.29: Admin Panel theke arekjon admin add — Admins tab-e [Email, AddedBy, AddedDate]. Age theke thakle skip. */
+    private void submitAddAdmin() {
+        String email = txt(adminNewAdminInput).trim().toLowerCase(Locale.US);
+        if (email.isEmpty() || !email.contains("@")) { if (adminAdminStatus != null) adminAdminStatus.setText("Thik Gmail din (@ soho)"); return; }
+        if (token == null) { showLogin(); return; }
+        if (adminAdminStatus != null) adminAdminStatus.setText("Add kora hocche...");
+        new Thread(() -> {
+            try {
+                SheetsClient.ensureAdminsTab(token, CONFIG_FILE_ID);
+                List<String[]> rows = SheetsClient.getReportRows(token, CONFIG_FILE_ID, "Admins");
+                for (String[] r : rows) {
+                    if (r != null && r.length > 0 && email.equals(r[0] == null ? "" : r[0].trim().toLowerCase(Locale.US))) {
+                        runOnUiThread(() -> { if (adminAdminStatus != null) adminAdminStatus.setText("Ei Gmail age thekei admin ache"); });
+                        return;
+                    }
+                }
+                SharedPreferences prefs = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                String by = prefs.getString("current_email", "");
+                SheetsClient.appendReportRow(token, CONFIG_FILE_ID, "Admins", new String[]{email, by == null ? "" : by, dhakaDate()});
+                refreshAdminsCacheSync();
+                runOnUiThread(() -> { if (adminAdminStatus != null) adminAdminStatus.setText(email + " admin hisebe add hoyeche"); if (adminNewAdminInput != null) adminNewAdminInput.setText(""); });
+            } catch (Exception e) {
+                runOnUiThread(() -> { if (adminAdminStatus != null) adminAdminStatus.setText("Hoyni: " + e.getMessage()); });
+            }
+        }).start();
+    }
+    /** v4.29: team name theke sheet title — "Team-04" likhle "Telesales (Team-04)", "04" likhle eki title. */
+    private static String teamTitleFor(String name) {
+        String n = name.trim();
+        if (n.toLowerCase(Locale.US).startsWith("team-")) return "Telesales (" + n + ")";
+        return "Telesales (Team-" + n + ")";
+    }
+    private static boolean badTeamOrAgentName(String s) {
+        if (s == null || s.isEmpty() || s.length() > 50) return true;
+        for (char c : s.toCharArray()) if (c == '[' || c == ']' || c == ':' || c == '*' || c == '?' || c == '/' || c == '\\' || c < 0x20) return true;
+        return false;
+    }
+    /** v4.29: notun team-er sheet banano — LIVE BODLABE NA: sheet alada thakbe, Teams tab-e Active='No' hoye thakbe, pore admin chaile sobai-er jonno add korte parbe. */
+    private void createTeamSheet() {
+        String name = txt(teamNameInput);
+        String agentsRaw = teamAgentsInput.getText() == null ? "" : teamAgentsInput.getText().toString();
+        if (name.isEmpty()) { if (teamStatus != null) teamStatus.setText("Team-er nam din"); return; }
+        if (badTeamOrAgentName(name)) { if (teamStatus != null) teamStatus.setText("Team-er nam-e ei chinno cholbe na: [ ] : * ? / \\"); return; }
+        java.util.LinkedHashSet<String> agents = new java.util.LinkedHashSet<>();
+        java.util.Set<String> lowerSeen = new java.util.HashSet<>();
+        int badAgents = 0;
+        for (String part : agentsRaw.split("[\\n,;]+")) {
+            String a = part.trim();
+            if (a.isEmpty()) continue;
+            if (badTeamOrAgentName(a) || !lowerSeen.add(a.toLowerCase(Locale.US))) { badAgents++; continue; }
+            agents.add(a);
+        }
+        if (agents.isEmpty()) { if (teamStatus != null) teamStatus.setText("Ontoto ekta Agent ID din (proti line-e ekta)"); return; }
+        if (token == null) { showLogin(); return; }
+        if (teamStatus != null) teamStatus.setText("Sheet banano hocche...");
+        new Thread(() -> {
+            try {
+                for (TeamRow t : getTeamRowsQuiet()) {
+                    if (name.equalsIgnoreCase(t.name)) throw new Exception("Ei team name-e age thekei ekta sheet ache");
+                }
+                // Header row 5: bortoman numbers sheet-er prothom tab theke, na pele ager fallback.
+                String[] fallback = {"MOBILE NUMBER", "CALLING STATUS", "Valid Conversation", "1ST CALL REMARK", "2ND CALL REMAR", "Others number"};
+                String[] header = fallback;
+                try {
+                    String cur = currentNumbersId();
+                    List<String> curTabs = SheetsClient.getTabs(token, cur);
+                    for (String tb : curTabs) {
+                        if (tb == null || tb.isEmpty()) continue;
+                        String[] h = SheetsClient.getHeaderRow5(token, cur, tb);
+                        boolean any = false;
+                        if (h != null) for (String c : h) if (c != null && !c.trim().isEmpty()) { any = true; break; }
+                        if (any) { header = h; break; }
+                    }
+                } catch (Exception ignored) {}
+                String title = teamTitleFor(name);
+                String newId = SheetsClient.createTeamSpreadsheet(token, title, new ArrayList<>(agents), header);
+                SheetsClient.ensureTeamsTab(token, CONFIG_FILE_ID);
+                SheetsClient.appendReportRow(token, CONFIG_FILE_ID, "Teams", new String[]{name, newId, dhakaDate(), "No"});
+                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("'" + title + "' sheet toiri — " + agents.size() + "ta tab, ekhon Active noy (sobai-er jonno add korle cholbe)" + (badAgents > 0 ? " (" + badAgents + "ta Agent ID bad deoa hoyeche)" : "")); if (teamAgentsInput != null) teamAgentsInput.setText(""); refreshTeamsSection(); });
+            } catch (Exception e) {
+                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("Sheet banano hoyni: " + e.getMessage()); });
+            }
+        }).start();
+    }
+    /** v4.29: banano team-gulo dekhano — prottek row-te nam, Active, toiri tarikh, tab-gulo + add/bondho + number bosan button. */
+    private void refreshTeamsSection() {
+        if (token == null || teamListContainer == null) return;
+        new Thread(() -> {
+            List<TeamRow> rows = getTeamRowsQuiet();
+            // prottek team-er tab list (network — admin screen-ei, agent load-e noy)
+            final java.util.Map<String, List<String>> tabsBySheet = new java.util.HashMap<>();
+            for (TeamRow t : rows) {
+                try { tabsBySheet.put(t.sheetId, SheetsClient.getTabs(token, t.sheetId)); } catch (Exception ignored) { tabsBySheet.put(t.sheetId, new ArrayList<>()); }
+            }
+            teamRowsCache = rows;
+            runOnUiThread(() -> {
+                teamListContainer.removeAllViews();
+                if (rows.isEmpty()) {
+                    TextView empty = new TextView(this);
+                    empty.setText("Ekhono kono team sheet banano hoyni");
+                    empty.setTextColor(Color.parseColor("#9AA3C7"));
+                    empty.setTextSize(13);
+                    teamListContainer.addView(empty);
+                    return;
+                }
+                for (TeamRow t : rows) {
+                    LinearLayout row = new LinearLayout(this);
+                    row.setOrientation(LinearLayout.VERTICAL);
+                    row.setPadding(0, 16, 0, 16);
+                    TextView title = new TextView(this);
+                    title.setText(t.name + " — " + ("Yes".equalsIgnoreCase(t.active) ? "sobai-er jonno chalu" : "bondho") + " (" + t.created + ")");
+                    title.setTextColor(Color.WHITE);
+                    title.setTextSize(15);
+                    title.setTypeface(null, Typeface.BOLD);
+                    row.addView(title);
+                    TextView tabs = new TextView(this);
+                    List<String> tb = tabsBySheet.get(t.sheetId);
+                    StringBuilder tbText = new StringBuilder("Tabs: ");
+                    if (tb == null || tb.isEmpty()) tbText.append("kono tab pai ni");
+                    else for (int k = 0; k < tb.size(); k++) { if (k > 0) tbText.append(", "); tbText.append(tb.get(k)); }
+                    tabs.setText(tbText.toString());
+                    tabs.setTextColor(Color.parseColor("#9AA3C7"));
+                    tabs.setTextSize(12);
+                    row.addView(tabs);
+                    LinearLayout btnRow = new LinearLayout(this);
+                    btnRow.setOrientation(LinearLayout.HORIZONTAL);
+                    MaterialButton toggle = new MaterialButton(this);
+                    toggle.setText("Yes".equalsIgnoreCase(t.active) ? "Bondho korun" : "Sobai-er jonno add korun");
+                    toggle.setTextColor(Color.WHITE);
+                    toggle.setBackgroundResource("Yes".equalsIgnoreCase(t.active) ? R.drawable.glass_field : R.drawable.btn_gradient);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                    toggle.setLayoutParams(lp);
+                    toggle.setOnClickListener(v -> setTeamActive(t, !"Yes".equalsIgnoreCase(t.active)));
+                    btnRow.addView(toggle);
+                    MaterialButton nums = new MaterialButton(this);
+                    nums.setText("Number bosan");
+                    nums.setTextColor(Color.WHITE);
+                    nums.setBackgroundResource(R.drawable.glass_field);
+                    LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                    lp2.setMargins(10, 0, 0, 0);
+                    nums.setLayoutParams(lp2);
+                    nums.setOnClickListener(v -> selectTeam(t));
+                    btnRow.addView(nums);
+                    row.addView(btnRow);
+                    teamListContainer.addView(row);
+                }
+            });
+        }).start();
+    }
+    /** v4.29: team chalu/bondho — Teams tab-er Active ghor bodlano. SheetConfig NUMBERS switch-e kono hat noy. */
+    private void setTeamActive(TeamRow t, boolean active) {
+        if (token == null) { showLogin(); return; }
+        if (teamStatus != null) teamStatus.setText("Update hocche...");
+        new Thread(() -> {
+            try {
+                SheetsClient.updateCells(token, CONFIG_FILE_ID, "Teams!D" + t.sheetRow, new String[][]{{active ? "Yes" : "No"}});
+                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("'" + t.name + "' " + (active ? "sobai-er jonno chalu hoyeche" : "bondho hoyeche")); refreshTeamsSection(); });
+            } catch (Exception e) {
+                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("Hoyni: " + e.getMessage()); });
+            }
+        }).start();
+    }
+    /** v4.29: team select — tarpor tab nam + number paste kore oi team-er sheet-e jog hobe (live sheet-e noy). */
+    private void selectTeam(TeamRow t) {
+        selectedTeam = t;
+        if (teamSelectedLabel != null) teamSelectedLabel.setText("Select kora team: " + t.name + " — tab (Agent ID) likhun, number paste korun");
+        if (teamTabInput != null) teamTabInput.requestFocus();
+    }
+    /** v4.29: select kora team-er sheet-er ekta tab-e number jog — ager admin number-logic-i (normalize/dedupe/append A6:A RAW). Live sheet-e kichu jabe na. */
+    private void submitTeamNumbers() {
+        TeamRow team = selectedTeam;
+        if (team == null) { if (teamNumbersStatus != null) teamNumbersStatus.setText("Age team list theke ekta team-er 'Number bosan' chapun"); return; }
+        String target = txt(teamTabInput);
+        String pasted = teamNumbersInput.getText() == null ? "" : teamNumbersInput.getText().toString();
+        if (target.isEmpty()) { if (teamNumbersStatus != null) teamNumbersStatus.setText("Tab / Agent ID din"); return; }
+        if (pasted.trim().isEmpty()) { if (teamNumbersStatus != null) teamNumbersStatus.setText("Number paste korun"); return; }
+        if (token == null) { showLogin(); return; }
+        if (teamNumbersStatus != null) teamNumbersStatus.setText("Jog kora hocche...");
+        new Thread(() -> {
+            try {
+                List<String> tabs = SheetsClient.getTabs(token, team.sheetId);
+                String match = null;
+                for (String tb : tabs) if (target.equals(tb)) { match = tb; break; }
+                if (match == null) for (String tb : tabs) if (target.equalsIgnoreCase(tb)) { match = tb; break; }
+                if (match == null) throw new Exception("Ei team-e '" + target + "' tab pai ni");
+                String finalMatch = match;
+                java.util.Set<String> existing = new java.util.HashSet<>();
+                for (Row r : SheetsClient.getRows(token, team.sheetId, finalMatch)) {
+                    String n = normalizeAdminNumber(r.number);
+                    if (validAdminNumber(n)) existing.add(n);
+                }
+                java.util.List<String> toAdd = new java.util.ArrayList<>();
+                java.util.Set<String> seen = new java.util.HashSet<>();
+                int dup = 0, bad = 0;
+                for (String part : pasted.split("[\\n,;\\s]+")) {
+                    if (part.isEmpty()) continue;
+                    String n = normalizeAdminNumber(part);
+                    if (!validAdminNumber(n)) { bad++; continue; }
+                    if (existing.contains(n) || !seen.add(n)) { dup++; continue; }
+                    toAdd.add(n);
+                }
+                if (toAdd.isEmpty()) throw new Exception("Notun kono number pai ni" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
+                SheetsClient.appendNumbers(token, team.sheetId, finalMatch, toAdd);
+                int added = toAdd.size(), dupFinal = dup, badFinal = bad;
+                runOnUiThread(() -> {
+                    if (teamNumbersStatus != null) teamNumbersStatus.setText(added + "ta number " + team.name + " / " + finalMatch + "-e jog hoyeche" + (dupFinal > 0 ? " (" + dupFinal + "ta duplicate skip)" : "") + (badFinal > 0 ? " (" + badFinal + "ta thik number na)" : ""));
+                    if (teamNumbersInput != null) teamNumbersInput.setText("");
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> { if (teamNumbersStatus != null) teamNumbersStatus.setText("Hoyni: " + e.getMessage()); });
+            }
+        }).start();
+    }
+
     private static String storeLabel(String store) {
         if ("NUMBERS".equals(store)) return "নাম্বার শিট";
         if ("STATUS_LOG".equals(store)) return "স্ট্যাটাস লগ শিট";
@@ -663,6 +969,8 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 try {
+                    try { SheetsClient.ensureAdminsTab(token, CONFIG_FILE_ID); } catch (Exception ignored) {}
+                    try { SheetsClient.ensureTeamsTab(token, CONFIG_FILE_ID); } catch (Exception ignored) {}
                     SheetsClient.ensureConfigTab(token, CONFIG_FILE_ID);
                     List<String[]> rows = SheetsClient.getConfigRows(token, CONFIG_FILE_ID);
                     if (rows == null || rows.isEmpty()) {
@@ -822,6 +1130,7 @@ public class MainActivity extends AppCompatActivity {
                 String match = null;
                 for (String t : tabs) if (t.equals(id)) { match = t; break; }
                 if (match == null) for (String t : tabs) if (t.equalsIgnoreCase(id)) { match = t; break; }
+                if (match == null) match = findAgentTabInActiveTeams(id);
                 if (match == null) throw new Exception("Ei Agent ID-te kono list pai ni — ID ta abar miliye dekhun");
                 String finalMatch = match;
                 SharedPreferences prefs1 = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
@@ -872,7 +1181,8 @@ public class MainActivity extends AppCompatActivity {
                     // Lookup fail hole chupchap agent flow-e jabe (fail-closed, admin khulbe na).
                     new Thread(() -> {
                         tryRefreshConfig();
-                        boolean owner = checkIsAdmin();
+                        refreshAdminsCacheSync();
+                        boolean owner = checkIsAdminWithEmail(acct.getEmail());
                         boolean isOwner = owner;
                         runOnUiThread(() -> {
                             if (isOwner) { showAdmin(); return; }
@@ -922,7 +1232,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 tryRefreshConfig();
-                List<Row> rows = SheetsClient.getRows(token, currentNumbersId(), agentId);
+                List<Row> rows = SheetsClient.getRows(token, resolveNumbersIdForAgent(agentId), agentId);
                 rowsLoading = false;
                 runOnUiThread(() -> {
                     rowsLoading = false;
@@ -1542,12 +1852,13 @@ public class MainActivity extends AppCompatActivity {
                 try { arr = new JSONArray(p.getString(OUTBOX_KEY, "[]")); } catch (Exception e) { return; }
                 boolean changed = false;
                 boolean authTried = false;
+                String numbersId = resolveNumbersIdForAgent(myAgent);
                 for (int i = 0; i < arr.length(); ) {
                     JSONObject o = arr.optJSONObject(i);
                     if (o == null || !myAgent.equals(o.optString("agent"))) { i++; continue; }
                     Row r = new Row(o.optInt("row"), o.optString("number"), o.optString("status"), o.optString("valid"), o.optString("r1"), o.optString("r2"), o.optString("others"));
                     try {
-                        SheetsClient.updateRow(token, currentNumbersId(), myAgent, r);
+                        SheetsClient.updateRow(token, numbersId, myAgent, r);
                         // v4.20: drain-e main update land korlei log side-o thik korte hobe.
                         String entryDate = dateFromTs(o.optLong("ts"));
                         String dNum = RowAdapter.dialNumber(r.number);
