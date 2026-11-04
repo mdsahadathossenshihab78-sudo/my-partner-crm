@@ -24,6 +24,9 @@
             android:layout_marginStart="8dp" android:textSize="12sp" android:textStyle="bold"
             android:textColor="@color/white" android:visibility="gone" />
     </LinearLayout>
+    <TextView android:id="@+id/tvHistory" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/muted_light"
+        android:layout_marginTop="8dp" android:visibility="gone" />
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:text="CALLING STATUS" android:textSize="11sp" android:textStyle="bold"
         android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="12dp" />
@@ -41,6 +44,21 @@
         android:layout_width="match_parent" android:layout_height="52dp" android:hint="1st call remark"
         android:background="@drawable/glass_field" android:padding="12dp" android:layout_marginTop="6dp"
         android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+    <!-- Batch feature #6: remark quick phrase — ek tap-e 1st remark-e bosbe -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:layout_marginTop="8dp">
+        <android.widget.Button android:id="@+id/phraseBtn1" android:layout_width="0dp"
+            android:layout_height="48dp" android:layout_weight="1" android:text="বিকেলে করবে"
+            android:textSize="12sp" android:background="@drawable/glass_field" android:textColor="@color/white" />
+        <android.widget.Button android:id="@+id/phraseBtn2" android:layout_width="0dp"
+            android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="8dp"
+            android:text="ফোন বন্ধ" android:textSize="12sp"
+            android:background="@drawable/glass_field" android:textColor="@color/white" />
+        <android.widget.Button android:id="@+id/phraseBtn3" android:layout_width="0dp"
+            android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="8dp"
+            android:text="পরে কল করতে বলেছে" android:textSize="12sp"
+            android:background="@drawable/glass_field" android:textColor="@color/white" />
+    </LinearLayout>
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:text="2ND CALL REMARK" android:textSize="11sp" android:textStyle="bold"
         android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="10dp" />

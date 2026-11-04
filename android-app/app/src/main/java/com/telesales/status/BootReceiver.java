@@ -20,5 +20,7 @@ public class BootReceiver extends BroadcastReceiver {
                 ReminderReceiver.schedule(ctx, it.number, it.time);
             }
         }
+        // Batch feature #10b: diner hisab-er alarm-o reboot-er por abar bosano.
+        DaySummaryReceiver.schedule(ctx);
     }
 }

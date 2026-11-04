@@ -97,8 +97,16 @@
             android:layout_width="match_parent" android:layout_height="match_parent"
             android:orientation="vertical" android:layout_marginBottom="88dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-        <!-- v4.13 dashboard redesign: hero totals at the top -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="16dp">
+        <!-- v4.13: date selector heroes-er UPORE (Batch fix #14) -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="16dp" android:gravity="center">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/glass_card" android:padding="6dp" android:gravity="center_vertical">
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnPrevDay" android:layout_width="48dp" android:layout_height="48dp" android:text="◀" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnDate" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="8dp" android:layout_marginEnd="8dp" android:text="তারিখ" android:textSize="15sp" android:textStyle="bold" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnNextDay" android:layout_width="48dp" android:layout_height="48dp" android:text="▶" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
+            </LinearLayout>
+        </LinearLayout>
+        <!-- v4.13 dashboard redesign: hero totals (date pill-er niche) -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="12dp">
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_violet" android:padding="16dp" android:layout_marginEnd="6dp">
                 <TextView android:id="@+id/statTotalCallDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="30sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট কল" android:textSize="12sp" android:textColor="#E6FFFFFF" />
@@ -110,14 +118,6 @@
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_blue" android:padding="16dp" android:layout_marginStart="12dp">
                 <TextView android:id="@+id/statTotalRemainDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="30sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট বাকি" android:textSize="12sp" android:textColor="#E6FFFFFF" />
-            </LinearLayout>
-        </LinearLayout>
-        <!-- v4.13: date selector as a centered glass pill -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="12dp" android:gravity="center">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="@drawable/glass_card" android:padding="6dp" android:gravity="center_vertical">
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnPrevDay" android:layout_width="48dp" android:layout_height="48dp" android:text="◀" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnDate" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="8dp" android:layout_marginEnd="8dp" android:text="তারিখ" android:textSize="15sp" android:textStyle="bold" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/btnNextDay" android:layout_width="48dp" android:layout_height="48dp" android:text="▶" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
             </LinearLayout>
         </LinearLayout>
         <!-- v4.13: day tiles, color-coded by meaning, 2-column grid -->
@@ -157,12 +157,23 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Registration" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
         </LinearLayout>
+        <!-- Batch feature #10: ajker target card (sudhu ajker tarikh dekhle) -->
+        <LinearLayout android:id="@+id/targetCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="16dp" android:paddingTop="12dp" android:paddingBottom="0dp" android:visibility="gone">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="14dp">
+                <TextView android:id="@+id/targetCardText" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/white" />
+            </LinearLayout>
+        </LinearLayout>
         <!-- v4.13: 7-day summary as a separate glass card/strip -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="16dp" android:paddingTop="12dp" android:paddingBottom="12dp">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="14dp">
                 <TextView android:id="@+id/weekSummary" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/white" />
             </LinearLayout>
         </LinearLayout>
+        <!-- Batch feature #7: joma baki (unsent save) counter — 0 hole lukano -->
+        <TextView android:id="@+id/queuedCountText" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/white"
+            android:paddingHorizontal="16dp" android:paddingTop="4dp" android:paddingBottom="4dp"
+            android:visibility="gone" />
         <!-- v4.31: call reminder — sadharon section, highlight noy -->
         <LinearLayout android:id="@+id/reminderSection" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="16dp" android:paddingTop="12dp" android:paddingBottom="12dp">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="14dp">
@@ -191,9 +202,14 @@
             android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="14dp">
             <com.google.android.material.textfield.TextInputEditText android:id="@+id/searchBox"
                 android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
-                android:hint="Number diye khujun" android:inputType="text"
+                android:hint="Number / remark diye khujun" android:inputType="text"
                 android:background="@drawable/glass_field" android:padding="12dp"
                 android:textColor="@color/white" android:textColorHint="@color/muted_light" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/searchClearBtn"
+                android:layout_width="56dp" android:layout_height="56dp"
+                android:layout_marginStart="8dp" android:text="✕"
+                app:backgroundTint="@null" android:background="@drawable/glass_field"
+                android:textColor="@color/white" />
             <com.google.android.material.button.MaterialButton android:id="@+id/refreshBtn"
                 android:layout_width="wrap_content" android:layout_height="56dp"
                 android:layout_marginStart="8dp" android:text="Refresh"
@@ -272,10 +288,31 @@
                         android:layout_marginTop="10dp" android:text="টাকা যোগ করুন"
                         app:backgroundTint="@null" android:background="@drawable/btn_gradient"
                         android:textColor="@color/white" />
+                    <!-- Batch feature #5: FTD quick amount -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:layout_marginTop="10dp">
+                        <com.google.android.material.button.MaterialButton android:id="@+id/ftdQuick100"
+                            android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                            android:text="৳১০০" app:backgroundTint="@null" android:background="@drawable/glass_field"
+                            android:textColor="@color/white" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/ftdQuick200"
+                            android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                            android:layout_marginStart="8dp" android:text="৳২০০"
+                            app:backgroundTint="@null" android:background="@drawable/glass_field"
+                            android:textColor="@color/white" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/ftdQuick500"
+                            android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+                            android:layout_marginStart="8dp" android:text="৳৫০০"
+                            app:backgroundTint="@null" android:background="@drawable/glass_field"
+                            android:textColor="@color/white" />
+                    </LinearLayout>
                 </LinearLayout>
                 <TextView android:id="@+id/ftdTotal" android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:textSize="14sp" android:textStyle="bold"
                     android:textColor="@color/white" android:layout_marginTop="6dp" />
+                <LinearLayout android:id="@+id/ftdList" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical"
+                    android:layout_marginTop="10dp" />
             </LinearLayout>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical" android:background="@drawable/glass_card"
@@ -322,6 +359,12 @@
                     android:layout_width="match_parent" android:layout_height="48dp"
                     android:layout_marginTop="12dp" android:text="Copy korun"
                     app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                    android:textColor="@color/white" />
+                <!-- Batch feature #8: report sorasori share (chooser theke WhatsApp/Telegram) -->
+                <com.google.android.material.button.MaterialButton android:id="@+id/shareBtn"
+                    android:layout_width="match_parent" android:layout_height="48dp"
+                    android:layout_marginTop="10dp" android:text="Share korun (WhatsApp / Telegram)"
+                    app:backgroundTint="@null" android:background="@drawable/glass_field"
                     android:textColor="@color/white" />
             </LinearLayout>
         </LinearLayout>
@@ -380,6 +423,11 @@
                 <com.google.android.material.button.MaterialButton android:id="@+id/adminTabAdmins"
                     android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
                     android:layout_marginStart="6dp" android:text="Admins" android:textSize="12sp" android:minWidth="0dp" android:paddingHorizontal="0dp" android:maxLines="2"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" android:background="@drawable/glass_field" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/adminTabDashboard"
+                    android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1"
+                    android:layout_marginStart="6dp" android:text="Dashboard" android:textSize="12sp" android:minWidth="0dp" android:paddingHorizontal="0dp" android:maxLines="2"
                     android:textColor="@color/white"
                     app:backgroundTint="@null" android:background="@drawable/glass_field" />
             </LinearLayout>
@@ -590,6 +638,26 @@
             <TextView android:id="@+id/adminAdminStatus" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:layout_marginTop="12dp"
                 android:textColor="@color/lavender" android:textSize="13sp" />
+            </LinearLayout>
+            <LinearLayout android:id="@+id/adminSectionDashboard" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:visibility="gone">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="টিম ড্যাশবোর্ড — আজকের হিসাব" android:textSize="20sp" android:textStyle="bold"
+                android:textColor="@color/white" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="লাইভ শিটের সব এজেন্টের আজকের হিসাব এক স্ক্রিনে। Generate করা এজেন্টের Total/Connected/FTD দেখাবে, আর সবার বাকি নাম্বার দেখাবে।"
+                android:textSize="13sp" android:textColor="@color/lavender" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/teamDashLoadBtn"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:layout_marginTop="14dp" android:text="আজকের হিসাব লোড করুন"
+                app:backgroundTint="@null" android:background="@drawable/btn_gradient"
+                android:textColor="@color/white" />
+            <TextView android:id="@+id/teamDashStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" android:textSize="13sp" android:textColor="@color/white" />
+            <LinearLayout android:id="@+id/teamDashList" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:layout_marginTop="8dp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/adminSectionTeam" android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical" android:visibility="gone">

@@ -23,6 +23,7 @@
         </activity>
         <!-- v4.31: reminder alarm (explicit intent sudhu, exported noy) + boot reschedule -->
         <receiver android:name=".ReminderReceiver" android:exported="false" />
+        <receiver android:name=".DaySummaryReceiver" android:exported="false" />
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

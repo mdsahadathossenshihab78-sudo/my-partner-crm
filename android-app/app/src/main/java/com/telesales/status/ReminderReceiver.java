@@ -17,6 +17,8 @@ import androidx.core.app.NotificationManagerCompat;
 public class ReminderReceiver extends BroadcastReceiver {
     public static final String ACTION_REMIND = "com.telesales.status.REMIND";
     public static final String ACTION_DISMISS = "com.telesales.status.REMIND_DISMISS";
+    /** Batch feature #3: notification theke 1 ghonta pore abar mone korano (snooze). */
+    public static final String ACTION_SNOOZE = "com.telesales.status.REMIND_SNOOZE";
     public static final String EXTRA_NUMBER = "number";
     private static final String CHANNEL_ID = "telesales_reminders";
 
@@ -74,7 +76,12 @@ public class ReminderReceiver extends BroadcastReceiver {
         dismiss.setAction(ACTION_DISMISS);
         dismiss.putExtra(EXTRA_NUMBER, number);
         PendingIntent dismissPi = PendingIntent.getBroadcast(ctx, id + 2, dismiss, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Intent snooze = new Intent(ctx, ReminderReceiver.class);
+        snooze.setAction(ACTION_SNOOZE);
+        snooze.putExtra(EXTRA_NUMBER, number);
+        PendingIntent snoozePi = PendingIntent.getBroadcast(ctx, id + 4, snooze, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Intent open = new Intent(ctx, MainActivity.class);
+        open.putExtra(EXTRA_NUMBER, number);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openPi = PendingIntent.getActivity(ctx, id + 3, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, CHANNEL_ID)
@@ -85,6 +92,7 @@ public class ReminderReceiver extends BroadcastReceiver {
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .addAction(0, "Call korun", callPi)
+                .addAction(0, "১ ঘণ্টা পরে", snoozePi)
                 .addAction(0, "Bondho korun", dismissPi);
         try {
             NotificationManagerCompat.from(ctx).notify(id, b.build());
@@ -93,17 +101,37 @@ public class ReminderReceiver extends BroadcastReceiver {
         }
     }
 
+    /** Batch feature #9: fired/dismissed reminder-er sheet row-o badano (best-effort). */
+    private static void removeSheetReminder(Context ctx, String number) {
+        if (number == null || number.isEmpty()) return;
+        new Thread(() -> {
+            String token = ReminderSheetSync.getToken(ctx);
+            String agentId = ctx.getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).getString("agent_id", null);
+            ReminderSheetSync.remove(token, agentId, number);
+        }).start();
+    }
+
     @Override public void onReceive(Context ctx, Intent intent) {
         if (intent == null) return;
         String action = intent.getAction();
         String number = intent.getStringExtra(EXTRA_NUMBER);
         if (ACTION_DISMISS.equals(action)) {
             if (number != null) NotificationManagerCompat.from(ctx).cancel(requestCodeFor(number));
+            removeSheetReminder(ctx, number);
+            return;
+        }
+        if (ACTION_SNOOZE.equals(action)) {
+            if (number == null || number.isEmpty()) return;
+            NotificationManagerCompat.from(ctx).cancel(requestCodeFor(number));
+            long t = System.currentTimeMillis() + 3600_000L;
+            ReminderStore.save(ctx, number, t);
+            schedule(ctx, number, t);
             return;
         }
         if (!ACTION_REMIND.equals(action)) return;
         if (number == null || number.isEmpty()) return;
         ReminderStore.remove(ctx, number);
+        removeSheetReminder(ctx, number);
         notifyNow(ctx, number);
     }
 }

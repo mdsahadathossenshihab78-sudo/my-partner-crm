@@ -104,6 +104,41 @@ public class SheetsClient {
         return out;
     }
 
+    /** Batch feature #4: ek call-e onek range-er values (values:batchGet). Key = tab name. */
+    public static java.util.Map<String, List<String[]>> getValuesBatch(String token, String sheetId, List<String> ranges) throws Exception {
+        StringBuilder sb = new StringBuilder("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values:batchGet");
+        for (int i = 0; i < ranges.size(); i++) {
+            sb.append(i == 0 ? "?" : "&").append("ranges=").append(URLEncoder.encode(ranges.get(i), "UTF-8"));
+        }
+        URL url = new URL(sb.toString());
+        HttpURLConnection c = open(url, token);
+        int code = c.getResponseCode();
+        if (code != 200) throw new Exception("Batch load failed: " + code + " " + readAll(c.getErrorStream()));
+        JSONObject j = new JSONObject(readAll(c.getInputStream()));
+        java.util.Map<String, List<String[]>> out = new java.util.HashMap<>();
+        JSONArray vrs = j.optJSONArray("valueRanges");
+        if (vrs != null) {
+            for (int i = 0; i < vrs.length(); i++) {
+                JSONObject vr = vrs.getJSONObject(i);
+                String range = vr.optString("range", "");
+                String tab = range.contains("!") ? range.substring(0, range.indexOf('!')) : range;
+                if (tab.startsWith("'") && tab.endsWith("'") && tab.length() >= 2) tab = tab.substring(1, tab.length() - 1).replace("''", "'");
+                List<String[]> rows = new ArrayList<>();
+                JSONArray values = vr.optJSONArray("values");
+                if (values != null) {
+                    for (int k = 0; k < values.length(); k++) {
+                        JSONArray v = values.getJSONArray(k);
+                        String[] r = new String[v.length()];
+                        for (int m = 0; m < v.length(); m++) r[m] = v.optString(m);
+                        rows.add(r);
+                    }
+                }
+                out.put(tab, rows);
+            }
+        }
+        return out;
+    }
+
     private static void checkRowStillMatches(String token, String sheetId, String tab, Row row) throws Exception {
         String range = URLEncoder.encode(q(tab) + "!A" + row.row, "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
