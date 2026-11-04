@@ -879,7 +879,7 @@ public class MainActivity extends AppCompatActivity {
     /** Batch feature #4: admin team dashboard — live sheet-er sob agent-er ajker hisab.
      *  Daily Reports file theke Generate kora hisab (1 read) + numbers sheet theke baki
      *  (batchGet, 1 call). Generate na kora agent-er Total/Connected/FTD "—" thakbe;
-     *  junk tab (Sheet*/Copy of*) bad deoa hoy. */
+     *  junk tab (Sheet... / Copy of... diye shuru tab) bad deoa hoy. */
     private void loadTeamDashboard() {
         if (token == null) { showLogin(); return; }
         TextView st = findViewById(R.id.teamDashStatus);
