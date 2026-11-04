@@ -40,6 +40,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.browser.customtabs.CustomTabsIntent; import android.webkit.CookieManager; import android.webkit.WebView; import android.webkit.WebViewClient;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import java.util.concurrent.TimeUnit;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -64,8 +71,9 @@ import java.util.TimeZone;
 public class MainActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 1001;
     private static final int RC_AUTH = 1002;
-    private static final String SHEET_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
-    private static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
+    // v4.32: package-visible — SaveDrainWorker eki scope string-e token nebe (ek source of truth).
+    static final String SHEET_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+    static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
     private static final String SHEET_ID = "10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE";
     /** v4.29 admin gate: config file-er malik BA bortoman numbers sheet-er malik BA user-er bola admin Gmail BA Admins tab-er list — je kono ekta holei Admin Panel khulbe. Lookup fail hole fail-closed. */
     private static final String ADMIN_EMAIL = "shihabno.18@gmail.com";
@@ -451,6 +459,21 @@ public class MainActivity extends AppCompatActivity {
             if (optChanged && !optClear) adapter.moveCalledToTop(row, optQ);
             else if (optClear) adapter.removeCalledRow(row, optQ);
             else adapter.filter(optQ);
+            // v4.32: exit-proof save — network thread shuru howar AGEI save intent-ti disk-e
+            // commit() diye joma (apply async — kill hole harate pare). Thread safal hole ei
+            // entry sorbe; fail hole drain/worker pathabe; majhpothe app morleo joma thakbe.
+            // Sheet ID tap-er somoy resolve kora jay na (network lage) — thread-e resolve hoye
+            // stamp hobe; stamp na howa entry worker skip korbe, in-app drain pathabe.
+            final long saveTs = System.currentTimeMillis();
+            final String saveDate = dhakaDate();
+            final boolean preQueuedLog = optChanged;
+            final String preDialNum = RowAdapter.dialNumber(row.number);
+            queueOutboxWithTs(row, saveTs, true);
+            if (optChanged) {
+                if (optClear) queuePendingWithTs("clear", saveDate, preDialNum, "", "", saveTs, true);
+                else queuePendingWithTs("log", saveDate, preDialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid, saveTs, true);
+            }
+            enqueueSaveDrainWorker();
             new Thread(() -> {
                 String key = row.number == null ? "" : row.number.trim();
                 String now = (row.status == null ? "" : row.status) + "|" + (row.valid == null ? "" : row.valid);
@@ -460,18 +483,28 @@ public class MainActivity extends AppCompatActivity {
                 String dialNum = RowAdapter.dialNumber(row.number);
                 try {
                     tryRefreshConfig();
-                    SheetsClient.updateRow(token, resolveNumbersIdForAgent(agentId), agentId, row);
+                    String numbersIdForSave = resolveNumbersIdForAgent(agentId);
+                    stampOutboxNumbersId(agentId, row.number, saveTs, numbersIdForSave);
+                    SheetsClient.updateRow(token, numbersIdForSave, agentId, row);
+                    // v4.32: main update land koreche — pre-queue kora outbox entry-ti sorbe.
+                    removeOutboxEntry(agentId, row.number, saveTs);
                     String logError = null;
                     boolean logAppended = false;
                     boolean logCleared = false;
                     if (changed) {
                         try {
                             ensureStatusLogSheet();
+                            // v4.32: log target stamp — worker sudhu stored ID-tei pathabe, andaj noy.
+                            // Clear entry-te stamp noy (chain-wide delete worker-er kaj noy — in-app drain korbe).
+                            if (!isClear) stampPendingLogTarget(agentId, row.number, saveTs, statusLogSheetId, statusLogTab);
                             if (isClear) {
                                 // v4.20 clear-undo + v4.28: switch diner sob chain sheet theke muchbe.
                                 if (agentId.equals(statusLogTab)) deleteLogRowsEverywhere(dhakaDate(), dialNum, statusLogSheetId);
                                 else SheetsClient.deleteLogRowsForDateNumber(token, statusLogSheetId, statusLogTab, dhakaDate(), dialNum);
                                 purgePendingFor(dhakaDate(), dialNum, "log");
+                                // v4.32: ei save-er pre-queue clear entry-ti sudhu ts-match-e sorbe
+                                // (purge "clear" ager failed save-er entry-o muchto).
+                                removePendingEntry(agentId, row.number, saveTs);
                                 lastStatusMap.put(key, now);
                                 logCleared = true;
                             } else {
@@ -479,17 +512,24 @@ public class MainActivity extends AppCompatActivity {
                                 lastStatusMap.put(key, now);
                                 logAppended = true;
                                 purgePendingFor(dhakaDate(), dialNum, "clear");
+                                // v4.32: ei save-er pre-queue log entry-ti sudhu ts-match-e sorbe
+                                // (purge "log" ager failed save-er entry-o muchto).
+                                removePendingEntry(agentId, row.number, saveTs);
                                 SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
                                 if (p.getString("log_anchor_date_" + agentId, null) == null)
                                     p.edit().putString("log_anchor_date_" + agentId, dhakaDate()).apply();
                             }
                         } catch (Exception le) {
                             logError = le.getMessage(); maybeInvalidateLogCache(le);
-                            // main update hoyeche, log side pore sync hobe (harabe na).
-                            if (isClear) queuePendingClear(dhakaDate(), dialNum);
-                            else queuePendingLog(dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid);
+                            // v4.32: log entry tap-er somoyei pre-queue kora ache — abar queue
+                            // korle duplicate hobe. Drain/worker pre-queue kora entry pathabe.
                             lastStatusMap.put(key, now);
                         }
+                    } else if (preQueuedLog) {
+                        // v4.32: UI-te changed mone holeo thread-e changed noy (sheet-e age thekei
+                        // ei value) — pre-queue kora entry jhule thakle pore bhul row append hoto.
+                        // Sudhu ei save-er entry sorbe (ts-match); ager pending entry drain-e jabe.
+                        removePendingEntry(agentId, row.number, saveTs);
                     }
                     String finalLogError = logError;
                     boolean finalLogAppended = logAppended;
@@ -509,12 +549,8 @@ public class MainActivity extends AppCompatActivity {
                         authRetryUsed = true;
                         runOnUiThread(() -> { savingRows.remove(optKey); btn.setEnabled(true); btn.setText("Save korun"); btn.performClick(); });
                     } else {
-                        queueOutbox(row);
-                        // main update hoyni — log side-o pore drain-e hobe (outbox clear howar por).
-                        if (changed) {
-                            if (isClear) queuePendingClear(dhakaDate(), dialNum);
-                            else queuePendingLog(dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid);
-                        }
+                        // v4.32: tap-er somoyei outbox + pending-log commit() diye joma ache —
+                        // abar queue korle duplicate hobe. Worker + drain pore pathabe.
                         runOnUiThread(() -> {
                             savingRows.remove(optKey);
                             btn.setEnabled(true); btn.setText("Save korun");
@@ -2095,7 +2131,9 @@ public class MainActivity extends AppCompatActivity {
      *  Porer login/refresh/safal save-er por background-e abar pathano hobe. updateRow PUT
      *  idempotent bole retry nirapad (eki row abar lekha = eki fol). */
     private static final String OUTBOX_KEY = "outbox_v419";
-    private void queueOutbox(Row row) {
+    private void queueOutbox(Row row) { queueOutboxWithTs(row, System.currentTimeMillis(), false); }
+    /** v4.32: outbox entry — sync=true hole commit() (tap-time pre-queue; apply async harate pare). */
+    private void queueOutboxWithTs(Row row, long ts, boolean sync) {
         try {
             SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
             JSONArray arr;
@@ -2109,9 +2147,52 @@ public class MainActivity extends AppCompatActivity {
             o.put("r1", row.remark1 == null ? "" : row.remark1);
             o.put("r2", row.remark2 == null ? "" : row.remark2);
             o.put("others", row.others == null ? "" : row.others);
-            o.put("ts", System.currentTimeMillis());
+            o.put("ts", ts);
             arr.put(o);
-            p.edit().putString(OUTBOX_KEY, arr.toString()).apply();
+            SharedPreferences.Editor ed = p.edit().putString(OUTBOX_KEY, arr.toString());
+            if (sync) ed.commit(); else ed.apply();
+        } catch (Exception ignored) {}
+    }
+    /** v4.32: pre-queue kora outbox entry sorano — sudhu ei agent + number + ts mile gele.
+     *  Onno save-er entry (eki number holeo) chhowa hobe na. */
+    private void removeOutboxEntry(String agent, String number, long ts) {
+        try {
+            SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+            JSONArray arr;
+            try { arr = new JSONArray(p.getString(OUTBOX_KEY, "[]")); } catch (Exception e) { return; }
+            JSONArray kept = new JSONArray();
+            String norm = SheetsClient.normLogNumber(number);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                boolean same = agent != null && agent.equals(o.optString("agent"))
+                        && norm.equals(SheetsClient.normLogNumber(o.optString("number")))
+                        && ts == o.optLong("ts");
+                if (same) continue;
+                kept.put(o);
+            }
+            p.edit().putString(OUTBOX_KEY, kept.toString()).commit();
+        } catch (Exception ignored) {}
+    }
+    /** v4.32: pre-queue kora outbox entry-te numbers sheet ID stamp (thread-e resolve howar por).
+     *  Worker sudhu ei stored ID-tei pathabe — na thakle skip (in-app drain korbe). */
+    private void stampOutboxNumbersId(String agent, String number, long ts, String numbersId) {
+        try {
+            if (numbersId == null || numbersId.isEmpty()) return;
+            SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+            JSONArray arr;
+            try { arr = new JSONArray(p.getString(OUTBOX_KEY, "[]")); } catch (Exception e) { return; }
+            String norm = SheetsClient.normLogNumber(number);
+            boolean changed = false;
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                boolean same = agent != null && agent.equals(o.optString("agent"))
+                        && norm.equals(SheetsClient.normLogNumber(o.optString("number")))
+                        && ts == o.optLong("ts");
+                if (same) { o.put("numbersId", numbersId); changed = true; }
+            }
+            if (changed) p.edit().putString(OUTBOX_KEY, arr.toString()).commit();
         } catch (Exception ignored) {}
     }
     private void drainOutboxAsync() {
@@ -2142,6 +2223,7 @@ public class MainActivity extends AppCompatActivity {
                                 purgePendingFor(entryDate, dNum, "log");
                             } catch (Exception de) {
                                 queuePendingClear(entryDate, dNum);
+                                enqueueSaveDrainWorker();
                                 arr.remove(i); changed = true;
                                 break; // delete fail — porer entry pore, order thik thakbe
                             }
@@ -2172,7 +2254,9 @@ public class MainActivity extends AppCompatActivity {
         f.setTimeZone(TimeZone.getTimeZone("Asia/Dhaka"));
         return f.format(new Date(ts));
     }
-    private void queuePending(String type, String date, String number, String status, String valid) {
+    private void queuePending(String type, String date, String number, String status, String valid) { queuePendingWithTs(type, date, number, status, valid, System.currentTimeMillis(), false); }
+    /** v4.32: pending entry — sync=true hole commit() (tap-time pre-queue). */
+    private void queuePendingWithTs(String type, String date, String number, String status, String valid, long ts, boolean sync) {
         try {
             SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
             JSONArray arr;
@@ -2183,9 +2267,44 @@ public class MainActivity extends AppCompatActivity {
             o.put("number", number == null ? "" : number);
             o.put("status", status == null ? "" : status);
             o.put("valid", valid == null ? "" : valid);
-            o.put("ts", System.currentTimeMillis());
+            o.put("ts", ts);
             arr.put(o);
-            p.edit().putString(PENDING_LOG_KEY, arr.toString()).apply();
+            SharedPreferences.Editor ed = p.edit().putString(PENDING_LOG_KEY, arr.toString());
+            if (sync) ed.commit(); else ed.apply();
+        } catch (Exception ignored) {}
+    }
+    /** v4.32: background drain worker enqueue — APPEND chain (choloman run-e badha noy,
+     *  notun entry-r run kokhono skip hobe na). Network thaklei cholbe, backoff 1 min. */
+    private void enqueueSaveDrainWorker() {
+        try {
+            Constraints constraints = new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
+            OneTimeWorkRequest req = new OneTimeWorkRequest.Builder(SaveDrainWorker.class)
+                    .setConstraints(constraints)
+                    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.MINUTES)
+                    .build();
+            WorkManager.getInstance(this).enqueueUniqueWork("telesales-save-drain", ExistingWorkPolicy.APPEND, req);
+        } catch (Exception ignored) {}
+    }
+    /** v4.32: pre-queue kora log entry-te log sheet ID + tab stamp (ensureStatusLogSheet-er por).
+     *  Worker sudhu ei stored target-ei append korbe. Clear entry-te stamp hoy na. */
+    private void stampPendingLogTarget(String agent, String number, long ts, String logSheetId, String logTab) {
+        try {
+            if (logSheetId == null || logSheetId.isEmpty() || logTab == null || logTab.isEmpty()) return;
+            SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+            JSONArray arr;
+            try { arr = new JSONArray(p.getString(PENDING_LOG_KEY, "[]")); } catch (Exception e) { return; }
+            String norm = SheetsClient.normLogNumber(number);
+            boolean changed = false;
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                boolean same = agent != null && agent.equals(o.optString("agent"))
+                        && "log".equals(o.optString("type"))
+                        && norm.equals(SheetsClient.normLogNumber(o.optString("number")))
+                        && ts == o.optLong("ts");
+                if (same) { o.put("logSheetId", logSheetId); o.put("logTab", logTab); changed = true; }
+            }
+            if (changed) p.edit().putString(PENDING_LOG_KEY, arr.toString()).commit();
         } catch (Exception ignored) {}
     }
     private void queuePendingLog(String date, String number, String status, String valid) { queuePending("log", date, number, status, valid); }
@@ -2209,6 +2328,28 @@ public class MainActivity extends AppCompatActivity {
                 kept.put(o);
             }
             p.edit().putString(PENDING_LOG_KEY, kept.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+    /** v4.32: pre-queue kora pending entry sorano — sudhu ei agent + number + ts mile gele.
+     *  purgePendingFor(date, number, type) sob purono entry muchto (eki number-er ager
+     *  failed save-er log row harato); ts-match-e sudhu ei save-er entry sorbe. */
+    private void removePendingEntry(String agent, String number, long ts) {
+        try {
+            SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+            JSONArray arr;
+            try { arr = new JSONArray(p.getString(PENDING_LOG_KEY, "[]")); } catch (Exception e) { return; }
+            JSONArray kept = new JSONArray();
+            String norm = SheetsClient.normLogNumber(number);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                boolean same = agent != null && agent.equals(o.optString("agent"))
+                        && norm.equals(SheetsClient.normLogNumber(o.optString("number")))
+                        && ts == o.optLong("ts");
+                if (same) continue;
+                kept.put(o);
+            }
+            p.edit().putString(PENDING_LOG_KEY, kept.toString()).commit();
         } catch (Exception ignored) {}
     }
     /** Pending log/clear drain: FIFO; outbox-e oi number-er main update baki thakle
@@ -2235,6 +2376,8 @@ public class MainActivity extends AppCompatActivity {
                 boolean changed = false;
                 boolean authTried = false;
                 java.util.Map<String, StatusLogTarget> targetForDateCache = new java.util.HashMap<>();
+                // v4.32: target tab-er row cache (dedup check-er jonno, proti tab ekbar pora hobe).
+                java.util.Map<String, java.util.Set<String>> logRowsCache = new java.util.HashMap<>();
                 java.util.Set<String> skippedNums = new java.util.HashSet<>();
                 for (int i = 0; i < arr.length(); ) {
                     JSONObject o = arr.optJSONObject(i);
@@ -2250,7 +2393,26 @@ public class MainActivity extends AppCompatActivity {
                         if ("clear".equals(type)) {
                             deleteLogRowsForTarget(et, o.optString("date"), o.optString("number"));
                         } else {
+                            // v4.32: timeout-after-success / double-queue hole eki row duibar
+                            // append hoto — target tab-e age thekei thakle skip (entry sorbe).
+                            java.util.Set<String> existing = logRowsCache.get(et.sheetId + "|" + et.tab);
+                            if (existing == null) {
+                                existing = new java.util.HashSet<>();
+                                try {
+                                    for (String[] lr : SheetsClient.getReportRows(token, et.sheetId, et.tab)) {
+                                        if (lr != null && lr.length >= 4) existing.add(lr[0] + "|" + SheetsClient.normLogNumber(lr[1]) + "|" + lr[2] + "|" + lr[3]);
+                                    }
+                                    logRowsCache.put(et.sheetId + "|" + et.tab, existing);
+                                } catch (Exception re) { existing = null; } // read fail — skip noy, append chesta hobe
+                            }
+                            if (existing != null) {
+                                String dupKey = o.optString("date") + "|" + num + "|" + o.optString("status") + "|" + o.optString("valid");
+                                if (existing.contains(dupKey)) { arr.remove(i); changed = true; continue; }
+                            }
                             SheetsClient.appendReportRow(token, et.sheetId, et.tab, new String[]{o.optString("date"), RowAdapter.dialNumber(o.optString("number")), o.optString("status"), o.optString("valid")});
+                            // v4.32: eki drain-e porer duplicate entry-o jate skip hoy.
+                            java.util.Set<String> ex = logRowsCache.get(et.sheetId + "|" + et.tab);
+                            if (ex != null) ex.add(o.optString("date") + "|" + num + "|" + o.optString("status") + "|" + o.optString("valid"));
                         }
                         arr.remove(i); changed = true;
                     } catch (Exception e) {
