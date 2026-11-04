@@ -515,7 +515,7 @@ public class MainActivity extends AppCompatActivity {
             // Batch fix #4: Not Connected + Valid Yes guide onujayi osombhob — save atkabe
             // na, sudhu sotorko korbe (agent jate bhul kore na fele).
             if ("not connected".equals(row.status) && "Yes".equals(row.valid))
-                Toast.makeText(this, "সতর্কতা: Not Connected-এর সাথে Valid Yes মেলে না — thik ache to?", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "সতর্কতা: Not Connected-এর সাথে Valid Yes মেলে না — thik ache to?", Toast.LENGTH_LONG).show();
             if (optChanged && !optClear && optimisticTileKeys.add(optKey)) applyLocalSaveToTiles(row.status, row.valid);
             // v4.26: notun call sathe sathe called tab-er upore; clear hole called theke sorbe.
             String optQ = searchBox.getText() == null ? "" : searchBox.getText().toString();
