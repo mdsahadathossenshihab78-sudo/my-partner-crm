@@ -20,7 +20,7 @@ body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif
 .top p{margin:2px 0 0;opacity:.85;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-apk{white-space:nowrap;flex-shrink:0}
 .wrap{position:relative;z-index:1;max-width:1120px;margin:20px auto 0;padding:0 16px 32px}
-.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:20px;margin-top:16px;backdrop-filter:blur(10px)}
+.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:20px;margin-top:16px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .card h2{font-size:20px}
 .btn{border:0;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer;color:#fff;min-height:44px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .btn-primary{background:linear-gradient(135deg,#4f46e5,#7c3aed)}
@@ -178,13 +178,7 @@ function showReport(){window.scrollTo(0,0);reportDate=dhakaToday();updateRepDate
 function updateDateBtn(){$('dateBtn').textContent=displayDay(selectedDate)+(selectedDate===dhakaToday()?' • আজ':'')}
 function shiftDay(d){const nd=addDays(selectedDate,d);if(nd>dhakaToday())return;selectedDate=nd;updateDateBtn();loadDayStats()}
 try{if(window.firebase){firebase.initializeApp(firebaseConfig);auth=firebase.auth();}}catch(e){}
-$('googleBtn').onclick=async()=>{
-  $('loginMsg').textContent='লগইন হচ্ছে...';
-  try{
-    const provider=new firebase.auth.GoogleAuthProvider();
-    provider.addScope('https://www.googleapis.com/auth/spreadsheets');
-    provider.addScope('https://www.googleapis.com/auth/drive.readonly');
-    const res=await auth.signInWithPopup(provider);
+function afterLogin(res){
     token=res.credential && res.credential.accessToken;
     if(!token){$('loginMsg').textContent='Sheets অনুমতি পাওয়া যায়নি, আবার লগইন করুন।';return;}
     $('userEmail').textContent=res.user.email; userEmail=res.user.email;
@@ -193,7 +187,19 @@ $('googleBtn').onclick=async()=>{
     const savedEmail=localStorage.getItem('agent_email');
     if(saved && savedEmail && savedEmail.toLowerCase()===res.user.email.toLowerCase()){agentId=saved;showMain();loadRows();}
     else showAgent();
-  }catch(e){$('loginMsg').textContent='লগইন হয়নি, আবার চেষ্টা করুন।';}
+}
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+if(auth){auth.getRedirectResult().then(res=>{if(res&&res.user)afterLogin(res);}).catch(()=>{$('loginMsg').textContent='লগইন হয়নি, আবার চেষ্টা করুন।';});}
+$('googleBtn').onclick=async()=>{
+  $('loginMsg').textContent='লগইন হচ্ছে...';
+  try{
+    const provider=new firebase.auth.GoogleAuthProvider();
+    provider.addScope('https://www.googleapis.com/auth/spreadsheets');
+    provider.addScope('https://www.googleapis.com/auth/drive.readonly');
+    if(isIOS){await auth.signInWithRedirect(provider);return;}
+    const res=await auth.signInWithPopup(provider);
+    afterLogin(res);
+  }catch(e){$('loginMsg').textContent='লগইন হয়নি, আবার চেষ্টা করুন।';}
 };
 $('logoutBtn').onclick=()=>{if(auth)auth.signOut();token=null;agentId=null;localStorage.removeItem('agent_id');localStorage.removeItem('agent_email');showLogin();};
 $('agentBackBtn').onclick=()=>{if(auth)auth.signOut();token=null;agentId=null;showLogin();};
