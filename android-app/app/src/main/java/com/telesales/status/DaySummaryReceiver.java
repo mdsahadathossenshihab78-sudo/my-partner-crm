@@ -12,7 +12,6 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import java.io.IOException;
@@ -108,7 +107,7 @@ public class DaySummaryReceiver extends BroadcastReceiver {
             String token;
             try {
                 token = GoogleAuthUtil.getToken(ctx, acct.getAccount(), "oauth2:" + MainActivity.SHEET_SCOPE + " " + MainActivity.DRIVE_SCOPE);
-            } catch (UserRecoverableAuthException | GoogleAuthException | IOException e) { return; }
+            } catch (GoogleAuthException | IOException e) { return; }
             if (token == null || token.isEmpty()) return;
             String today = dhakaToday();
             Map<String, List<String[]>> chains = new HashMap<>();

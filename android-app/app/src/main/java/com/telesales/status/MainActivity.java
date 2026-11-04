@@ -89,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
     private String selectedDate = dhakaDate(); private String reportDate = dhakaDate();
     private Map<String,String> lastStatusMap = new HashMap<>();
     // Batch fix #20: notification tap-e asa number — row load howar por khulte hobe.
-    private String pendingReminderNumber = null;
     private boolean rowsLoaded = false;
     // v4.24 optimistic save: Save tap-er sathe sathe UI update, network background-e.
     // savingRows = in-flight double-tap guard (key = sheet row + number); optimisticTileKeys =
@@ -605,7 +604,7 @@ public class MainActivity extends AppCompatActivity {
                         savingRows.remove(optKey); optimisticTileKeys.remove(optKey);
                         markRowCleanInSnapshot(row); refreshQueuedCounter();
                         btn.setEnabled(true); btn.setText("Save korun");
-                        Toast.makeText(this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (log pore sync hobe)" : (finalLogCleared ? " (ajker log row muche geche)" : "")), Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (log pore sync hobe)" : (finalLogCleared ? " (ajker log row muche geche)" : "")), Toast.LENGTH_LONG).show();
                         adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
                         refreshRemainingHero();
                         if (finalLogAppended) { refreshInvalidTileAfterSave(); }
@@ -622,7 +621,7 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             savingRows.remove(optKey);
                             btn.setEnabled(true); btn.setText("Save korun");
-                            Toast.makeText(this, "সেভ হয়নি — pore abar chesta hobe (joma ache): " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.this, "সেভ হয়নি — pore abar chesta hobe (joma ache): " + e.getMessage(), Toast.LENGTH_LONG).show();
                         });
                     }
                 }
@@ -896,7 +895,7 @@ public class MainActivity extends AppCompatActivity {
                     List<String[]> drows = SheetsClient.getReportRows(token, dailyId, "Reports");
                     String want = displayDay(today);
                     if (drows != null) for (String[] r : drows) {
-                        if (r != null && r.length >= 7 && want.equals(cellE(r, 0))) byAgent.put(cellE(r, 1), r);
+                        if (r != null && r.length >= 7 && want.equals(cell(r, 0))) byAgent.put(cell(r, 1), r);
                     }
                 } catch (Exception ignored) { /* Daily na pele sudhu baki dekhabe */ }
                 String numId = currentNumbersId();
@@ -933,10 +932,10 @@ public class MainActivity extends AppCompatActivity {
                         lines.add(a + " — Generate হয়নি • বাকি " + remS);
                     } else {
                         int tc = 0, cc = 0, fc = 0; double fa = 0;
-                        try { tc = Integer.parseInt(cellE(d, 2)); } catch (Exception ignored) {}
-                        try { cc = Integer.parseInt(cellE(d, 3)); } catch (Exception ignored) {}
-                        try { fc = Integer.parseInt(cellE(d, 5)); } catch (Exception ignored) {}
-                        try { fa = Double.parseDouble(cellE(d, 6)); } catch (Exception ignored) {}
+                        try { tc = Integer.parseInt(cell(d, 2)); } catch (Exception ignored) {}
+                        try { cc = Integer.parseInt(cell(d, 3)); } catch (Exception ignored) {}
+                        try { fc = Integer.parseInt(cell(d, 5)); } catch (Exception ignored) {}
+                        try { fa = Double.parseDouble(cell(d, 6)); } catch (Exception ignored) {}
                         totCall += tc; totConn += cc; totFtd += fc; totAmt += fa;
                         lines.add(a + " — Total " + tc + " • Conn " + cc + " • FTD " + fc + " (৳" + fmtAmount(fa) + ") • বাকি " + remS);
                     }

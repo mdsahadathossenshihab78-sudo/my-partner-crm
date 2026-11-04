@@ -3,7 +3,6 @@ package com.telesales.status;
 import android.content.Context;
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import java.io.IOException;
@@ -25,7 +24,7 @@ public class ReminderSheetSync {
             GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(ctx);
             if (acct == null || acct.getAccount() == null) return null;
             return GoogleAuthUtil.getToken(ctx, acct.getAccount(), "oauth2:" + MainActivity.SHEET_SCOPE + " " + MainActivity.DRIVE_SCOPE);
-        } catch (UserRecoverableAuthException | GoogleAuthException | IOException e) { return null; }
+        } catch (GoogleAuthException | IOException e) { return null; }
     }
 
     private static String cell(String[] r, int i) { return r != null && r.length > i && r[i] != null ? r[i].trim() : ""; }
