@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
     private View reportView, reportOutputCard;
     private View guideView;
     private TextView guideText;
-    private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
+    private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay, statTotalRemainDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
     private int currentSection = 0;
     private static final String DAILY_REPORTS_ID = "1BPaQrV6Znqcs45pNEUib8AOHnxzz93Z8Y8vEMAAHOzg";
     // v4.19 cache/guards: shared log ID + tab ekbar confirm hole protibar Drive search noy;
@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
         statInvDay = findViewById(R.id.statInvDay);
         statRegDay = findViewById(R.id.statRegDay);
         statFtdDay = findViewById(R.id.statFtdDay);
-        statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalNumDay = findViewById(R.id.statTotalNumDay);
+        statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); statTotalRemainDay = findViewById(R.id.statTotalRemainDay);
         weekSummary = findViewById(R.id.weekSummary);
         dateBtn = findViewById(R.id.btnDate);
         statusText = findViewById(R.id.statusText);
@@ -459,6 +459,8 @@ public class MainActivity extends AppCompatActivity {
             if (optChanged && !optClear) adapter.moveCalledToTop(row, optQ);
             else if (optClear) adapter.removeCalledRow(row, optQ);
             else adapter.filter(optQ);
+            // v4.33: row-ta screen-e jemon ache, baki hero-o sathe sathe temon (save/clear duitotei).
+            refreshRemainingHero();
             // v4.32: exit-proof save — network thread shuru howar AGEI save intent-ti disk-e
             // commit() diye joma (apply async — kill hole harate pare). Thread safal hole ei
             // entry sorbe; fail hole drain/worker pathabe; majhpothe app morleo joma thakbe.
@@ -540,6 +542,7 @@ public class MainActivity extends AppCompatActivity {
                         btn.setEnabled(true); btn.setText("Save korun");
                         Toast.makeText(this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (log pore sync hobe)" : (finalLogCleared ? " (ajker log row muche geche)" : "")), Toast.LENGTH_LONG).show();
                         adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
+                        refreshRemainingHero();
                         if (finalLogAppended) { refreshInvalidTileAfterSave(); }
                         else if (finalLogCleared) loadDayStats();
                         drainOutboxAsync(); drainPendingLogsAsync();
@@ -1546,7 +1549,7 @@ public class MainActivity extends AppCompatActivity {
                     rowsLoading = false;
                     if (seq != rowsSeq) return; // purono response notun data-r upor boshbe na
                     authRetryUsed = false;
-                    adapter.setRows(rows); statTotalNumDay.setText(String.valueOf(rows.size()));
+                    adapter.setRows(rows); statTotalNumDay.setText(String.valueOf(rows.size())); refreshRemainingHero();
                     adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
                     statusText.setText("শিটের সাথে সংযুক্ত — " + rows.size() + "টি রো");
                     lastStatusMap.clear();
@@ -2112,6 +2115,21 @@ public class MainActivity extends AppCompatActivity {
         if (pendingStatsLoad != null) uiHandler.removeCallbacks(pendingStatsLoad);
         pendingStatsLoad = this::loadDayStats;
         uiHandler.postDelayed(pendingStatsLoad, 400);
+    }
+
+    /** v4.33: মোট বাকি hero — live list-e status khali row-gulor sonkha. Kol baki
+     *  tab-er niyom-ei gona hoy (status null ba khali), tai hero aar tab sob somoy
+     *  milbe. List-based: dashboard-er tarikh bodol eke bodlay na; loadDayStats
+     *  eke chhoye na. Log-only row (main sheet-e nei) live list-e nei, tai gonay ase na. */
+    private void refreshRemainingHero() {
+        if (adapter == null || statTotalRemainDay == null) return;
+        try {
+            int remain = 0;
+            for (Row r : adapter.getAll()) {
+                if (r != null && (r.status == null || r.status.isEmpty())) remain++;
+            }
+            statTotalRemainDay.setText(String.valueOf(remain));
+        } catch (Exception ignored) { /* hero ager value-i thakbe — bhul sonkha dekhano noy */ }
     }
 
     /** v4.19: Save-er por puro loadDayStats (4 read + Drive search) na chaliye tile-gulo
