@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -110,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView testSheetStatus, testSheetNumbersStatus;
     /** v4.31: call reminder — dashboard section views + pending notification-permission retry. */
     private LinearLayout reminderListContainer;
+    private View reminderSection;
     private TextView reminderEmptyText;
     private String pendingReminderNumber = null;
     private long pendingReminderTime = 0;
@@ -248,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
         guideText.setText(GUIDE_TEXT);
         dashboardView = findViewById(R.id.dashboardView);
         reminderListContainer = findViewById(R.id.reminderList);
+        reminderSection = findViewById(R.id.reminderSection);
         reminderEmptyText = findViewById(R.id.reminderEmptyText);
         listContent = findViewById(R.id.listContent);
         reportOutputCard = findViewById(R.id.reportOutputCard);
@@ -1162,6 +1165,7 @@ public class MainActivity extends AppCompatActivity {
         future.sort((a, b) -> Long.compare(a.time, b.time));
         reminderListContainer.removeAllViews();
         if (reminderEmptyText != null) reminderEmptyText.setVisibility(future.isEmpty() ? View.VISIBLE : View.GONE);
+        if (reminderSection != null) reminderSection.setVisibility(future.isEmpty() ? View.GONE : View.VISIBLE);
         for (ReminderStore.Item it : future) {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
@@ -1172,18 +1176,49 @@ public class MainActivity extends AppCompatActivity {
             tv.setText(fmtReminderTime(it.time) + " — " + it.number);
             tv.setTextSize(13);
             tv.setTextColor(Color.WHITE);
-            MaterialButton x = new MaterialButton(this);
+            TextView x = new TextView(this);
             x.setText("✕");
-            x.setTextSize(14);
+            x.setTextSize(18);
+            x.setTextColor(Color.WHITE);
+            x.setPadding(24, 12, 24, 12);
             final String num = it.number;
             x.setOnClickListener(v -> {
                 ReminderReceiver.cancel(MainActivity.this, num);
                 ReminderStore.remove(MainActivity.this, num);
                 refreshReminderList();
             });
+            TypedValue sel = new TypedValue();
+            getTheme().resolveAttribute(android.R.attr.selectableItemBackground, sel, true);
+            row.setBackgroundResource(sel.resourceId);
+            row.setOnClickListener(v -> openReminderNumber(num));
             row.addView(tv);
             row.addView(x);
             reminderListContainer.addView(row);
+        }
+    }
+
+    /** v4.34: reminder-e tap -> call list-e oi number-er row khule dekhano (Call + Copy okhan theke).
+     *  Pending hole কল বাকি tab, call hoye thakle কল করা হয়েছে tab; search-e number bosano hoy
+     *  jate row-ti ekai chokhe pore. List-e na pele toast diye janano hoy. */
+    private void openReminderNumber(String number) {
+        if (adapter == null) return;
+        String dial = RowAdapter.dialNumber(number);
+        int tab = 0;
+        List<Row> all = adapter.getAll();
+        if (all != null) {
+            for (Row r : all) {
+                if (r != null && RowAdapter.dialNumber(r.number).equals(dial)) {
+                    tab = (r.status == null || r.status.isEmpty()) ? 0 : 1;
+                    break;
+                }
+            }
+        }
+        applySection(1);
+        adapter.setTab(tab); setTabUI();
+        if (searchBox != null) searchBox.setText(dial);
+        boolean loadingCalled = (tab == 1 && selectedDate != null && !selectedDate.equals(adapter.getCalledDate()));
+        if (adapter.getItemCount() == 0 && !loadingCalled) {
+            Toast.makeText(this, "Ei number ajker list-e pelam na \u2014 hoyto onno din call hoyeche ba list theke sorano hoyeche", Toast.LENGTH_LONG).show();
         }
     }
 
