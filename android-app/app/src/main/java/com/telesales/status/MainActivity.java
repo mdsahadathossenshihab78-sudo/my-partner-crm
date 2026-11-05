@@ -32,6 +32,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -1363,6 +1364,12 @@ public class MainActivity extends AppCompatActivity {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
+            float dens = getResources().getDisplayMetrics().density;
+            ImageView bell = new ImageView(this);
+            LinearLayout.LayoutParams bellLp = new LinearLayout.LayoutParams((int) (18 * dens), (int) (18 * dens));
+            bellLp.setMarginEnd((int) (8 * dens));
+            bell.setLayoutParams(bellLp);
+            bell.setImageResource(R.drawable.ic_bell);
             TextView tv = new TextView(this);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
             tv.setLayoutParams(lp);
@@ -1386,6 +1393,7 @@ public class MainActivity extends AppCompatActivity {
             getTheme().resolveAttribute(android.R.attr.selectableItemBackground, sel, true);
             row.setBackgroundResource(sel.resourceId);
             row.setOnClickListener(v -> openReminderNumber(num));
+            row.addView(bell);
             row.addView(tv);
             row.addView(x);
             reminderListContainer.addView(row);

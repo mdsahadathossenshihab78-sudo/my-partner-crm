@@ -38,10 +38,10 @@
     <Spinner android:id="@+id/spValid" android:layout_width="match_parent" android:layout_height="48dp"
         android:background="@drawable/glass_field" android:layout_marginTop="4dp" />
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="১ম কল রিমার্ক" android:textSize="11sp" android:textStyle="bold"
+        android:text="১ম কলের মন্তব্য" android:textSize="11sp" android:textStyle="bold"
         android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="8dp" />
     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etRemark1"
-        android:layout_width="match_parent" android:layout_height="48dp" android:hint="১ম কলের রিমার্ক"
+        android:layout_width="match_parent" android:layout_height="48dp" android:hint="১ম কলের মন্তব্য"
         android:background="@drawable/glass_field" android:padding="12dp" android:layout_marginTop="4dp"
         android:textColor="@color/white" android:textColorHint="@color/muted_light" />
     <!-- Batch feature #6: remark quick phrase — ek tap-e 1st remark-e bosbe -->
@@ -60,39 +60,43 @@
             android:background="@drawable/glass_field" android:textColor="@color/white" />
     </LinearLayout>
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="২য় কল রিমার্ক" android:textSize="11sp" android:textStyle="bold"
+        android:text="২য় কলের মন্তব্য" android:textSize="11sp" android:textStyle="bold"
         android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="8dp" />
     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etRemark2"
-        android:layout_width="match_parent" android:layout_height="48dp" android:hint="২য় কলের রিমার্ক"
+        android:layout_width="match_parent" android:layout_height="48dp" android:hint="২য় কলের মন্তব্য"
         android:background="@drawable/glass_field" android:padding="12dp" android:layout_marginTop="4dp"
         android:textColor="@color/white" android:textColorHint="@color/muted_light" />
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="অন্যান্য নাম্বার" android:textSize="11sp" android:textStyle="bold"
+        android:text="অন্য নাম্বার" android:textSize="11sp" android:textStyle="bold"
         android:textColor="@color/muted_light" android:letterSpacing="0.05" android:layout_marginTop="8dp" />
     <com.google.android.material.textfield.TextInputEditText android:id="@+id/etOthers"
-        android:layout_width="match_parent" android:layout_height="48dp" android:hint="অন্যান্য নাম্বার"
+        android:layout_width="match_parent" android:layout_height="48dp" android:hint="অন্য নাম্বার"
         android:inputType="phone" android:background="@drawable/glass_field" android:padding="12dp"
         android:layout_marginTop="4dp" android:textColor="@color/white" android:textColorHint="@color/muted_light" />
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:layout_marginTop="10dp">
-        <android.widget.Button android:id="@+id/btnCall" android:layout_width="0dp"
-            android:layout_height="48dp" android:layout_weight="1" android:text="কল"
-            android:background="@drawable/glass_field" android:textColor="@color/white" />
-        <android.widget.Button android:id="@+id/btnCopy" android:layout_width="0dp"
-            android:layout_height="48dp" android:layout_weight="1"
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnCall" android:layout_width="0dp"
+            android:layout_height="48dp" android:layout_weight="1" android:text="কল" android:minWidth="0dp"
+            app:icon="@drawable/ic_call" app:iconSize="20dp" app:iconPadding="8dp"
+            app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnCopy" android:layout_width="0dp"
+            android:layout_height="48dp" android:layout_weight="1" android:minWidth="0dp"
             android:layout_marginStart="10dp" android:text="কপি"
-            android:background="@drawable/glass_field" android:textColor="@color/white" />
+            app:icon="@drawable/ic_copy" app:iconSize="20dp" app:iconPadding="8dp"
+            app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
         <com.google.android.material.button.MaterialButton android:id="@+id/btnSave"
             android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1.4"
             android:layout_marginStart="10dp" android:text="সেভ করুন"
+            app:icon="@drawable/ic_save" app:iconSize="20dp" app:iconPadding="8dp"
             app:backgroundTint="@null" android:background="@drawable/btn_gradient"
             android:textColor="@color/white" />
     </LinearLayout>
     <!-- v4.31: call reminder — choto affordance, Call/Copy/Save-er motoi row-e -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:layout_marginTop="8dp">
-        <android.widget.Button android:id="@+id/remindBtn" android:layout_width="match_parent"
-            android:layout_height="44dp" android:text="মনে করিয়ে দিন"
-            android:background="@drawable/glass_field" android:textColor="@color/white" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/remindBtn" android:layout_width="match_parent"
+            android:layout_height="44dp" android:text="মনে করিয়ে দিন" android:minWidth="0dp"
+            app:icon="@drawable/ic_bell" app:iconSize="20dp" app:iconPadding="8dp"
+            app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
     </LinearLayout>
 </LinearLayout>
