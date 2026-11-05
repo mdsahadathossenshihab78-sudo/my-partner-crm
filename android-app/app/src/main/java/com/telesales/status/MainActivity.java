@@ -2374,22 +2374,22 @@ public class MainActivity extends AppCompatActivity {
                     try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}
                 }
                 StringBuilder sb = new StringBuilder();
-                sb.append("তারিখ: ").append(displayDay(today)).append("\n");
+                sb.append("Date: ").append(displayDay(today)).append("\n");
                 // Batch fix #10: past-date report-e bortoman somoy dekhale mone hoy oi
                 // somoye call hoyeche — tai past date-e "pore banano", ajker date-e somoy.
-                if (today.equals(dhakaDate())) sb.append("সময়: ").append(dhaka("hh:mm a")).append("\n");
-                else sb.append("সময়: পরে বানানো\n");
-                sb.append("এজেন্ট আইডি: ").append(agentId).append("\n");
-                sb.append("মোট কল: ").append(total).append("\n");
+                if (today.equals(dhakaDate())) sb.append("Time: ").append(dhaka("hh:mm a")).append("\n");
+                else sb.append("Time: Generated later\n");
+                sb.append("Agent ID: ").append(agentId).append("\n");
+                sb.append("Total Calls: ").append(total).append("\n");
                 sb.append("Connected: ").append(conn).append("\n");
-                sb.append("রেজিস্ট্রেশন: ").append(regTotalCount(regToday)).append("\n");
+                sb.append("Registration: ").append(regTotalCount(regToday)).append("\n");
                 // v4.27: Registration details ar dekhabo na — sudhu count (user order).
-                sb.append("এফটিডি: ").append(ftdTotalCount(ftdToday)).append("\n");
-                sb.append("মোট রিচার্জ টাকা: ").append(fmtAmount(sum)).append("\n");
+                sb.append("FTD: ").append(ftdTotalCount(ftdToday)).append("\n");
+                sb.append("Total Amount Recharged: ").append(fmtAmount(sum)).append("\n");
                 sb.append("Invalid: ").append(countAutoInvalid(logs, today)).append("\n");
                 // v4.18: manual Invalid rows are not listed. sb.append("-\n");
                 // v4.18: manual Invalid rows are not listed. sb.append(cellE(r, 1)).append(" - ").append(cellE(r, 2)).append("\n");
-                sb.append("সমস্যা:\n");
+                sb.append("Problems:\n");
                 if (probToday.isEmpty()) sb.append("-\n");
                 else for (REntry r : probToday) sb.append(cellE(r, 1)).append("\n");
                 String text = sb.toString().trim();

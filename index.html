@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Telesales Status</title>
+<title>Telesales Agent CRM</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
@@ -13,25 +13,28 @@ body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif
 .b2{width:300px;height:300px;background:#2563eb;top:30%;right:-80px}
 .b3{width:260px;height:260px;background:#06b6d4;bottom:-70px;left:35%}
 .b4{width:220px;height:220px;background:#db2777;top:55%;left:-60px}
-.top{position:sticky;top:0;z-index:50;background:linear-gradient(135deg,#1e1b4b,#312e81 60%,#4c1d95);border-bottom:1px solid rgba(255,255,255,.14)}
+.top{position:sticky;top:0;z-index:50;background:rgba(11,16,38,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.14)}
 .top-inner{max-width:1120px;margin:0 auto;padding:0 16px;height:64px;display:flex;align-items:center;gap:12px}
-.brand{flex:1;min-width:0}
+.brand{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+.brand>div{min-width:0;flex:1}
+.brand .logo-badge{flex:none;line-height:0}
+.brand .logo-badge svg{display:block}
 .top h1{margin:0;font-size:20px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top p{margin:2px 0 0;opacity:.85;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-apk{white-space:nowrap;flex-shrink:0}
 .wrap{position:relative;z-index:1;max-width:1120px;margin:20px auto 0;padding:0 16px 32px}
 .card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:20px;margin-top:16px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .card h2{font-size:20px}
-.btn{border:0;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer;color:#fff;min-height:44px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
-.btn-primary{background:linear-gradient(135deg,#4f46e5,#7c3aed)}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:700;cursor:pointer;color:#fff;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,#8b5cf6,#3b82f6)}
 .btn-light{background:rgba(255,255,255,.12)}
 .btn-sm{padding:10px 14px;font-size:13px}
-.btn-grad{background:linear-gradient(135deg,#4f46e5,#db2777)}
+.btn-grad{background:linear-gradient(135deg,#8b5cf6,#ec4899)}
 input,select,textarea{width:100%;padding:13px;border:1px solid rgba(255,255,255,.2);border-radius:12px;font-size:16px;background:rgba(255,255,255,.08);color:#fff}
 input::placeholder,textarea::placeholder{color:#9aa3b8}select option{color:#111827}
 label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}.muted{color:#b8c0d8;font-size:14px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.report{border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:14px;margin-top:12px;background:rgba(255,255,255,.05)}
+.report{border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px;margin-top:10px;background:rgba(255,255,255,.05)}
 .badge{display:inline-block;background:rgba(255,255,255,.12);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700}
 .badge-ok{background:#14532d}.badge-no{background:#7f1d1d}.badge-blank{background:#713f12}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 18px;border-radius:12px;display:none;z-index:99;max-width:92vw;text-align:center;pointer-events:none}
@@ -42,7 +45,7 @@ label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}.muted{colo
 .s-green{background:rgba(22,163,74,.35);border:1px solid rgba(74,222,128,.4)}
 .s-rose{background:rgba(225,29,72,.35);border:1px solid rgba(251,113,133,.4)}
 .s-violet{background:rgba(124,58,237,.35);border:1px solid rgba(167,139,250,.4)}
-.tab-on{background:linear-gradient(135deg,#4f46e5,#db2777)!important}
+.tab-on{background:linear-gradient(135deg,#8b5cf6,#ec4899)!important}
 .entry{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.1)}
 .entry:last-child{border-bottom:0}
 .xbtn{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:50%;width:44px;height:44px;min-width:44px;cursor:pointer;font-size:18px}
@@ -72,29 +75,38 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 #syncStatus{background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px}
 #weekSummary{margin-top:14px}
 .card{box-shadow:0 10px 30px rgba(0,0,0,.28)}
-#list .report{padding:16px}
+#list .report{padding:12px}
 .report label{font-size:13px}
 input:focus,select:focus,textarea:focus{outline:2px solid #818cf8;outline-offset:1px;border-color:#818cf8}
 button:focus-visible,a:focus-visible{outline:2px solid #c7d2fe;outline-offset:2px}
+.ic{width:20px;height:20px;vertical-align:middle;flex:none}
+.ic.sm{width:18px;height:18px}
+.card h2{display:flex;align-items:center;gap:8px}
+.card h3{display:flex;align-items:center;gap:8px}
+.xbtn{display:inline-flex;align-items:center;justify-content:center}
+#list .report>div{margin-top:6px!important}
+#list .report label{margin-bottom:4px}
+#list .report .btn{min-height:40px}
+#list .report input,#list .report select{padding:11px 12px}
 </style></head><body>
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
-<div class="top"><div class="top-inner"><div class="brand"><h1>📞 Telesales Status</h1><p>Telesales (Team-03) • নিজের Agent ID দিয়ে শুধু নিজের লিস্ট</p></div><a class="btn btn-light top-apk" href="telesales-status.apk">⬇️ APK ডাউনলোড</a></div></div>
+<div class="top"><div class="top-inner"><div class="brand"><span class="logo-badge"><svg width="40" height="40" viewBox="0 0 84 84"><rect width="84" height="84" rx="20" fill="#0b1026" stroke="#8b5cf6" stroke-width="2"/><text x="42" y="58" font-size="44" font-weight="bold" text-anchor="middle" fill="#fff">T</text><path d="M58 26c4 2 4 8 0 10M64 20c7 4 7 14 0 18" fill="none" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/></svg></span><div><h1>Telesales Agent CRM</h1><p>Telesales (Team-03) • নিজের Agent ID দিয়ে শুধু নিজের লিস্ট</p></div></div><a class="btn btn-light top-apk" href="telesales-status.apk"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> APK ডাউনলোড</a></div></div>
 <div class="wrap">
 
-<div class="card" id="loginCard"><h2 style="margin-top:0">🔐 লগইন করুন</h2><p class="muted">Continue with Google দিয়ে লগইন করুন। শিটে লেখার জন্য Google Sheets অনুমতি চাওয়া হবে — এটা ছাড়া স্ট্যাটাস আপডেট হবে না।</p>
-<button class="btn btn-primary" id="googleBtn">▶ Continue with Google</button><p class="muted" id="loginMsg"></p></div>
+<div class="card" id="loginCard"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> লগইন করুন</h2><p class="muted">Continue with Google দিয়ে লগইন করুন। শিটে লেখার জন্য Google Sheets অনুমতি চাওয়া হবে — এটা ছাড়া স্ট্যাটাস আপডেট হবে না।</p>
+<button class="btn btn-primary" id="googleBtn"><svg class="ic" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75z"/></svg> Continue with Google</button><p class="muted" id="loginMsg"></p></div>
 
-<div class="card" id="agentCard" style="display:none"><h2 style="margin-top:0">🪪 Agent ID দিন</h2><p class="muted">আপনার Agent ID (আপনার ট্যাবের নাম, যেমন bdxsukuna30) লিখুন — শুধু আপনার লিস্ট দেখাবে।</p>
+<div class="card" id="agentCard" style="display:none"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M5.8 16.5c.5-1.6 1.5-2.3 2.7-2.3s2.2.7 2.7 2.3"/><line x1="15" y1="9" x2="19" y2="9"/><line x1="15" y1="13" x2="19" y2="13"/></svg> Agent ID দিন</h2><p class="muted">আপনার Agent ID (আপনার ট্যাবের নাম, যেমন bdxsukuna30) লিখুন — শুধু আপনার লিস্ট দেখাবে।</p>
 <label for="agentInput">Agent ID</label><input id="agentInput" placeholder="Agent ID লিখুন">
 <div class="row" style="margin-top:12px"><button class="btn btn-grad" id="agentBtn">চালিয়ে যান</button><button class="btn btn-light" id="agentBackBtn">অন্য Gmail দিয়ে লগইন</button></div>
 <p class="muted" id="agentMsg"></p></div>
 
-<div class="card" id="adminCard" style="display:none"><h2 style="margin-top:0">🛡 Admin Panel</h2><p class="muted">Number paste kore Agent-er list-e jog korun — ager data bodlabe na, shudhu seshe jog hobe।</p>
+<div class="card" id="adminCard" style="display:none"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Admin Panel</h2><p class="muted">Number paste kore Agent-er list-e jog korun — ager data bodlabe na, shudhu seshe jog hobe।</p>
 <label for="adminAgentInput">Agent ID</label><input id="adminAgentInput" placeholder="Agent ID লিখুন">
 <label for="adminNumbersInput" style="margin-top:12px">Numbers</label><textarea id="adminNumbersInput" rows="8" placeholder="Number-gulo paste korun — proti line-e ekta, ba comma diye"></textarea>
 <div class="row" style="margin-top:12px"><button class="btn btn-grad" id="adminAddBtn">Numbers Add korun</button><button class="btn btn-light" id="adminLogoutBtn">লগআউট</button></div>
 <p class="muted" id="adminMsg"></p>
-<div style="margin-top:20px;border-top:1px solid rgba(255,255,255,.14);padding-top:16px"><h3 style="margin:0 0 8px">⚙️ Sheet Settings</h3><p class="muted">প্রতিটা শিটের জন্য নতুন শিটের লিংক বা আইডি বসিয়ে যাচাই করে বদলাতে পারবেন। আইডি হলো শিটের লিংকে /d/ আর /edit-এর মাঝের লম্বা কোড। আগের ডাটা দেখা যাবে, কিছু মুছবে না।</p><p class="muted" id="ssStatus"></p>
+<div style="margin-top:20px;border-top:1px solid rgba(255,255,255,.14);padding-top:16px"><h3 style="margin:0 0 8px"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Sheet Settings</h3><p class="muted">প্রতিটা শিটের জন্য নতুন শিটের লিংক বা আইডি বসিয়ে যাচাই করে বদলাতে পারবেন। আইডি হলো শিটের লিংকে /d/ আর /edit-এর মাঝের লম্বা কোড। আগের ডাটা দেখা যাবে, কিছু মুছবে না।</p><p class="muted" id="ssStatus"></p>
 <div style="margin-top:12px"><label>নাম্বার শিট</label><p class="muted" id="ssCurNUMBERS">জানা যায়নি</p><div class="row"><input id="ssInNUMBERS" placeholder="নতুন শিটের লিংক বা আইডি" style="flex:1"><button class="btn btn-light btn-sm" id="ssVerifyNUMBERS">যাচাই</button><button class="btn btn-grad btn-sm" id="ssSwitchNUMBERS">বদলাও</button></div><p class="muted" id="ssHistNUMBERS"></p></div>
 <div style="margin-top:12px"><label>স্ট্যাটাস লগ শিট</label><p class="muted" id="ssCurSTATUS_LOG">জানা যায়নি</p><div class="row"><input id="ssInSTATUS_LOG" placeholder="নতুন শিটের লিংক বা আইডি" style="flex:1"><button class="btn btn-light btn-sm" id="ssVerifySTATUS_LOG">যাচাই</button><button class="btn btn-grad btn-sm" id="ssSwitchSTATUS_LOG">বদলাও</button></div><p class="muted" id="ssHistSTATUS_LOG"></p></div>
 <div style="margin-top:12px"><label>রিপোর্ট শিট</label><p class="muted" id="ssCurREPORTS">জানা যায়নি</p><div class="row"><input id="ssInREPORTS" placeholder="নতুন শিটের লিংক বা আইডি" style="flex:1"><button class="btn btn-light btn-sm" id="ssVerifyREPORTS">যাচাই</button><button class="btn btn-grad btn-sm" id="ssSwitchREPORTS">বদলাও</button></div><p class="muted" id="ssHistREPORTS"></p></div>
@@ -103,9 +115,9 @@ button:focus-visible,a:focus-visible{outline:2px solid #c7d2fe;outline-offset:2p
 
 </div>
 <div id="mainView" style="display:none">
-<div class="card"><div class="row user-bar" style="justify-content:space-between"><span>👤 <b id="userEmail"></b> • <span id="agentLabel"></span></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
-<div class="row" style="margin-top:12px"><button class="btn btn-light" id="reportBtn" style="flex:1">📋 Report</button></div>
-<div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn">◀</button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn">▶</button></div>
+<div class="card"><div class="row user-bar" style="justify-content:space-between"><span><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <b id="userEmail"></b> • <span id="agentLabel"></span></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
+<div class="row" style="margin-top:12px"><button class="btn btn-light" id="reportBtn" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Report</button></div>
+<div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>
 <div class="row stats-grid hero" style="margin-top:12px">
 <div class="stat s-blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><b id="heroCalls">0</b><span>মোট কল (এই দিন)</span></div>
 <div class="stat s-violet"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><b id="heroNums">0</b><span>মোট নাম্বার (লিস্ট)</span></div>
@@ -121,24 +133,24 @@ button:focus-visible,a:focus-visible{outline:2px solid #c7d2fe;outline-offset:2p
 </div>
 <p class="muted" id="weekSummary"></p>
 <div class="row" style="margin-top:8px"><button class="btn tab-on" id="tabPendingBtn" style="flex:1">কল বাকি</button><button class="btn btn-light" id="tabDoneBtn" style="flex:1">কল করা হয়েছে</button></div>
-<div class="row" style="margin-top:12px"><input id="search" placeholder="নাম্বার দিয়ে খুঁজুন" style="flex:1"><button class="btn btn-light" id="refreshBtn">↻ রিফ্রেশ</button></div>
+<div class="row" style="margin-top:12px"><input id="search" placeholder="নাম্বার দিয়ে খুঁজুন" style="flex:1"><button class="btn btn-light" id="refreshBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> রিফ্রেশ</button></div>
 <p class="muted" id="syncStatus">লোড হচ্ছে...</p>
 <div id="list"></div>
-<p class="muted">💡 CALLING STATUS, Valid Conversation, 1st Call Remark, 2nd Call Remark, Others number — সব বদলানো যাবে। “সেভ করুন” চাপলেই শিটে লেখা হবে। নম্বর বদলানো যাবে না।</p>
+<p class="muted"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg> CALLING STATUS, Valid Conversation, 1st Call Remark, 2nd Call Remark, Others number — সব বদলানো যাবে। “সেভ করুন” চাপলেই শিটে লেখা হবে। নম্বর বদলানো যাবে না।</p>
 </div></div>
 
 <div id="reportView" style="display:none"><div class="card">
-<div class="row report-head" style="justify-content:space-between"><h2 style="margin:0">📋 Report</h2><button class="btn btn-light btn-sm" id="reportBackBtn">← ফিরে যান</button></div>
-<div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="repPrevDayBtn">◀</button><button class="btn btn-light" id="repDateBtn" style="flex:1"></button><button class="btn btn-light" id="repNextDayBtn">▶</button></div>
+<div class="row report-head" style="justify-content:space-between"><h2 style="margin:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Report</h2><button class="btn btn-light btn-sm" id="reportBackBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> ফিরে যান</button></div>
+<div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="repPrevDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light" id="repDateBtn" style="flex:1"></button><button class="btn btn-light" id="repNextDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>
 <p class="muted" id="repDateNote"></p>
 <div class="rep-sec"><h3 style="margin:0 0 8px">Registration</h3><div class="row" id="regAddRow"><input id="regCount" placeholder="Registration সংখ্যা" inputmode="numeric" style="flex:1"><button class="btn btn-primary btn-sm" id="regAddBtn">+ যোগ করুন</button></div><div id="regList"></div></div>
 <div class="rep-sec"><h3 style="margin:0 0 8px">FTD</h3><div class="row" style="align-items:center" id="ftdStepRow"><button class="btn btn-sm" id="ftdMinusBtn">-</button><b id="ftdStepCount" style="flex:1;text-align:center;font-size:22px">0</b><button class="btn btn-primary btn-sm" id="ftdPlusBtn">+</button></div><div class="row" id="ftdStepAmountRow" style="display:none"><input id="ftdStepAmt" placeholder="এই FTD কত টাকার?" inputmode="decimal" style="flex:1"><button class="btn btn-primary btn-sm" id="ftdStepAddBtn">টাকা যোগ করুন</button></div><p class="muted" id="ftdStepSummary">আজ: 0টা • মোট ৳0</p></div>
 <div class="rep-sec"><h3 style="margin:0 0 8px">Invalid Number (অটো)</h3><p class="muted" id="invAutoSummary">হিসাব হচ্ছে...</p><div id="invAutoList"></div><p class="muted">এই সংখ্যা লগ থেকে অটো হিসাব হয় (Not Connected + Valid No, এক দিনে এক নাম্বার একবার)। পুরোনো হাতে লেখা Invalid রো শিটে ইতিহাস হিসেবে থাকবে, কিন্তু কাউন্টে ধরা হবে না।</p></div>
 <div class="rep-sec"><h3 style="margin:0 0 8px">Problems</h3><div class="row" id="probAddRow"><input id="probText" placeholder="সমস্যা লিখুন" style="flex:1"><button class="btn btn-primary btn-sm" id="probAddBtn">+ যোগ করুন</button></div><div id="probList"></div></div>
-<div class="row" style="margin-top:20px"><button class="btn btn-grad" id="genBtn" style="flex:1">📄 Generate Report</button></div>
-<div id="reportOut" style="display:none;margin-top:16px"><pre class="out" id="reportText"></pre><button class="btn btn-primary" id="copyReportBtn">📋 কপি করুন</button><p class="muted" id="dailyNote"></p></div>
+<div class="row" style="margin-top:20px"><button class="btn btn-grad" id="genBtn" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Generate Report</button></div>
+<div id="reportOut" style="display:none;margin-top:16px"><pre class="out" id="reportText"></pre><button class="btn btn-primary" id="copyReportBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> কপি করুন</button><p class="muted" id="dailyNote"></p></div>
 </div></div>
-<div class="card footer-card"><h2 style="margin-top:0">📱 অ্যাপ ডাউনলোড (APK)</h2><p class="muted">ফোনে অ্যাপ হিসেবে ব্যবহার করতে চাইলে APK ডাউনলোড করে ইনস্টল করুন। ইনস্টলের সময় “Install unknown apps” অনুমতি চাইলে Allow করবেন।</p><a class="btn btn-primary" href="telesales-status.apk" style="text-decoration:none;display:inline-block">⬇️ APK ডাউনলোড করুন</a></div>
+<div class="card footer-card"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> অ্যাপ ডাউনলোড (APK)</h2><p class="muted">ফোনে অ্যাপ হিসেবে ব্যবহার করতে চাইলে APK ডাউনলোড করে ইনস্টল করুন। ইনস্টলের সময় “Install unknown apps” অনুমতি চাইলে Allow করবেন।</p><a class="btn btn-primary" href="telesales-status.apk" style="text-decoration:none;display:inline-block"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> APK ডাউনলোড করুন</a></div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -384,14 +396,14 @@ async function getTabs(){ return getTabsFor(currentNumbersId()); }
 async function loadRows(){
   try{
     await tryRefreshConfig();
-    $('syncStatus').textContent='🔄 শিট থেকে লোড হচ্ছে...';
+    $('syncStatus').textContent='শিট থেকে লোড হচ্ছে...';
     const numsId=currentNumbersId();
     const data=await apiSid(numsId,encodeURIComponent(agentId)+'!A6:F');
     rows=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||'',status:v[1]||'',valid:v[2]||'',remark1:v[3]||'',remark2:v[4]||'',others:v[5]||''})).filter(r=>r.number||r.status||r.valid||r.remark1||r.remark2||r.others);
     lastStatusMap={}; rows.forEach(r=>{lastStatusMap[(r.number||'').trim()]=(r.status||'')+'|'+(r.valid||'');});
     render(); loadDayStats();
-    $('syncStatus').textContent='✅ শিটের সাথে সংযুক্ত — '+rows.length+'টি রো'; dirty=false;
-  }catch(e){$('syncStatus').textContent='⚠️ লোড হয়নি, আবার চেষ্টা করুন।';}
+    $('syncStatus').textContent='শিটের সাথে সংযুক্ত — '+rows.length+'টি রো'; dirty=false;
+  }catch(e){$('syncStatus').textContent='লোড হয়নি, আবার চেষ্টা করুন।';}
 }
 function filteredRows(){
   const q=digits($('search').value.trim());
@@ -412,7 +424,7 @@ function render(){
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-log-${idx}" value="${esc(r.remark1)}" disabled></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-log-${idx}" value="${esc(r.remark2)}" disabled></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-log-${idx}" value="${esc(r.others)}" disabled></div>
-    <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none">📞 Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')">📋 Copy</button></div></div>`;
+    <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button></div></div>`;
     }
     return `<div class="report"><div class="row"><b>${esc(dialNumber(r.number))}</b><span class="badge ${badge}">${r.status==='call connected'?'● call connected':r.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${r.row}</span>${r.valid?`<span class="badge">Valid: ${esc(r.valid)}</span>`:''}</div>
     <div style="margin-top:10px"><label>CALLING STATUS</label><select id="st-${r.row}"><option value="" ${!r.status?'selected':''}>— খালি —</option><option value="call connected" ${r.status==='call connected'?'selected':''}>call connected</option><option value="not connected" ${r.status==='not connected'?'selected':''}>not connected</option></select></div>
@@ -420,7 +432,7 @@ function render(){
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-${r.row}" value="${esc(r.remark1)}" placeholder="1st call remark লিখুন"></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-${r.row}" value="${esc(r.remark2)}" placeholder="2nd call remark লিখুন"></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-${r.row}" value="${esc(r.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
-    <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none">📞 Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')">📋 Copy</button><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})" style="flex:1">💾 সেভ করুন</button></div></div>`;
+    <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> সেভ করুন</button></div></div>`;
   }).join(''):'<p class="muted">কোনো রো পাওয়া যায়নি।</p>';
 }
 async function copyNum(n){
@@ -460,8 +472,8 @@ window.saveRow=async (rowNum)=>{
         if(!localStorage.getItem('log_anchor_date_'+agentId)) localStorage.setItem('log_anchor_date_'+agentId,today);
       }catch(e){toast('শিটে সেভ হয়েছে, লগে জমা হয়নি');}
     }
-    render(); loadDayStats(); dirty=false; toast('✅ রো '+rowNum+' শিটে আপডেট হয়েছে'+(cleared?' (ajker log row muche geche)':''));
-  }catch(e){toast('❌ সেভ হয়নি, আবার চেষ্টা করুন');}
+    render(); loadDayStats(); dirty=false; toast('রো '+rowNum+' শিটে আপডেট হয়েছে'+(cleared?' (ajker log row muche geche)':''));
+  }catch(e){toast('সেভ হয়নি, আবার চেষ্টা করুন');}
 };
 function defaultConfigMap(){ return {NUMBERS:[{sheetId:SHEET_ID,fromDate:''}],STATUS_LOG:[{sheetId:SHARED_STATUS_LOG_ID,fromDate:''}],REPORTS:[{sheetId:SHARED_REPORT_ID,fromDate:''}],DAILY:[{sheetId:DAILY_REPORTS_ID,fromDate:''}]}; }
 function currentConfig(){ return sheetConfigCache||defaultConfigMap(); }
@@ -598,7 +610,7 @@ async function loadReportData(){
     window._rep={regs:regs,ftds:ftds,invs:s.inv,probs:probs,autoInv:autoInv,repDay:day};
   }catch(e){toast('Report লোড হয়নি, আবার চেষ্টা করুন');}
 }
-function renderEntryList(id,list,fmt,showDelete){ $(id).innerHTML=list.length?list.map(e=>{const x=showDelete===false?'':'<button class="xbtn" onclick="deleteEntry(\''+id+'\','+e.sheetRow+',\''+(e.sourceSheet||'')+'\')">✕</button>';return '<div class="entry"><span>'+fmt(e)+'</span>'+x+'</div>';}).join(''):'<p class="muted">কোনো এন্ট্রি নেই।</p>'; }
+function renderEntryList(id,list,fmt,showDelete){ $(id).innerHTML=list.length?list.map(e=>{const x=showDelete===false?'':'<button class="xbtn" onclick="deleteEntry(\''+id+'\','+e.sheetRow+',\''+(e.sourceSheet||'')+'\')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';return '<div class="entry"><span>'+fmt(e)+'</span>'+x+'</div>';}).join(''):'<p class="muted">কোনো এন্ট্রি নেই।</p>'; }
 async function deleteEntry(listId,sheetRow,sourceSheet){
   try{
     const sid=sourceSheet||await reportWriteSheet();
