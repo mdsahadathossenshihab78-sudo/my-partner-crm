@@ -104,6 +104,10 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
 
 
     /** v4.44: ek tap-e chip — dialog/spinner nei. Chip chaplei value bosbe;
+     *  (v4.43 dialog-e crash chilo: status "call connected" hole withUnknown
+     *  labels-e 4th item "call connected" jog korto, kintu opts-e na — oi 4th
+     *  item-e chaple opts[3] out-of-bounds-e app crash korto. Tai dialog
+     *  ar kokhono firot anbe na; chip-e ei somossa nei.)
      *  select kora chip-e abar chaple khali hobe (toggle off). Sheet-er ochena
      *  value thakle kono chip select hobe na, kintu Save-e ager motoi thakbe —
      *  chip na chaple r.status/r.valid bodlay na (silent data loss nei). */
