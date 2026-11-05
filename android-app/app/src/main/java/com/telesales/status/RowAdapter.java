@@ -33,10 +33,6 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     private List<Row> all = new ArrayList<>();
     private List<Row> shown = new ArrayList<>();
     private final OnSave onSave;
-    private final String[] statusOpts = {"", "call connected", "not connected"};
-    private final String[] statusLabels = {"— খালি —", "Connected", "Not Connected"};
-    private final String[] validOpts = {"", "Yes", "No"};
-    private final String[] validLabels = {"— খালি —", "Yes", "No"};
 
     public RowAdapter(OnSave onSave) { this.onSave = onSave; }
     /** Date-filtered called tab: log theke asa row-gulo (null = ekhono load hoyni, tokhon purono niyom). */
@@ -106,71 +102,22 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     }
     public List<Row> getAll() { return all; }
 
-    private int indexOf(String[] opts, String v) {
-        for (int i = 0; i < opts.length; i++) if (opts[i].equals(v)) return i;
-        return 0;
-    }
 
-    /** Sheet-e hate-lekha ochena value (jemon "Connected") thakle seta choice-e dekhabe ar
-     *  Save-e ager motoi thakbe — ager bug-e ochena value khali hoye jeto (silent data loss). */
-    private static String[] withUnknown(String[] opts, String v) {
-        if (v == null || v.isEmpty()) return opts;
-        for (String o : opts) if (o.equals(v)) return opts;
-        String[] out = new String[opts.length + 1];
-        System.arraycopy(opts, 0, out, 0, opts.length);
-        out[opts.length] = v;
-        return out;
+    /** v4.44: ek tap-e chip — dialog/spinner nei. Chip chaplei value bosbe;
+     *  select kora chip-e abar chaple khali hobe (toggle off). Sheet-er ochena
+     *  value thakle kono chip select hobe na, kintu Save-e ager motoi thakbe —
+     *  chip na chaple r.status/r.valid bodlay na (silent data loss nei). */
+    private void refreshStatusChips(Holder h, String status) {
+        boolean conn = "call connected".equals(status);
+        boolean notConn = "not connected".equals(status);
+        h.statusChipConn.setBackgroundResource(conn ? R.drawable.chip_green : R.drawable.glass_field);
+        h.statusChipNotConn.setBackgroundResource(notConn ? R.drawable.chip_rose : R.drawable.glass_field);
     }
-
-    private void refreshStatusChip(Holder h, String status) {
-        if ("call connected".equals(status)) {
-            h.tvChipStatus.setText("● Connected");
-            h.tvChipStatus.setBackgroundResource(R.drawable.chip_green);
-            h.tvStatusField.setText("Connected ▾");
-        } else if ("not connected".equals(status)) {
-            h.tvChipStatus.setText("● Not Connected");
-            h.tvChipStatus.setBackgroundResource(R.drawable.chip_rose);
-            h.tvStatusField.setText("Not Connected ▾");
-        } else if (status == null || status.isEmpty()) {
-            h.tvChipStatus.setText("● খালি");
-            h.tvChipStatus.setBackgroundResource(R.drawable.chip_grey);
-            h.tvStatusField.setText("— খালি — ▾");
-        } else {
-            h.tvChipStatus.setText("● খালি");
-            h.tvChipStatus.setBackgroundResource(R.drawable.chip_grey);
-            h.tvStatusField.setText(status + " ▾");
-        }
-    }
-    private void refreshValidChip(Holder h, String valid) {
-        if (valid == null || valid.isEmpty()) {
-            h.tvChipValid.setVisibility(View.GONE);
-            h.tvValidField.setText("— খালি — ▾");
-        } else {
-            h.tvChipValid.setVisibility(View.VISIBLE);
-            String vLabel = valid;
-            h.tvChipValid.setText("ভ্যালিড: " + vLabel);
-            h.tvChipValid.setBackgroundResource("Yes".equals(valid) ? R.drawable.chip_blue : R.drawable.chip_grey);
-            h.tvValidField.setText(vLabel + " ▾");
-        }
-    }
-
-    /** v4.41: Spinner-er bodle tap-choice dialog — RecyclerView-te Spinner-e
-     *  prothom tap sudhu focus nito, 2-3 bar chap dite hoto, kokhono nito na;
-     *  dialog-e ek tap-ei option bosbe, rebind-eo bondho hobe na. */
-    private void showChoiceDialog(Holder h, Row r, boolean isStatus) {
-        final String[] opts = isStatus ? withUnknown(statusOpts, r.status) : withUnknown(validOpts, r.valid);
-        final String[] labels = isStatus ? withUnknown(statusLabels, r.status) : withUnknown(validLabels, r.valid);
-        String cur = isStatus ? r.status : r.valid;
-        new AlertDialog.Builder(h.itemView.getContext())
-            .setTitle(isStatus ? "কলিং স্ট্যাটাস" : "ভ্যালিড কনভারসেশন")
-            .setSingleChoiceItems(labels, indexOf(opts, cur), (d, which) -> {
-                if (isStatus) { r.status = opts[which]; refreshStatusChip(h, r.status); }
-                else { r.valid = opts[which]; refreshValidChip(h, r.valid); }
-                DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others);
-                d.dismiss();
-            })
-            .setNegativeButton("বাতিল", null)
-            .show();
+    private void refreshValidChips(Holder h, String valid) {
+        boolean yes = "Yes".equals(valid);
+        boolean no = "No".equals(valid);
+        h.validChipYes.setBackgroundResource(yes ? R.drawable.chip_blue : R.drawable.glass_field);
+        h.validChipNo.setBackgroundResource(no ? R.drawable.chip_grey : R.drawable.glass_field);
     }
 
     @NonNull @Override public Holder onCreateViewHolder(@NonNull ViewGroup p, int t) {
@@ -196,17 +143,22 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         }
         if (histShown == 0) h.tvHistory.setVisibility(View.GONE);
         else { h.tvHistory.setText("আগের কল: " + hb.toString() + (histMore > 0 ? " +" + histMore + "টা" : "")); h.tvHistory.setVisibility(View.VISIBLE); }
-        h.tvStatusField.setEnabled(!r.viewOnly); h.tvValidField.setEnabled(!r.viewOnly);
+        h.statusChipConn.setEnabled(!r.viewOnly); h.statusChipNotConn.setEnabled(!r.viewOnly);
+        h.validChipYes.setEnabled(!r.viewOnly); h.validChipNo.setEnabled(!r.viewOnly);
+        float chipAlpha = r.viewOnly ? 0.55f : 1f;
+        h.statusChipConn.setAlpha(chipAlpha); h.statusChipNotConn.setAlpha(chipAlpha);
+        h.validChipYes.setAlpha(chipAlpha); h.validChipNo.setAlpha(chipAlpha);
         h.etRemark1.setEnabled(!r.viewOnly); h.etRemark2.setEnabled(!r.viewOnly); h.etOthers.setEnabled(!r.viewOnly);
         h.phraseBtn1.setEnabled(!r.viewOnly); h.phraseBtn2.setEnabled(!r.viewOnly); h.phraseBtn3.setEnabled(!r.viewOnly);
         h.btnSave.setEnabled(!r.viewOnly);
         h.btnSave.setText(r.viewOnly ? "শুধু দেখা যাবে" : "সেভ করুন");
-        // v4.41: status/valid ekhon tappable field + choice dialog (Spinner sorano —
-        // RecyclerView-te Spinner-er prothom tap sudhu focus nito, tai 2-3 bar chap lagto).
-        refreshStatusChip(h, r.status);
-        refreshValidChip(h, r.valid);
-        h.tvStatusField.setOnClickListener(v -> { if (!r.viewOnly) showChoiceDialog(h, r, true); });
-        h.tvValidField.setOnClickListener(v -> { if (!r.viewOnly) showChoiceDialog(h, r, false); });
+        // v4.44: status/valid ekhon ek-tap chip — dialog/spinner nei, chip chaplei bosbe.
+        refreshStatusChips(h, r.status);
+        refreshValidChips(h, r.valid);
+        h.statusChipConn.setOnClickListener(v -> { if (r.viewOnly) return; r.status = "call connected".equals(r.status) ? "" : "call connected"; refreshStatusChips(h, r.status); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        h.statusChipNotConn.setOnClickListener(v -> { if (r.viewOnly) return; r.status = "not connected".equals(r.status) ? "" : "not connected"; refreshStatusChips(h, r.status); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        h.validChipYes.setOnClickListener(v -> { if (r.viewOnly) return; r.valid = "Yes".equals(r.valid) ? "" : "Yes"; refreshValidChips(h, r.valid); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        h.validChipNo.setOnClickListener(v -> { if (r.viewOnly) return; r.valid = "No".equals(r.valid) ? "" : "No"; refreshValidChips(h, r.valid); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
         // Batch fix #1: lekha sathe sathe Row-te joma (Save-er age scroll/search korleo harabe na).
         // Purono watcher age sorano — na hole purono row-te bhul lekha jeto.
         if (h.wRemark1 != null) h.etRemark1.removeTextChangedListener(h.wRemark1);
@@ -269,8 +221,8 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             }
         });
         h.btnSave.setOnClickListener(v -> {
-            // v4.41: status/valid dialog thekei Row-te live thake — save-er somoy
-            // ar spinner theke pora lage na (setai kokhono purono value dito).
+            // v4.44: status/valid chip thekei Row-te live thake — save-er somoy
+            // ar field theke pora lage na (setai kokhono purono value dito).
             r.remark1 = h.etRemark1.getText() == null ? "" : h.etRemark1.getText().toString().trim();
             r.remark2 = h.etRemark2.getText() == null ? "" : h.etRemark2.getText().toString().trim();
             r.others = h.etOthers.getText() == null ? "" : h.etOthers.getText().toString().trim();
@@ -301,7 +253,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     @Override public int getItemCount() { return shown.size(); }
 
     static class Holder extends RecyclerView.ViewHolder {
-        TextView tvNumber, tvRow, tvChipStatus, tvChipValid, tvHistory, tvStatusField, tvValidField;
+        TextView tvNumber, tvRow, tvHistory, statusChipConn, statusChipNotConn, validChipYes, validChipNo;
         TextInputEditText etRemark1, etRemark2, etOthers;
         TextWatcher wRemark1, wRemark2, wOthers;
         android.widget.Button btnCall, btnCopy, btnRemind; MaterialButton btnSave;
@@ -310,8 +262,8 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             super(v);
             tvNumber = v.findViewById(R.id.tvNumber); tvRow = v.findViewById(R.id.tvRow);
             tvHistory = v.findViewById(R.id.tvHistory);
-            tvChipStatus = v.findViewById(R.id.tvChipStatus); tvChipValid = v.findViewById(R.id.tvChipValid);
-            tvStatusField = v.findViewById(R.id.tvStatusField); tvValidField = v.findViewById(R.id.tvValidField);
+            statusChipConn = v.findViewById(R.id.statusChipConn); statusChipNotConn = v.findViewById(R.id.statusChipNotConn);
+            validChipYes = v.findViewById(R.id.validChipYes); validChipNo = v.findViewById(R.id.validChipNo);
             etRemark1 = v.findViewById(R.id.etRemark1); etRemark2 = v.findViewById(R.id.etRemark2);
             etOthers = v.findViewById(R.id.etOthers); btnCall = v.findViewById(R.id.btnCall);
             btnCopy = v.findViewById(R.id.btnCopy); btnRemind = v.findViewById(R.id.remindBtn);

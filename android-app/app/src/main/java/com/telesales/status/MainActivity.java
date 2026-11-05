@@ -1370,6 +1370,7 @@ public class MainActivity extends AppCompatActivity {
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
             float dens = getResources().getDisplayMetrics().density;
+            row.setPadding(0, (int) (8 * dens), 0, (int) (8 * dens));
             ImageView bell = new ImageView(this);
             LinearLayout.LayoutParams bellLp = new LinearLayout.LayoutParams((int) (18 * dens), (int) (18 * dens));
             bellLp.setMarginEnd((int) (8 * dens));
@@ -1843,6 +1844,19 @@ public class MainActivity extends AppCompatActivity {
                     adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
                     rowsLoaded = true; maybeOpenPendingReminder();
                     statusText.setText("শিটের সাথে সংযুক্ত — " + rows.size() + "টি রো");
+                    if (rows.isEmpty()) {
+                        statusText.setGravity(Gravity.CENTER);
+                        statusText.setTextSize(14);
+                        android.view.ViewGroup.MarginLayoutParams slp = (android.view.ViewGroup.MarginLayoutParams) statusText.getLayoutParams();
+                        slp.topMargin = (int) (48 * getResources().getDisplayMetrics().density);
+                        statusText.setLayoutParams(slp);
+                    } else {
+                        statusText.setGravity(Gravity.START);
+                        statusText.setTextSize(13);
+                        android.view.ViewGroup.MarginLayoutParams slp = (android.view.ViewGroup.MarginLayoutParams) statusText.getLayoutParams();
+                        slp.topMargin = 0;
+                        statusText.setLayoutParams(slp);
+                    }
                     lastStatusMap.clear();
                     for (Row r : rows) lastStatusMap.put(r.number == null ? "" : r.number.trim(), (r.status == null ? "" : r.status) + "|" + (r.valid == null ? "" : r.valid));
                     loadDayStats();
@@ -2255,6 +2269,8 @@ public class MainActivity extends AppCompatActivity {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
+            float dens = getResources().getDisplayMetrics().density;
+            row.setPadding(0, (int) (6 * dens), 0, (int) (6 * dens));
             TextView t = new TextView(this);
             t.setText(text);
             t.setTextSize(14);
@@ -2266,6 +2282,7 @@ public class MainActivity extends AppCompatActivity {
             del.setTextColor(Color.WHITE);
             del.setBackgroundResource(R.drawable.glass_field);
             del.setMinWidth(0);
+            del.setMinimumHeight(0);
             del.setMinimumWidth(0);
             del.setPadding(20, 8, 20, 8);
             del.setOnClickListener(v -> deleteReportEntry(tab, e));
