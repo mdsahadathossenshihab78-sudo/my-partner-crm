@@ -105,54 +105,78 @@
         </LinearLayout>
         <!-- v4.13 dashboard redesign: hero totals (date pill-er niche) -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="12dp">
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_violet" android:padding="16dp" android:layout_marginEnd="6dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_violet" android:padding="16dp" android:layout_marginEnd="6dp" android:gravity="center_horizontal">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_call" android:layout_marginBottom="6dp" />
                 <TextView android:id="@+id/statTotalCallDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="30sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট কল" android:textSize="12sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_green" android:padding="16dp" android:layout_marginStart="6dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_green" android:padding="16dp" android:layout_marginStart="6dp" android:gravity="center_horizontal">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_users" android:layout_marginBottom="6dp" />
                 <TextView android:id="@+id/statTotalNumDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="30sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট নাম্বার" android:textSize="12sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_blue" android:padding="16dp" android:layout_marginStart="12dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_blue" android:padding="16dp" android:layout_marginStart="12dp" android:gravity="center_horizontal">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_clock" android:layout_marginBottom="6dp" />
                 <TextView android:id="@+id/statTotalRemainDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="30sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট বাকি" android:textSize="12sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
         </LinearLayout>
         <!-- v4.13: day tiles, color-coded by meaning, 2-column grid -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="12dp">
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_green" android:padding="14dp" android:layout_marginEnd="6dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_green" android:padding="14dp" android:layout_marginEnd="6dp"> android:gravity="center_vertical">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check_circle" android:layout_marginEnd="8dp" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statConnDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="কানেক্টেড" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_rose" android:padding="14dp" android:layout_marginStart="6dp">
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_rose" android:padding="14dp" android:layout_marginStart="6dp"> android:gravity="center_vertical">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_phone_off" android:layout_marginEnd="8dp" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statNotConnDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="নট কানেক্টেড" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_blue" android:padding="14dp" android:layout_marginEnd="6dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_blue" android:padding="14dp" android:layout_marginEnd="6dp"> android:gravity="center_vertical">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check" android:layout_marginEnd="8dp" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statValidDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ভ্যালিড" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_rose" android:padding="14dp" android:layout_marginStart="6dp">
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_rose" android:padding="14dp" android:layout_marginStart="6dp"> android:gravity="center_vertical">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_x_circle" android:layout_marginEnd="8dp" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statInvDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ইনভ্যালিড" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_violet" android:padding="14dp" android:layout_marginEnd="6dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_violet" android:padding="14dp" android:layout_marginEnd="6dp"> android:gravity="center_vertical">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_banknote" android:layout_marginEnd="8dp" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statFtdDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="এফটিডি" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_rose" android:padding="14dp" android:layout_marginStart="6dp">
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_rose" android:padding="14dp" android:layout_marginStart="6dp"> android:gravity="center_vertical">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_wallet" android:layout_marginEnd="8dp" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statFtdAmtDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="৳0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="এফটিডি টাকা" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="10dp">
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_violet" android:padding="14dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_violet" android:padding="14dp"> android:gravity="center_vertical">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_clipboard" android:layout_marginEnd="8dp" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statRegDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="রেজিস্ট্রেশন" android:textSize="10sp" android:textColor="#E6FFFFFF" />
+            </LinearLayout>
             </LinearLayout>
         </LinearLayout>
         <!-- Batch feature #10: ajker target card (sudhu ajker tarikh dekhle) -->
