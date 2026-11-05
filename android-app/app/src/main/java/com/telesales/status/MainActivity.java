@@ -205,12 +205,12 @@ public class MainActivity extends AppCompatActivity {
         "কল লিস্টে নাম্বারগুলো থাকে। কল বাকি ট্যাবে যেসব নাম্বারে এখনো কল করা হয়নি, সেগুলো থাকে। কল করে স্ট্যাটাস দিলে সেটা কল করা হয়েছে ট্যাবে চলে যাবে। ড্যাশবোর্ডে তারিখ বদলে ওই দিনের হিসাব দেখতে পারবেন। সার্চ বক্সে নাম্বার লিখে খুঁজতে পারবেন। রিফ্রেশ চাপলে শিট থেকে নতুন লিস্ট আসবে।\n\n" +
         "৩. কল করা ও স্ট্যাটাস দেওয়া\n" +
         "কল চাপলে কল যাবে। কপি চাপলে নাম্বার কপি হবে। কল করার পর স্ট্যাটাস দিন, তারপর সেভ চাপুন। সেভ না চাপলে শিটে কিছু বদলাবে না।\n\n" +
-        "কল কানেক্টেড কখন দিবেন:\n" +
-        "যখন কলটা ধরেছে — অর্থাৎ কেউ ফোন রিসিভ করেছে — তখন কানেক্টেড দিবেন।\n\n" +
-        "কল নট কানেক্টেড কখন দিবেন:\n" +
-        "যখন কেউ কল রিসিভ করেনি, বা ফোন বন্ধ, বা কল কেটে দিয়েছে — তখন নট কানেক্টেড দিবেন।\n\n" +
-        "ভ্যালিড কখন হ্যাঁ দিবেন:\n" +
-        "কল ধরেছে এবং সে ডিপোজিট করবে — এখনই করুক, বা বিকালে করুক, বা সন্ধ্যায় করুক — ডিপোজিট করার কথা যারা বলেছে, তাদের হ্যাঁ দিবেন।\n\n" +
+        "কল Connected কখন দিবেন:\n" +
+        "যখন কলটা ধরেছে — অর্থাৎ কেউ ফোন রিসিভ করেছে — তখন Connected দিবেন।\n\n" +
+        "কল Not Connected কখন দিবেন:\n" +
+        "যখন কেউ কল রিসিভ করেনি, বা ফোন বন্ধ, বা কল কেটে দিয়েছে — তখন Not Connected দিবেন।\n\n" +
+        "ভ্যালিড কখন Yes দিবেন:\n" +
+        "কল ধরেছে এবং সে ডিপোজিট করবে — এখনই করুক, বা বিকালে করুক, বা সন্ধ্যায় করুক — ডিপোজিট করার কথা যারা বলেছে, তাদের Yes দিবেন।\n\n" +
         "ভ্যালিড কখন না দিবেন:\n" +
         "যারা ডিপোজিট করবে না; যারা গেম খেলে না; ফোন ধরেছে কিন্তু ডিপোজিট করবে না বলেছে; বা যার নাম্বার দিয়ে অ্যাকাউন্ট খোলা নেই — তাদের না দিবেন।\n\n" +
         "১ম কল রিমার্ক:\n" +
@@ -223,13 +223,13 @@ public class MainActivity extends AppCompatActivity {
         "নিচের মেনু থেকে রিপোর্ট-এ গেলে দিনের হিসাব দেওয়া যায়:\n" +
         "• রেজিস্ট্রেশন: + চাপলে একটা করে বাড়বে, − চাপলে আজকের শেষটা বাদ যাবে; কোনো টাকা চাওয়া হবে না।\n" +
         "• এফটিডি: + চাপলে একটা করে বাড়বে; প্রতিবার নিচে ওই এফটিডি-র টাকাটা লিখতে হবে। শুধু মোট সংখ্যা আর মোট টাকা দেখাবে, আলাদা আলাদা এফটিডি-র টাকা দেখাবে না। ভুল হলে − চাপলে আজকের শেষ এফটিডি-টা বাদ যাবে।\n" +
-        "• ইনভ্যালিড নাম্বার: আলাদা করে লিখতে হবে না — নিজে থেকে হিসাব হয়। যেসব নাম্বারে নট কানেক্টেড আর ভ্যালিড না দুটোই আছে, সেসব নাম্বার ওই দিনে একবার করে গোনা হয় (একই নাম্বার দুবার থাকলেও ১)। আগের হাতে লেখা ইনভ্যালিড লেখাগুলো শুধু পুরোনো হিসাব হিসেবে থেকে যাবে।\n" +
+        "• Invalid নাম্বার: আলাদা করে লিখতে হবে না — নিজে থেকে হিসাব হয়। যেসব নাম্বারে Not Connected আর Valid No দুটোই আছে, সেসব নাম্বার ওই দিনে একবার করে গোনা হয় (একই নাম্বার দুবার থাকলেও ১)। আগের হাতে লেখা Invalid লেখাগুলো শুধু পুরোনো হিসাব হিসেবে থেকে যাবে।\n" +
         "• সমস্যা: কাজের সময় কোনো সমস্যা হলে এখানে লিখুন।\n" +
-        "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। রিপোর্ট বানান চাপলে নির্বাচিত তারিখ, সময়, এজেন্ট আইডি, মোট কল, কানেক্টেড, রেজিস্ট্রেশন, এফটিডি, মোট টাকা, ইনভ্যালিড আর সমস্যা দিয়ে রিপোর্ট তৈরি হবে। কপি চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
+        "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। রিপোর্ট বানান চাপলে নির্বাচিত তারিখ, সময়, এজেন্ট আইডি, মোট কল, Connected, রেজিস্ট্রেশন, এফটিডি, মোট টাকা, Invalid আর সমস্যা দিয়ে রিপোর্ট তৈরি হবে। কপি চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
         "৫. ওয়েবসাইট বাটন\n" +
         "নিচের মেনু থেকে ওয়েবসাইট চাপলে আপনার সাইটটা অ্যাপের ভিতরেই খুলবে, আর নিচে মেনু দেখা যাবে। প্রথমবার ইউজারনেম-পাসওয়ার্ড দিয়ে লগইন করতে হবে; তারপর থেকে লগইন মনে থাকবে, আপডেট দিলেও ভুলবে না। মেনু থেকে যেকোনো অপশনে যেতে পারবেন।\n\n" +
         "৬. দিনের হিসাব (ড্যাশবোর্ড)\n" +
-        "ড্যাশবোর্ডে ওই দিনের কানেক্টেড, নট কানেক্টেড, ভ্যালিড, ইনভ্যালিড, এফটিডি, এফটিডি টাকা আর রেজিস্ট্রেশন দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।" + "উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।";
+        "ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, এফটিডি, এফটিডি টাকা আর রেজিস্ট্রেশন দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।" + "উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।";
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -516,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
             // Batch fix #4: Not Connected + Valid Yes guide onujayi osombhob — save atkabe
             // na, sudhu sotorko korbe (agent jate bhul kore na fele).
             if ("not connected".equals(row.status) && "Yes".equals(row.valid))
-                Toast.makeText(MainActivity.this, "সতর্কতা: নট কানেক্টেড-এর সাথে ভ্যালিড হ্যাঁ মেলে না — ঠিক আছে তো?", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "সতর্কতা: Not Connected-এর সাথে Valid Yes মেলে না — ঠিক আছে তো?", Toast.LENGTH_LONG).show();
             if (optChanged && !optClear && optimisticTileKeys.add(optKey)) applyLocalSaveToTiles(row.status, row.valid);
             // v4.26: notun call sathe sathe called tab-er upore; clear hole called theke sorbe.
             String optQ = searchBox.getText() == null ? "" : searchBox.getText().toString();
@@ -943,10 +943,10 @@ public class MainActivity extends AppCompatActivity {
                         try { fc = Integer.parseInt(cell(d, 5)); } catch (Exception ignored) {}
                         try { fa = Double.parseDouble(cell(d, 6)); } catch (Exception ignored) {}
                         totCall += tc; totConn += cc; totFtd += fc; totAmt += fa;
-                        lines.add(a + " — মোট " + tc + " • কানেক্টেড " + cc + " • এফটিডি " + fc + " (৳" + fmtAmount(fa) + ") • বাকি " + remS);
+                        lines.add(a + " — মোট " + tc + " • Connected " + cc + " • এফটিডি " + fc + " (৳" + fmtAmount(fa) + ") • বাকি " + remS);
                     }
                 }
-                final String head = "আজ (" + displayDay(today) + ") — " + agents.size() + " জন এজেন্ট • মোট কল " + totCall + " • কানেক্টেড " + totConn + " • এফটিডি " + totFtd + " (৳" + fmtAmount(totAmt) + ") • বাকি " + totRem;
+                final String head = "আজ (" + displayDay(today) + ") — " + agents.size() + " জন এজেন্ট • মোট কল " + totCall + " • Connected " + totConn + " • এফটিডি " + totFtd + " (৳" + fmtAmount(totAmt) + ") • বাকি " + totRem;
                 runOnUiThread(() -> {
                     if (st != null) st.setText(head);
                     if (list != null) {
@@ -1792,7 +1792,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (UserRecoverableAuthException e) {
                 runOnUiThread(() -> startActivityForResult(e.getIntent(), RC_AUTH));
             } catch (Exception e) {
-                runOnUiThread(() -> { loginError.setText("লগইন হয়নি: " + e.getMessage()); showLogin(); });
+                runOnUiThread(() -> { loginError.setText(loginFailText(e)); showLogin(); });
             }
         }).start();
     }
@@ -1805,13 +1805,16 @@ public class MainActivity extends AppCompatActivity {
                 GoogleSignInAccount acct = task.getResult(ApiException.class);
                 fetchToken(acct);
             } catch (Exception e) {
-                loginError.setText("লগইন হয়নি: " + e.getMessage());
+                loginError.setText(loginFailText(e));
             }
         } else if (requestCode == RC_AUTH) {
             GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(this);
             if (acct != null) fetchToken(acct); else showLogin();
         }
     }
+
+    /** v4.42: login fail text — ApiException-er message "12500: "-er moto khali thakle pichoner ": " dekhabe na. */
+    private static String loginFailText(Exception e) { String m = e == null ? null : e.getMessage(); if (m == null) m = ""; m = m.trim(); if (m.endsWith(":")) m = m.substring(0, m.length() - 1).trim(); return m.isEmpty() ? "লগইন হয়নি" : "লগইন হয়নি: " + m; }
 
     /** v4.41: loadRows / save thread j numbers sheet ID resolve koreche — tap-er
      *  somoy outbox entry-te stamp deoar jonno (thread na cholleo worker pathabe). */
@@ -1994,7 +1997,7 @@ public class MainActivity extends AppCompatActivity {
                     statRegDay.setText(String.valueOf(finalReg));
                     statFtdDay.setText(String.valueOf(finalFtdN));
                     statFtdAmtDay.setText("৳" + fmtAmount(finalFtdSum));
-                    weekSummary.setText("এই ৭ দিন (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): কানেক্টেড " + finalConnW + " • নট কানেক্টেড " + finalNotConnW + " • এফটিডি " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • ভ্যালিড " + finalValidW + " • ইনভ্যালিড " + finalInvW + " • রেজিস্ট্রেশন " + finalRegW + (finalUsedLegacy ? " • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)" : "") + (finalPartialFail ? " • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)" : ""));
+                    weekSummary.setText("এই ৭ দিন (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • এফটিডি " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • Valid " + finalValidW + " • Invalid " + finalInvW + " • রেজিস্ট্রেশন " + finalRegW + (finalUsedLegacy ? " • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)" : "") + (finalPartialFail ? " • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)" : ""));
                     buildCalledRows(logs, day);
                     reportStatsFallbackUsed = false;
                 });
@@ -2010,7 +2013,7 @@ public class MainActivity extends AppCompatActivity {
     private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
 
     /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
-    private JSONObject fetchVersionJson() throws Exception { String[] urls = { "https://raw.githubusercontent.com/mdsahadathossenshihab1-lgtm/telesales-status-app/main/version.json", "https://telesales-status-app.vercel.app/version.json" }; Exception lastError = null; for (String urlString : urls) { try { java.net.URL url = new java.net.URL(urlString); java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection(); c.setConnectTimeout(15000); c.setReadTimeout(15000); java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream())); StringBuilder sb = new StringBuilder(); String line; while ((line = br.readLine()) != null) sb.append(line); br.close(); return new JSONObject(sb.toString()); } catch (Exception e) { lastError = e; } } if (lastError != null) throw lastError; throw new Exception("version fetch failed"); } private void checkForUpdate() {
+    private JSONObject fetchVersionJson() throws Exception { String cb = "?t=" + (System.currentTimeMillis() / 60000); String[] urls = { "https://raw.githubusercontent.com/mdsahadathossenshihab1-lgtm/telesales-status-app/main/version.json" + cb, "https://telesales-status-app.vercel.app/version.json" + cb }; Exception lastError = null; for (String urlString : urls) { try { java.net.URL url = new java.net.URL(urlString); java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection(); c.setConnectTimeout(15000); c.setReadTimeout(15000); java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream())); StringBuilder sb = new StringBuilder(); String line; while ((line = br.readLine()) != null) sb.append(line); br.close(); return new JSONObject(sb.toString()); } catch (Exception e) { lastError = e; } } if (lastError != null) throw lastError; throw new Exception("version fetch failed"); } private void checkForUpdate() {
         
         
         new Thread(() -> {
@@ -2042,8 +2045,9 @@ public class MainActivity extends AppCompatActivity {
                     // Batch fix #8: non-blocking dialog dine ekbar-er beshi noy (call theke
                     // ferar somoy barbar pop hoto); blocking dialog-e throttle noy.
                     SharedPreferences up = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
-                    if (System.currentTimeMillis() - up.getLong("update_dialog_last_ms", 0) < 24L * 60 * 60 * 1000) return;
-                    up.edit().putLong("update_dialog_last_ms", System.currentTimeMillis()).apply();
+                    int lastShownCode = up.getInt("update_dialog_last_code", -1);
+                    if (remoteCode == lastShownCode && System.currentTimeMillis() - up.getLong("update_dialog_last_ms", 0) < 24L * 60 * 60 * 1000) return;
+                    up.edit().putLong("update_dialog_last_ms", System.currentTimeMillis()).putInt("update_dialog_last_code", remoteCode).apply();
                     runOnUiThread(() -> { if (isFinishing()) return; new AlertDialog.Builder(MainActivity.this)
                             .setTitle("অ্যাপ আপডেট করুন")
                             .setMessage("নতুন ভার্সন " + remoteName + " এসেছে। আপডেট করলে নতুন সুবিধা পাবেন।")
@@ -2215,7 +2219,7 @@ public class MainActivity extends AppCompatActivity {
 
     private int countAutoInvalid(List<REntry> logs, String date) { return countAutoInvalidRange(logs, date, date); }
     /** Batch fix #12: range-er Invalid (distinct number, not connected + Valid No) — week hisab-er jonno. */
-    private int countAutoInvalidRange(List<REntry> logs, String start, String end) { java.util.Set<String> seen = new java.util.HashSet<>(); if (logs == null) return 0; for (REntry e : logs) { if (e == null) continue; String d = cellE(e, 0); if (d.compareTo(start) < 0 || d.compareTo(end) > 0) continue; if (!"not connected".equalsIgnoreCase(cellE(e, 2).trim())) continue; if (!"No".equalsIgnoreCase(cellE(e, 3).trim())) continue; String n = cellE(e, 1).replace(" ", "").replace("-", ""); if (n.startsWith("+880")) n = "0" + n.substring(4); else if (n.startsWith("880")) n = "0" + n.substring(3); else if (!n.startsWith("0")) n = "0" + n; if (!n.isEmpty()) seen.add(n); } return seen.size(); } private void loadAutoInvalidForReport() { final String d = reportDate; new Thread(() -> { try { if (token == null) return; List<REntry> logs = readLogRowsForDate(d); final int c = countAutoInvalid(logs, d); runOnUiThread(() -> { if (invAutoText != null) invAutoText.setText("ইনভ্যালিড: " + c); }); } catch (Exception ignored) { } }).start(); } private void refreshReportLists() {
+    private int countAutoInvalidRange(List<REntry> logs, String start, String end) { java.util.Set<String> seen = new java.util.HashSet<>(); if (logs == null) return 0; for (REntry e : logs) { if (e == null) continue; String d = cellE(e, 0); if (d.compareTo(start) < 0 || d.compareTo(end) > 0) continue; if (!"not connected".equalsIgnoreCase(cellE(e, 2).trim())) continue; if (!"No".equalsIgnoreCase(cellE(e, 3).trim())) continue; String n = cellE(e, 1).replace(" ", "").replace("-", ""); if (n.startsWith("+880")) n = "0" + n.substring(4); else if (n.startsWith("880")) n = "0" + n.substring(3); else if (!n.startsWith("0")) n = "0" + n; if (!n.isEmpty()) seen.add(n); } return seen.size(); } private void loadAutoInvalidForReport() { final String d = reportDate; new Thread(() -> { try { if (token == null) return; List<REntry> logs = readLogRowsForDate(d); final int c = countAutoInvalid(logs, d); runOnUiThread(() -> { if (invAutoText != null) invAutoText.setText("Invalid: " + c); }); } catch (Exception ignored) { } }).start(); } private void refreshReportLists() {
         if (regStepCount != null) regStepCount.setText(String.valueOf(regTotalCount(regToday)));
         // v4.18: Invalid per-entry list removed; auto-count is shown in invAutoText.
         fillList(probList, probToday, "Problems");
@@ -2377,12 +2381,12 @@ public class MainActivity extends AppCompatActivity {
                 else sb.append("সময়: পরে বানানো\n");
                 sb.append("এজেন্ট আইডি: ").append(agentId).append("\n");
                 sb.append("মোট কল: ").append(total).append("\n");
-                sb.append("কানেক্টেড: ").append(conn).append("\n");
+                sb.append("Connected: ").append(conn).append("\n");
                 sb.append("রেজিস্ট্রেশন: ").append(regTotalCount(regToday)).append("\n");
                 // v4.27: Registration details ar dekhabo na — sudhu count (user order).
                 sb.append("এফটিডি: ").append(ftdTotalCount(ftdToday)).append("\n");
                 sb.append("মোট রিচার্জ টাকা: ").append(fmtAmount(sum)).append("\n");
-                sb.append("ইনভ্যালিড: ").append(countAutoInvalid(logs, today)).append("\n");
+                sb.append("Invalid: ").append(countAutoInvalid(logs, today)).append("\n");
                 // v4.18: manual Invalid rows are not listed. sb.append("-\n");
                 // v4.18: manual Invalid rows are not listed. sb.append(cellE(r, 1)).append(" - ").append(cellE(r, 2)).append("\n");
                 sb.append("সমস্যা:\n");

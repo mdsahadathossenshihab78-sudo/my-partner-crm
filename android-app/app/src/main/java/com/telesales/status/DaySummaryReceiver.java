@@ -163,7 +163,7 @@ public class DaySummaryReceiver extends BroadcastReceiver {
                 }
             } catch (Exception ignored) { remain = -1; }
             StringBuilder text = new StringBuilder();
-            text.append(total).append("টা কল • ").append(conn).append("টা কানেক্টেড");
+            text.append(total).append("টা কল • ").append(conn).append("টা Connected");
             if (ftdOk) text.append(" • ").append(ftdN).append("টা এফটিডি (৳").append(fmtAmt(ftdSum)).append(")");
             if (remain >= 0) text.append(" • ").append(remain).append("টা বাকি");
             ensureChannel(ctx);

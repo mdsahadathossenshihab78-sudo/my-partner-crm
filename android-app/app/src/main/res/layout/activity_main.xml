@@ -127,14 +127,14 @@
                 <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check_circle" android:layout_marginEnd="8dp" />
             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statConnDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="কানেক্টেড" android:textSize="10sp" android:textColor="#E6FFFFFF" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Connected" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
             </LinearLayout>
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_rose" android:padding="14dp" android:layout_marginStart="6dp"> android:gravity="center_vertical">
                 <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_phone_off" android:layout_marginEnd="8dp" />
             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statNotConnDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="নট কানেক্টেড" android:textSize="10sp" android:textColor="#E6FFFFFF" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Not Connected" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -143,14 +143,14 @@
                 <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_check" android:layout_marginEnd="8dp" />
             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statValidDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ভ্যালিড" android:textSize="10sp" android:textColor="#E6FFFFFF" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Valid" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
             </LinearLayout>
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_rose" android:padding="14dp" android:layout_marginStart="6dp"> android:gravity="center_vertical">
                 <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_x_circle" android:layout_marginEnd="8dp" />
             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statInvDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ইনভ্যালিড" android:textSize="10sp" android:textColor="#E6FFFFFF" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Invalid" android:textSize="10sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -344,9 +344,9 @@
                 android:orientation="vertical" android:background="@drawable/glass_card"
                 android:padding="16dp" android:layout_marginTop="12dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="ইনভ্যালিড নাম্বার" android:textSize="12sp" android:textStyle="bold"
+                    android:text="Invalid নাম্বার" android:textSize="12sp" android:textStyle="bold"
                     android:textColor="@color/white" />
-                    <TextView android:id="@+id/invAutoText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ইনভ্যালিড: 0" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/white" android:layout_marginTop="10dp" />
+                    <TextView android:id="@+id/invAutoText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Invalid: 0" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/white" android:layout_marginTop="10dp" />
             </LinearLayout>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical" android:background="@drawable/glass_card"
@@ -673,7 +673,7 @@
                 android:textColor="@color/white" />
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="লাইভ শিটের সব এজেন্টের আজকের হিসাব এক স্ক্রিনে। রিপোর্ট বানানো এজেন্টের মোট/কানেক্টেড/এফটিডি দেখাবে, আর সবার বাকি নাম্বার দেখাবে।"
+                android:text="লাইভ শিটের সব এজেন্টের আজকের হিসাব এক স্ক্রিনে। রিপোর্ট বানানো এজেন্টের মোট/Connected/এফটিডি দেখাবে, আর সবার বাকি নাম্বার দেখাবে।"
                 android:textSize="13sp" android:textColor="@color/lavender" />
             <com.google.android.material.button.MaterialButton android:id="@+id/teamDashLoadBtn"
                 android:layout_width="match_parent" android:layout_height="48dp"

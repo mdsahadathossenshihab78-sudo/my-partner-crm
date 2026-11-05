@@ -34,9 +34,9 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     private List<Row> shown = new ArrayList<>();
     private final OnSave onSave;
     private final String[] statusOpts = {"", "call connected", "not connected"};
-    private final String[] statusLabels = {"— খালি —", "কানেক্টেড", "নট কানেক্টেড"};
+    private final String[] statusLabels = {"— খালি —", "Connected", "Not Connected"};
     private final String[] validOpts = {"", "Yes", "No"};
-    private final String[] validLabels = {"— খালি —", "হ্যাঁ", "না"};
+    private final String[] validLabels = {"— খালি —", "Yes", "No"};
 
     public RowAdapter(OnSave onSave) { this.onSave = onSave; }
     /** Date-filtered called tab: log theke asa row-gulo (null = ekhono load hoyni, tokhon purono niyom). */
@@ -124,13 +124,13 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
 
     private void refreshStatusChip(Holder h, String status) {
         if ("call connected".equals(status)) {
-            h.tvChipStatus.setText("● কানেক্টেড");
+            h.tvChipStatus.setText("● Connected");
             h.tvChipStatus.setBackgroundResource(R.drawable.chip_green);
-            h.tvStatusField.setText("কানেক্টেড ▾");
+            h.tvStatusField.setText("Connected ▾");
         } else if ("not connected".equals(status)) {
-            h.tvChipStatus.setText("● নট কানেক্টেড");
+            h.tvChipStatus.setText("● Not Connected");
             h.tvChipStatus.setBackgroundResource(R.drawable.chip_rose);
-            h.tvStatusField.setText("নট কানেক্টেড ▾");
+            h.tvStatusField.setText("Not Connected ▾");
         } else if (status == null || status.isEmpty()) {
             h.tvChipStatus.setText("● খালি");
             h.tvChipStatus.setBackgroundResource(R.drawable.chip_grey);
@@ -147,7 +147,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             h.tvValidField.setText("— খালি — ▾");
         } else {
             h.tvChipValid.setVisibility(View.VISIBLE);
-            String vLabel = "Yes".equals(valid) ? "হ্যাঁ" : "No".equals(valid) ? "না" : valid;
+            String vLabel = valid;
             h.tvChipValid.setText("ভ্যালিড: " + vLabel);
             h.tvChipValid.setBackgroundResource("Yes".equals(valid) ? R.drawable.chip_blue : R.drawable.chip_grey);
             h.tvValidField.setText(vLabel + " ▾");
