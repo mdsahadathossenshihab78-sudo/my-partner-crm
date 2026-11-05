@@ -176,6 +176,16 @@ public class SheetsClient {
         if (code != 200) throw new Exception("Sheet save failed: " + code + " " + readAll(c.getErrorStream()));
     }
 
+    /** v4.41: number diye bortoman row khunja (row sore gele drain/worker abar
+     *  thik row-te save korte pare). Na pele null. */
+    public static Row findRowByNumber(String token, String sheetId, String tab, String normNumber) throws Exception {
+        if (normNumber == null || normNumber.isEmpty()) return null;
+        for (Row r : getRows(token, sheetId, tab)) {
+            if (normNumber.equals(normLogNumber(r.number))) return r;
+        }
+        return null;
+    }
+
     public static String createReportSpreadsheet(String token, String agentId) throws Exception {
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets");
         HttpURLConnection c = open(url, token);

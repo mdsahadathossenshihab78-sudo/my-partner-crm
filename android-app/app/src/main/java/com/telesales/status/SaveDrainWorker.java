@@ -78,8 +78,26 @@ public class SaveDrainWorker extends Worker {
                 } catch (Exception e) {
                     String m = e.getMessage() == null ? "" : e.getMessage();
                     if (m.contains("bodle geche")) {
-                        // Row sore geche — ar apply kora nirapad noy (in-app drain-er motoi entry sorbe).
-                        deliveredOutbox.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
+                        // v4.41: row sore geche — number diye bortoman row khunje abar save.
+                        // Team roj number soray; ager moto entry muchhle user-ke abar save korte hoto.
+                        try {
+                            Row fresh = SheetsClient.findRowByNumber(token, numbersId, myAgent, SheetsClient.normLogNumber(o.optString("number")));
+                            if (fresh == null) {
+                                deliveredOutbox.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
+                                continue; // number sheet-e ar nei — drop
+                            }
+                            r.row = fresh.row;
+                            SheetsClient.updateRow(token, numbersId, myAgent, r);
+                            deliveredOutbox.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
+                        } catch (Exception re) {
+                            String rm = re.getMessage() == null ? "" : re.getMessage();
+                            if (rm.contains("bodle geche")) {
+                                deliveredOutbox.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
+                                continue; // abar soreche — drop
+                            }
+                            if (isTransient(re)) { transientFail = true; break; }
+                            authFail = true; break;
+                        }
                         continue;
                     }
                     if (isTransient(e)) { transientFail = true; break; }

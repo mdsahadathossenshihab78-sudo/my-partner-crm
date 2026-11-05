@@ -11,9 +11,6 @@ import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.AdapterView;
-import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -114,7 +111,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         return 0;
     }
 
-    /** Sheet-e hate-lekha ochena value (jemon "Connected") thakle seta spinner-e dekhabe ar
+    /** Sheet-e hate-lekha ochena value (jemon "Connected") thakle seta choice-e dekhabe ar
      *  Save-e ager motoi thakbe — ager bug-e ochena value khali hoye jeto (silent data loss). */
     private static String[] withUnknown(String[] opts, String v) {
         if (v == null || v.isEmpty()) return opts;
@@ -129,23 +126,51 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         if ("call connected".equals(status)) {
             h.tvChipStatus.setText("● কানেক্টেড");
             h.tvChipStatus.setBackgroundResource(R.drawable.chip_green);
+            h.tvStatusField.setText("কানেক্টেড ▾");
         } else if ("not connected".equals(status)) {
             h.tvChipStatus.setText("● নট কানেক্টেড");
             h.tvChipStatus.setBackgroundResource(R.drawable.chip_rose);
+            h.tvStatusField.setText("নট কানেক্টেড ▾");
+        } else if (status == null || status.isEmpty()) {
+            h.tvChipStatus.setText("● খালি");
+            h.tvChipStatus.setBackgroundResource(R.drawable.chip_grey);
+            h.tvStatusField.setText("— খালি — ▾");
         } else {
             h.tvChipStatus.setText("● খালি");
             h.tvChipStatus.setBackgroundResource(R.drawable.chip_grey);
+            h.tvStatusField.setText(status + " ▾");
         }
     }
     private void refreshValidChip(Holder h, String valid) {
         if (valid == null || valid.isEmpty()) {
             h.tvChipValid.setVisibility(View.GONE);
+            h.tvValidField.setText("— খালি — ▾");
         } else {
             h.tvChipValid.setVisibility(View.VISIBLE);
             String vLabel = "Yes".equals(valid) ? "হ্যাঁ" : "No".equals(valid) ? "না" : valid;
             h.tvChipValid.setText("ভ্যালিড: " + vLabel);
             h.tvChipValid.setBackgroundResource("Yes".equals(valid) ? R.drawable.chip_blue : R.drawable.chip_grey);
+            h.tvValidField.setText(vLabel + " ▾");
         }
+    }
+
+    /** v4.41: Spinner-er bodle tap-choice dialog — RecyclerView-te Spinner-e
+     *  prothom tap sudhu focus nito, 2-3 bar chap dite hoto, kokhono nito na;
+     *  dialog-e ek tap-ei option bosbe, rebind-eo bondho hobe na. */
+    private void showChoiceDialog(Holder h, Row r, boolean isStatus) {
+        final String[] opts = isStatus ? withUnknown(statusOpts, r.status) : withUnknown(validOpts, r.valid);
+        final String[] labels = isStatus ? withUnknown(statusLabels, r.status) : withUnknown(validLabels, r.valid);
+        String cur = isStatus ? r.status : r.valid;
+        new AlertDialog.Builder(h.itemView.getContext())
+            .setTitle(isStatus ? "কলিং স্ট্যাটাস" : "ভ্যালিড কনভারসেশন")
+            .setSingleChoiceItems(labels, indexOf(opts, cur), (d, which) -> {
+                if (isStatus) { r.status = opts[which]; refreshStatusChip(h, r.status); }
+                else { r.valid = opts[which]; refreshValidChip(h, r.valid); }
+                DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others);
+                d.dismiss();
+            })
+            .setNegativeButton("বাতিল", null)
+            .show();
     }
 
     @NonNull @Override public Holder onCreateViewHolder(@NonNull ViewGroup p, int t) {
@@ -171,42 +196,25 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         }
         if (histShown == 0) h.tvHistory.setVisibility(View.GONE);
         else { h.tvHistory.setText("আগের কল: " + hb.toString() + (histMore > 0 ? " +" + histMore + "টা" : "")); h.tvHistory.setVisibility(View.VISIBLE); }
-        h.spStatus.setEnabled(!r.viewOnly); h.spValid.setEnabled(!r.viewOnly);
+        h.tvStatusField.setEnabled(!r.viewOnly); h.tvValidField.setEnabled(!r.viewOnly);
         h.etRemark1.setEnabled(!r.viewOnly); h.etRemark2.setEnabled(!r.viewOnly); h.etOthers.setEnabled(!r.viewOnly);
         h.phraseBtn1.setEnabled(!r.viewOnly); h.phraseBtn2.setEnabled(!r.viewOnly); h.phraseBtn3.setEnabled(!r.viewOnly);
         h.btnSave.setEnabled(!r.viewOnly);
         h.btnSave.setText(r.viewOnly ? "শুধু দেখা যাবে" : "সেভ করুন");
-        final String[] sOpts = withUnknown(statusOpts, r.status);
-        final String[] sLabels = withUnknown(statusLabels, r.status);
-        final String[] vOpts = withUnknown(validOpts, r.valid);
-        final String[] vLabels = withUnknown(validLabels, r.valid);
-        // Batch fix #1: rebind-er age purono spinner listener sorano — na hole setAdapter/
-        // setSelection-er somoy purono row-er status bodle jeto.
-        h.spStatus.setOnItemSelectedListener(null); h.spValid.setOnItemSelectedListener(null);
-        ArrayAdapter<String> sa = new ArrayAdapter<>(h.itemView.getContext(), R.layout.spinner_item, sLabels);
-        sa.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        h.spStatus.setAdapter(sa); h.spStatus.setSelection(indexOf(sOpts, r.status));
-        ArrayAdapter<String> va = new ArrayAdapter<>(h.itemView.getContext(), R.layout.spinner_item, vLabels);
-        va.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        h.spValid.setAdapter(va); h.spValid.setSelection(indexOf(vOpts, r.valid));
+        // v4.41: status/valid ekhon tappable field + choice dialog (Spinner sorano —
+        // RecyclerView-te Spinner-er prothom tap sudhu focus nito, tai 2-3 bar chap lagto).
         refreshStatusChip(h, r.status);
         refreshValidChip(h, r.valid);
-        h.spStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> p, View v, int p2, long id) { r.status = sOpts[p2]; refreshStatusChip(h, sOpts[p2]); }
-            public void onNothingSelected(AdapterView<?> p) {}
-        });
-        h.spValid.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            public void onItemSelected(AdapterView<?> p, View v, int p2, long id) { r.valid = vOpts[p2]; refreshValidChip(h, vOpts[p2]); }
-            public void onNothingSelected(AdapterView<?> p) {}
-        });
+        h.tvStatusField.setOnClickListener(v -> { if (!r.viewOnly) showChoiceDialog(h, r, true); });
+        h.tvValidField.setOnClickListener(v -> { if (!r.viewOnly) showChoiceDialog(h, r, false); });
         // Batch fix #1: lekha sathe sathe Row-te joma (Save-er age scroll/search korleo harabe na).
         // Purono watcher age sorano — na hole purono row-te bhul lekha jeto.
         if (h.wRemark1 != null) h.etRemark1.removeTextChangedListener(h.wRemark1);
         if (h.wRemark2 != null) h.etRemark2.removeTextChangedListener(h.wRemark2);
         if (h.wOthers != null) h.etOthers.removeTextChangedListener(h.wOthers);
-        h.wRemark1 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark1 = s.toString(); } };
-        h.wRemark2 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark2 = s.toString(); } };
-        h.wOthers = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.others = s.toString(); } };
+        h.wRemark1 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark1 = s.toString(); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
+        h.wRemark2 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark2 = s.toString(); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
+        h.wOthers = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.others = s.toString(); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
         h.etRemark1.addTextChangedListener(h.wRemark1); h.etRemark2.addTextChangedListener(h.wRemark2); h.etOthers.addTextChangedListener(h.wOthers);
         h.etRemark1.setText(r.remark1); h.etRemark2.setText(r.remark2); h.etOthers.setText(r.others);
         h.btnCall.setOnClickListener(v -> {
@@ -261,8 +269,8 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             }
         });
         h.btnSave.setOnClickListener(v -> {
-            r.status = sOpts[h.spStatus.getSelectedItemPosition()];
-            r.valid = vOpts[h.spValid.getSelectedItemPosition()];
+            // v4.41: status/valid dialog thekei Row-te live thake — save-er somoy
+            // ar spinner theke pora lage na (setai kokhono purono value dito).
             r.remark1 = h.etRemark1.getText() == null ? "" : h.etRemark1.getText().toString().trim();
             r.remark2 = h.etRemark2.getText() == null ? "" : h.etRemark2.getText().toString().trim();
             r.others = h.etOthers.getText() == null ? "" : h.etOthers.getText().toString().trim();
@@ -293,7 +301,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     @Override public int getItemCount() { return shown.size(); }
 
     static class Holder extends RecyclerView.ViewHolder {
-        TextView tvNumber, tvRow, tvChipStatus, tvChipValid, tvHistory; Spinner spStatus, spValid;
+        TextView tvNumber, tvRow, tvChipStatus, tvChipValid, tvHistory, tvStatusField, tvValidField;
         TextInputEditText etRemark1, etRemark2, etOthers;
         TextWatcher wRemark1, wRemark2, wOthers;
         android.widget.Button btnCall, btnCopy, btnRemind; MaterialButton btnSave;
@@ -303,7 +311,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             tvNumber = v.findViewById(R.id.tvNumber); tvRow = v.findViewById(R.id.tvRow);
             tvHistory = v.findViewById(R.id.tvHistory);
             tvChipStatus = v.findViewById(R.id.tvChipStatus); tvChipValid = v.findViewById(R.id.tvChipValid);
-            spStatus = v.findViewById(R.id.spStatus); spValid = v.findViewById(R.id.spValid);
+            tvStatusField = v.findViewById(R.id.tvStatusField); tvValidField = v.findViewById(R.id.tvValidField);
             etRemark1 = v.findViewById(R.id.etRemark1); etRemark2 = v.findViewById(R.id.etRemark2);
             etOthers = v.findViewById(R.id.etOthers); btnCall = v.findViewById(R.id.btnCall);
             btnCopy = v.findViewById(R.id.btnCopy); btnRemind = v.findViewById(R.id.remindBtn);

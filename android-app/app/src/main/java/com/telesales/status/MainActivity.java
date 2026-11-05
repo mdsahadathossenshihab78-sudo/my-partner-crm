@@ -525,16 +525,20 @@ public class MainActivity extends AppCompatActivity {
             else adapter.filter(optQ);
             // v4.33: row-ta screen-e jemon ache, baki hero-o sathe sathe temon (save/clear duitotei).
             refreshRemainingHero();
-            // v4.32: exit-proof save — network thread shuru howar AGEI save intent-ti disk-e
-            // commit() diye joma (apply async — kill hole harate pare). Thread safal hole ei
-            // entry sorbe; fail hole drain/worker pathabe; majhpothe app morleo joma thakbe.
-            // Sheet ID tap-er somoy resolve kora jay na (network lage) — thread-e resolve hoye
-            // stamp hobe; stamp na howa entry worker skip korbe, in-app drain pathabe.
+            // v4.32 + v4.41: exit-proof save — network thread shuru howar AGEI save intent-ti
+            // disk-e commit() diye joma (apply async — kill hole harate pare). Thread safal hole
+            // ei entry sorbe; fail hole drain/worker pathabe; majhpothe app morleo joma thakbe.
+            // v4.41: tap-er sathei load-er somoy resolve kora numbers sheet ID stamp kora hoy —
+            // thread na cholleo (tap-er pori app bondho hole) worker ei entry pathate parbe.
+            // Thread pore nijer fresh resolve diye abar stamp korbe. Stamp na howa entry
+            // (load kokhono hoyni) worker skip korbe, in-app drain pathabe.
             final long saveTs = System.currentTimeMillis();
             final String saveDate = dhakaDate();
             final boolean preQueuedLog = optChanged;
             final String preDialNum = RowAdapter.dialNumber(row.number);
             queueOutboxWithTs(row, saveTs, true);
+            if (lastResolvedNumbersId != null && !lastResolvedNumbersId.isEmpty())
+                stampOutboxNumbersId(agentId, row.number, saveTs, lastResolvedNumbersId);
             if (optChanged) {
                 if (optClear) queuePendingWithTs("clear", saveDate, preDialNum, "", "", saveTs, true);
                 else queuePendingWithTs("log", saveDate, preDialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid, saveTs, true);
@@ -550,6 +554,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     tryRefreshConfig();
                     String numbersIdForSave = resolveNumbersIdForAgent(agentId);
+                    if (numbersIdForSave != null && !numbersIdForSave.isEmpty()) lastResolvedNumbersId = numbersIdForSave;
                     stampOutboxNumbersId(agentId, row.number, saveTs, numbersIdForSave);
                     SheetsClient.updateRow(token, numbersIdForSave, agentId, row);
                     // v4.32: main update land koreche — pre-queue kora outbox entry-ti sorbe.
@@ -603,7 +608,7 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         authRetryUsed = false;
                         savingRows.remove(optKey); optimisticTileKeys.remove(optKey);
-                        markRowCleanInSnapshot(row); refreshQueuedCounter();
+                        markRowCleanInSnapshot(row); DraftStore.clear(MainActivity.this, row.number); refreshQueuedCounter();
                         btn.setEnabled(true); btn.setText("সেভ করুন");
                         Toast.makeText(MainActivity.this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (লগ পরে সিঙ্ক হবে)" : (finalLogCleared ? " (আজকের লগ রো মুছে গেছে)" : "")), Toast.LENGTH_LONG).show();
                         adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
@@ -1808,6 +1813,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** v4.41: loadRows / save thread j numbers sheet ID resolve koreche — tap-er
+     *  somoy outbox entry-te stamp deoar jonno (thread na cholleo worker pathabe). */
+    private String lastResolvedNumbersId = null;
+
     private void loadRows() {
         if (token == null) { showLogin(); return; }
         if (agentId == null) { showAgent(); return; }
@@ -1818,14 +1827,16 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 tryRefreshConfig();
-                List<Row> rows = SheetsClient.getRows(token, resolveNumbersIdForAgent(agentId), agentId);
+                String resolvedNumbersId = resolveNumbersIdForAgent(agentId);
+                if (resolvedNumbersId != null && !resolvedNumbersId.isEmpty()) lastResolvedNumbersId = resolvedNumbersId;
+                List<Row> rows = SheetsClient.getRows(token, resolvedNumbersId, agentId);
                 rowsLoading = false;
                 runOnUiThread(() -> {
                     rowsLoading = false;
                     if (seq != rowsSeq) return; // purono response notun data-r upor boshbe na
                     authRetryUsed = false;
-                    adapter.setRows(rows); statTotalNumDay.setText(String.valueOf(rows.size())); refreshRemainingHero();
-                    takeLoadedSnapshot(rows); refreshQueuedCounter();
+                    takeLoadedSnapshot(rows); applyDrafts(rows, false); adapter.setRows(rows); statTotalNumDay.setText(String.valueOf(rows.size())); refreshRemainingHero();
+                    refreshQueuedCounter();
                     adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
                     rowsLoaded = true; maybeOpenPendingReminder();
                     statusText.setText("শিটের সাথে সংযুক্ত — " + rows.size() + "টি রো");
@@ -2506,6 +2517,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** v4.41: unsaved edit-er draft row-te bosano. Sheet theke asa row-er
+     *  value-r sathe draft mille draft-ti already-saved dhore muchhe fela hoy
+     *  (offline save pore deliver holeo draft jhule thakbe na). */
+    private void applyDrafts(java.util.List<Row> rows, boolean onlyLogOnly) {
+        try {
+            if (rows == null) return;
+            org.json.JSONObject all = DraftStore.loadAll(this);
+            if (all.length() == 0) return;
+            for (Row r : rows) {
+                if (r == null) continue;
+                if (onlyLogOnly && r.row != -1) continue;
+                String key = RowAdapter.dialNumber(r.number);
+                if (key == null || all.isNull(key)) continue;
+                org.json.JSONObject d = all.getJSONObject(key);
+                String ds = d.optString("status", ""), dv = d.optString("valid", "");
+                String d1 = d.optString("remark1", ""), d2 = d.optString("remark2", ""), do_ = d.optString("others", "");
+                String cs = r.status == null ? "" : r.status, cv = r.valid == null ? "" : r.valid;
+                String c1 = r.remark1 == null ? "" : r.remark1, c2 = r.remark2 == null ? "" : r.remark2, co = r.others == null ? "" : r.others;
+                if (ds.equals(cs) && dv.equals(cv) && d1.equals(c1) && d2.equals(c2) && do_.equals(co)) {
+                    DraftStore.clear(this, r.number);
+                } else {
+                    r.status = ds; r.valid = dv; r.remark1 = d1; r.remark2 = d2; r.others = do_;
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+
     /** v4.33: মোট বাকি hero — live list-e status khali row-gulor sonkha. Kol baki
      *  tab-er niyom-ei gona hoy (status null ba khali), tai hero aar tab sob somoy
      *  milbe. List-based: dashboard-er tarikh bodol eke bodlay na; loadDayStats
@@ -2631,7 +2669,19 @@ public class MainActivity extends AppCompatActivity {
                     if (o == null || !myAgent.equals(o.optString("agent"))) { i++; continue; }
                     Row r = new Row(o.optInt("row"), o.optString("number"), o.optString("status"), o.optString("valid"), o.optString("r1"), o.optString("r2"), o.optString("others"));
                     try {
-                        SheetsClient.updateRow(token, numbersId, myAgent, r);
+                        // v4.41: row sore gele number diye bortoman row khunje abar save —
+                        // team roj number soray, tai purono row number-e likhle "bodle geche"
+                        // hoye entry muchhe jeto ar user-ke abar save korte hoto.
+                        try {
+                            SheetsClient.updateRow(token, numbersId, myAgent, r);
+                        } catch (Exception ue) {
+                            String um = ue.getMessage() == null ? "" : ue.getMessage();
+                            if (!um.contains("bodle geche")) throw ue;
+                            Row fresh = SheetsClient.findRowByNumber(token, numbersId, myAgent, SheetsClient.normLogNumber(r.number));
+                            if (fresh == null) { arr.remove(i); changed = true; continue; } // number sheet-e ar nei — drop
+                            r.row = fresh.row;
+                            SheetsClient.updateRow(token, numbersId, myAgent, r); // abar bodle gele outer catch-e jabe
+                        }
                         // v4.20: drain-e main update land korlei log side-o thik korte hobe.
                         String entryDate = dateFromTs(o.optLong("ts"));
                         String dNum = RowAdapter.dialNumber(r.number);
@@ -2911,7 +2961,7 @@ public class MainActivity extends AppCompatActivity {
                 int pa = lastPos.getOrDefault(na, -1), pb = lastPos.getOrDefault(nb, -1);
                 return Integer.compare(pb, pa);
             });
-            adapter.setCalledRows(called, day);
+            applyDrafts(called, true); adapter.setCalledRows(called, day);
             // Batch feature #2: prottek number-er ager call-er itihas (log theke, proti
             // date-e sesh row-tai — eki din-e ekadhik save hole ekbar dekhabe).
             java.util.Map<String, java.util.TreeMap<String, String>> byNum = new java.util.HashMap<>();
