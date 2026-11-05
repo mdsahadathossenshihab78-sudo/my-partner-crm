@@ -232,41 +232,34 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         });
         h.btnCopy.setOnClickListener(v -> {
             Context ctx = h.itemView.getContext();
-            String num = dialNumber(r.number);
-            try {
-                ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
-                cm.setPrimaryClip(ClipData.newPlainText("Number", num));
-                Toast.makeText(ctx, "কপি হয়েছে: " + num, Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                Toast.makeText(ctx, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+            String main = dialNumber(r.number);
+            String other = h.etOthers.getText() == null ? "" : dialNumber(h.etOthers.getText().toString());
+            if (!other.isEmpty() && !other.equals(main)) {
+                // v4.37: দুই নাম্বার থাকলে জিজ্ঞেস করবে কোনটা কপি করবে, বাছলেই সেটা কপি হবে।
+                final String[] nums = {main, other};
+                new AlertDialog.Builder(ctx)
+                    .setTitle("কোনটা কপি করবেন?")
+                    .setItems(nums, (d, w) -> {
+                        try {
+                            ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+                            cm.setPrimaryClip(ClipData.newPlainText("Number", nums[w]));
+                            Toast.makeText(ctx, "কপি হয়েছে: " + nums[w], Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            Toast.makeText(ctx, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("বাতিল", null)
+                    .show();
+            } else {
+                try {
+                    ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+                    cm.setPrimaryClip(ClipData.newPlainText("Number", main));
+                    Toast.makeText(ctx, "কপি হয়েছে: " + main, Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(ctx, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+                }
             }
         });
-        // v4.36: রিমার্ক / অন্যান্য নাম্বার কপি বাটন (লং-প্রেসে কপি হয় না বলে)।
-        // কপি করা মানে শুধু পড়া — viewOnly রো-তেও চলবে।
-        android.view.View.OnClickListener copyFieldTap = v -> {
-            Context ctx = h.itemView.getContext();
-            TextInputEditText src = null;
-            String label = "রিমার্ক";
-            if (v == h.copyRemark1Btn) { src = h.etRemark1; label = "১ম রিমার্ক"; }
-            else if (v == h.copyRemark2Btn) { src = h.etRemark2; label = "২য় রিমার্ক"; }
-            else if (v == h.copyOthersBtn) { src = h.etOthers; label = "অন্যান্য নাম্বার"; }
-            if (src == null) return;
-            String txt = src.getText() == null ? "" : src.getText().toString().trim();
-            if (txt.isEmpty()) {
-                Toast.makeText(ctx, "কিছু লেখা নেই", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            try {
-                ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
-                cm.setPrimaryClip(ClipData.newPlainText(label, txt));
-                Toast.makeText(ctx, "কপি হয়েছে", Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                Toast.makeText(ctx, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
-            }
-        };
-        h.copyRemark1Btn.setOnClickListener(copyFieldTap);
-        h.copyRemark2Btn.setOnClickListener(copyFieldTap);
-        h.copyOthersBtn.setOnClickListener(copyFieldTap);
         h.btnSave.setOnClickListener(v -> {
             r.status = sOpts[h.spStatus.getSelectedItemPosition()];
             r.valid = vOpts[h.spValid.getSelectedItemPosition()];
@@ -305,7 +298,6 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         TextWatcher wRemark1, wRemark2, wOthers;
         android.widget.Button btnCall, btnCopy, btnRemind; MaterialButton btnSave;
         android.widget.Button phraseBtn1, phraseBtn2, phraseBtn3;
-        android.widget.Button copyRemark1Btn, copyRemark2Btn, copyOthersBtn;
         Holder(View v) {
             super(v);
             tvNumber = v.findViewById(R.id.tvNumber); tvRow = v.findViewById(R.id.tvRow);
@@ -317,8 +309,6 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             btnCopy = v.findViewById(R.id.btnCopy); btnRemind = v.findViewById(R.id.remindBtn);
             phraseBtn1 = v.findViewById(R.id.phraseBtn1); phraseBtn2 = v.findViewById(R.id.phraseBtn2);
             phraseBtn3 = v.findViewById(R.id.phraseBtn3);
-            copyRemark1Btn = v.findViewById(R.id.copyRemark1Btn); copyRemark2Btn = v.findViewById(R.id.copyRemark2Btn);
-            copyOthersBtn = v.findViewById(R.id.copyOthersBtn);
             btnSave = v.findViewById(R.id.btnSave);
         }
     }
