@@ -163,15 +163,15 @@ public class DaySummaryReceiver extends BroadcastReceiver {
                 }
             } catch (Exception ignored) { remain = -1; }
             StringBuilder text = new StringBuilder();
-            text.append(total).append("টা কল • ").append(conn).append(" Connected");
-            if (ftdOk) text.append(" • ").append(ftdN).append(" FTD (৳").append(fmtAmt(ftdSum)).append(")");
+            text.append(total).append("টা কল • ").append(conn).append("টা কানেক্টেড");
+            if (ftdOk) text.append(" • ").append(ftdN).append("টা এফটিডি (৳").append(fmtAmt(ftdSum)).append(")");
             if (remain >= 0) text.append(" • ").append(remain).append("টা বাকি");
             ensureChannel(ctx);
             Intent open = new Intent(ctx, MainActivity.class);
             open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             PendingIntent openPi = PendingIntent.getActivity(ctx, NOTIF_ID, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setSmallIcon(R.drawable.ic_logo_t)
                     .setContentTitle("আজকের হিসাব")
                     .setContentText(text.toString())
                     .setContentIntent(openPi)
@@ -193,7 +193,7 @@ public class DaySummaryReceiver extends BroadcastReceiver {
             NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm == null) return;
             if (nm.getNotificationChannel(CHANNEL_ID) == null) {
-                NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "Diner hisab", NotificationManager.IMPORTANCE_DEFAULT);
+                NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "দিনের হিসাব", NotificationManager.IMPORTANCE_DEFAULT);
                 ch.setDescription("Protidin rat 9tay ajker call-er hisab");
                 nm.createNotificationChannel(ch);
             }

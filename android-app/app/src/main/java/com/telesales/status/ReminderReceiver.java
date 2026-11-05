@@ -57,8 +57,8 @@ public class ReminderReceiver extends BroadcastReceiver {
             NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm == null) return;
             if (nm.getNotificationChannel(CHANNEL_ID) == null) {
-                NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "Mone koriye deoa", NotificationManager.IMPORTANCE_HIGH);
-                ch.setDescription("Call korar somoy hole janano hobe");
+                NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "মনে করিয়ে দেওয়া", NotificationManager.IMPORTANCE_HIGH);
+                ch.setDescription("কল করার সময় হলে জানানো হবে");
                 nm.createNotificationChannel(ch);
             }
         }
@@ -85,15 +85,15 @@ public class ReminderReceiver extends BroadcastReceiver {
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent openPi = PendingIntent.getActivity(ctx, id + 3, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         NotificationCompat.Builder b = new NotificationCompat.Builder(ctx, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setContentTitle("Call korar somoy hoyeche")
-                .setContentText(number + "-e call korar kotha chilo — call korun")
+                .setSmallIcon(R.drawable.ic_logo_t)
+                .setContentTitle("কল করার সময় হয়েছে")
+                .setContentText(number + "-এ কল করার কথা ছিল — কল করুন")
                 .setContentIntent(openPi)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .addAction(0, "Call korun", callPi)
+                .addAction(0, "কল করুন", callPi)
                 .addAction(0, "১ ঘণ্টা পরে", snoozePi)
-                .addAction(0, "Bondho korun", dismissPi);
+                .addAction(0, "বন্ধ করুন", dismissPi);
         try {
             NotificationManagerCompat.from(ctx).notify(id, b.build());
         } catch (SecurityException ignored) {

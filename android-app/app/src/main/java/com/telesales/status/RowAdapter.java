@@ -37,9 +37,9 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     private List<Row> shown = new ArrayList<>();
     private final OnSave onSave;
     private final String[] statusOpts = {"", "call connected", "not connected"};
-    private final String[] statusLabels = {"— খালি —", "call connected", "not connected"};
+    private final String[] statusLabels = {"— খালি —", "কানেক্টেড", "নট কানেক্টেড"};
     private final String[] validOpts = {"", "Yes", "No"};
-    private final String[] validLabels = {"— খালি —", "Yes", "No"};
+    private final String[] validLabels = {"— খালি —", "হ্যাঁ", "না"};
 
     public RowAdapter(OnSave onSave) { this.onSave = onSave; }
     /** Date-filtered called tab: log theke asa row-gulo (null = ekhono load hoyni, tokhon purono niyom). */
@@ -127,10 +127,10 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
 
     private void refreshStatusChip(Holder h, String status) {
         if ("call connected".equals(status)) {
-            h.tvChipStatus.setText("● call connected");
+            h.tvChipStatus.setText("● কানেক্টেড");
             h.tvChipStatus.setBackgroundResource(R.drawable.chip_green);
         } else if ("not connected".equals(status)) {
-            h.tvChipStatus.setText("● not connected");
+            h.tvChipStatus.setText("● নট কানেক্টেড");
             h.tvChipStatus.setBackgroundResource(R.drawable.chip_rose);
         } else {
             h.tvChipStatus.setText("● খালি");
@@ -142,7 +142,8 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             h.tvChipValid.setVisibility(View.GONE);
         } else {
             h.tvChipValid.setVisibility(View.VISIBLE);
-            h.tvChipValid.setText("Valid: " + valid);
+            String vLabel = "Yes".equals(valid) ? "হ্যাঁ" : "No".equals(valid) ? "না" : valid;
+            h.tvChipValid.setText("ভ্যালিড: " + vLabel);
             h.tvChipValid.setBackgroundResource("Yes".equals(valid) ? R.drawable.chip_blue : R.drawable.chip_grey);
         }
     }
@@ -174,7 +175,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         h.etRemark1.setEnabled(!r.viewOnly); h.etRemark2.setEnabled(!r.viewOnly); h.etOthers.setEnabled(!r.viewOnly);
         h.phraseBtn1.setEnabled(!r.viewOnly); h.phraseBtn2.setEnabled(!r.viewOnly); h.phraseBtn3.setEnabled(!r.viewOnly);
         h.btnSave.setEnabled(!r.viewOnly);
-        h.btnSave.setText(r.viewOnly ? "শুধু দেখা যাবে" : "Save korun");
+        h.btnSave.setText(r.viewOnly ? "শুধু দেখা যাবে" : "সেভ করুন");
         final String[] sOpts = withUnknown(statusOpts, r.status);
         final String[] sLabels = withUnknown(statusLabels, r.status);
         final String[] vOpts = withUnknown(validOpts, r.valid);
@@ -209,9 +210,25 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         h.etRemark1.addTextChangedListener(h.wRemark1); h.etRemark2.addTextChangedListener(h.wRemark2); h.etOthers.addTextChangedListener(h.wOthers);
         h.etRemark1.setText(r.remark1); h.etRemark2.setText(r.remark2); h.etOthers.setText(r.others);
         h.btnCall.setOnClickListener(v -> {
-            Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + dialNumber(r.number)));
-            Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
-            h.itemView.getContext().startActivity(chooser);
+            String main = dialNumber(r.number);
+            String other = h.etOthers.getText() == null ? "" : dialNumber(h.etOthers.getText().toString());
+            if (!other.isEmpty() && !other.equals(main)) {
+                // v4.36: অন্যান্য নাম্বার থাকলে দুইটাই দেখাবে, যেটা বাছবে সেটাই ডায়াল হবে।
+                final String[] nums = {main, other};
+                new AlertDialog.Builder(h.itemView.getContext())
+                    .setTitle("কোন নাম্বারে কল করবেন?")
+                    .setItems(nums, (d, w) -> {
+                        Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + nums[w]));
+                        Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+                        h.itemView.getContext().startActivity(chooser);
+                    })
+                    .setNegativeButton("বাতিল", null)
+                    .show();
+            } else {
+                Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + main));
+                Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+                h.itemView.getContext().startActivity(chooser);
+            }
         });
         h.btnCopy.setOnClickListener(v -> {
             Context ctx = h.itemView.getContext();
@@ -219,11 +236,37 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             try {
                 ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
                 cm.setPrimaryClip(ClipData.newPlainText("Number", num));
-                Toast.makeText(ctx, "Copy hoyeche: " + num, Toast.LENGTH_SHORT).show();
+                Toast.makeText(ctx, "কপি হয়েছে: " + num, Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
-                Toast.makeText(ctx, "Copy hoyni, abar chesta korun", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ctx, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
             }
         });
+        // v4.36: রিমার্ক / অন্যান্য নাম্বার কপি বাটন (লং-প্রেসে কপি হয় না বলে)।
+        // কপি করা মানে শুধু পড়া — viewOnly রো-তেও চলবে।
+        android.view.View.OnClickListener copyFieldTap = v -> {
+            Context ctx = h.itemView.getContext();
+            TextInputEditText src = null;
+            String label = "রিমার্ক";
+            if (v == h.copyRemark1Btn) { src = h.etRemark1; label = "১ম রিমার্ক"; }
+            else if (v == h.copyRemark2Btn) { src = h.etRemark2; label = "২য় রিমার্ক"; }
+            else if (v == h.copyOthersBtn) { src = h.etOthers; label = "অন্যান্য নাম্বার"; }
+            if (src == null) return;
+            String txt = src.getText() == null ? "" : src.getText().toString().trim();
+            if (txt.isEmpty()) {
+                Toast.makeText(ctx, "কিছু লেখা নেই", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            try {
+                ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+                cm.setPrimaryClip(ClipData.newPlainText(label, txt));
+                Toast.makeText(ctx, "কপি হয়েছে", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(ctx, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+            }
+        };
+        h.copyRemark1Btn.setOnClickListener(copyFieldTap);
+        h.copyRemark2Btn.setOnClickListener(copyFieldTap);
+        h.copyOthersBtn.setOnClickListener(copyFieldTap);
         h.btnSave.setOnClickListener(v -> {
             r.status = sOpts[h.spStatus.getSelectedItemPosition()];
             r.valid = vOpts[h.spValid.getSelectedItemPosition()];
@@ -262,6 +305,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         TextWatcher wRemark1, wRemark2, wOthers;
         android.widget.Button btnCall, btnCopy, btnRemind; MaterialButton btnSave;
         android.widget.Button phraseBtn1, phraseBtn2, phraseBtn3;
+        android.widget.Button copyRemark1Btn, copyRemark2Btn, copyOthersBtn;
         Holder(View v) {
             super(v);
             tvNumber = v.findViewById(R.id.tvNumber); tvRow = v.findViewById(R.id.tvRow);
@@ -273,6 +317,8 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             btnCopy = v.findViewById(R.id.btnCopy); btnRemind = v.findViewById(R.id.remindBtn);
             phraseBtn1 = v.findViewById(R.id.phraseBtn1); phraseBtn2 = v.findViewById(R.id.phraseBtn2);
             phraseBtn3 = v.findViewById(R.id.phraseBtn3);
+            copyRemark1Btn = v.findViewById(R.id.copyRemark1Btn); copyRemark2Btn = v.findViewById(R.id.copyRemark2Btn);
+            copyOthersBtn = v.findViewById(R.id.copyOthersBtn);
             btnSave = v.findViewById(R.id.btnSave);
         }
     }

@@ -194,41 +194,41 @@ public class MainActivity extends AppCompatActivity {
     private void deleteLogRowsForTarget(StatusLogTarget t, String date, String number) throws Exception { if (t.shared) deleteLogRowsEverywhere(date, number, t.sheetId); else SheetsClient.deleteLogRowsForDateNumber(token, t.sheetId, t.tab, date, number); }
     private void deleteLogRowsEverywhere(String date, String number, String primarySheetId) throws Exception { List<String> ids = logReadIds(date); if (primarySheetId != null && !ids.contains(primarySheetId)) { ids = new ArrayList<>(ids); ids.add(0, primarySheetId); } Exception primaryError = null; for (String id : ids) { try { SheetsClient.deleteLogRowsForDateNumber(token, id, agentId, date, number); } catch (Exception e) { if (id.equals(primarySheetId)) primaryError = e; } } if (primaryError != null) throw primaryError; }
     private List<REntry> regToday = new ArrayList<>(), ftdToday = new ArrayList<>(), invToday = new ArrayList<>(), probToday = new ArrayList<>();
-    private final String[] reasons = {"কল ধরেনি", "Not connected", "বন্ধ", "ভুল নাম্বার"};
+    private final String[] reasons = {"কল ধরেনি", "নট কানেক্টেড", "বন্ধ", "ভুল নাম্বার"};
 
     /** Bangla user manual: agent-ra kobe Connected/Not Connected/Valid Yes/No dibe, remark, report. */
     private static final String GUIDE_TEXT =
         "১. লগইন\n" +
-        "Continue with Google চাপুন, আপনার Gmail দিয়ে লগইন করুন। প্রথমবার Agent ID চাইবে — আপনার ট্যাবের নাম (যেমন bdxsukuna30) লিখুন। এরপর থেকে ওই Gmail-এ লগইন করলেই সরাসরি আপনার লিস্ট খুলবে। উপরের অক্ষরে চাপ দিলে Logout হবে।\n\n" +
+        "গুগল দিয়ে চালিয়ে যান চাপুন, আপনার জিমেইল দিয়ে লগইন করুন। প্রথমবার এজেন্ট আইডি চাইবে — আপনার ট্যাবের নাম (যেমন bdxsukuna03) লিখুন। এরপর থেকে ওই জিমেইলে লগইন করলেই সরাসরি আপনার লিস্ট খুলবে। উপরের অক্ষরে চাপ দিলে লগআউট হবে।\n\n" +
         "২. কল লিস্ট\n" +
-        "কল লিস্টে নাম্বারগুলো থাকে। কল বাকি ট্যাবে যেসব নাম্বারে এখনো কল করা হয়নি, সেগুলো থাকে। কল করে স্ট্যাটাস দিলে সেটা কল করা হয়েছে ট্যাবে চলে যাবে। ড্যাশবোর্ডে তারিখ বদলে ওই দিনের হিসাব দেখতে পারবেন। Search বক্সে নাম্বার লিখে খুঁজতে পারবেন। Refresh চাপলে শিট থেকে নতুন লিস্ট আসবে।\n\n" +
+        "কল লিস্টে নাম্বারগুলো থাকে। কল বাকি ট্যাবে যেসব নাম্বারে এখনো কল করা হয়নি, সেগুলো থাকে। কল করে স্ট্যাটাস দিলে সেটা কল করা হয়েছে ট্যাবে চলে যাবে। ড্যাশবোর্ডে তারিখ বদলে ওই দিনের হিসাব দেখতে পারবেন। সার্চ বক্সে নাম্বার লিখে খুঁজতে পারবেন। রিফ্রেশ চাপলে শিট থেকে নতুন লিস্ট আসবে।\n\n" +
         "৩. কল করা ও স্ট্যাটাস দেওয়া\n" +
-        "Call চাপলে কল যাবে। Copy চাপলে নাম্বার কপি হবে। কল করার পর স্ট্যাটাস দিন, তারপর Save চাপুন। Save না চাপলে শিটে কিছু বদলাবে না।\n\n" +
-        "কল Connected কখন দিবেন:\n" +
-        "যখন কলটা ধরেছে — অর্থাৎ কেউ ফোন রিসিভ করেছে — তখন Connected দিবেন।\n\n" +
-        "কল Not Connected কখন দিবেন:\n" +
-        "যখন কেউ কল রিসিভ করেনি, বা ফোন বন্ধ, বা কল কেটে দিয়েছে — তখন Not Connected দিবেন।\n\n" +
-        "Valid কখন Yes দিবেন:\n" +
-        "কল ধরেছে এবং সে ডিপোজিট করবে — এখনই করুক, বা বিকালে করুক, বা সন্ধ্যায় করুক — ডিপোজিট করার কথা যারা বলেছে, তাদের Yes দিবেন।\n\n" +
-        "Valid কখন No দিবেন:\n" +
-        "যারা ডিপোজিট করবে না; যারা গেম খেলে না; ফোন ধরেছে কিন্তু ডিপোজিট করবে না বলেছে; বা যার নাম্বার দিয়ে অ্যাকাউন্ট খোলা নেই — তাদের No দিবেন।\n\n" +
+        "কল চাপলে কল যাবে। কপি চাপলে নাম্বার কপি হবে। কল করার পর স্ট্যাটাস দিন, তারপর সেভ চাপুন। সেভ না চাপলে শিটে কিছু বদলাবে না।\n\n" +
+        "কল কানেক্টেড কখন দিবেন:\n" +
+        "যখন কলটা ধরেছে — অর্থাৎ কেউ ফোন রিসিভ করেছে — তখন কানেক্টেড দিবেন।\n\n" +
+        "কল নট কানেক্টেড কখন দিবেন:\n" +
+        "যখন কেউ কল রিসিভ করেনি, বা ফোন বন্ধ, বা কল কেটে দিয়েছে — তখন নট কানেক্টেড দিবেন।\n\n" +
+        "ভ্যালিড কখন হ্যাঁ দিবেন:\n" +
+        "কল ধরেছে এবং সে ডিপোজিট করবে — এখনই করুক, বা বিকালে করুক, বা সন্ধ্যায় করুক — ডিপোজিট করার কথা যারা বলেছে, তাদের হ্যাঁ দিবেন।\n\n" +
+        "ভ্যালিড কখন না দিবেন:\n" +
+        "যারা ডিপোজিট করবে না; যারা গেম খেলে না; ফোন ধরেছে কিন্তু ডিপোজিট করবে না বলেছে; বা যার নাম্বার দিয়ে অ্যাকাউন্ট খোলা নেই — তাদের না দিবেন।\n\n" +
         "১ম কল রিমার্ক:\n" +
         "প্রথম কল করে যা জানতে পারলেন — ফোন ধরেছে না ধরেনি, ডিপোজিট করতে চেয়েছে কি চায়নি, যেকোনো কথা — এখানে লিখে দিতে পারবেন।\n\n" +
         "২য় কল রিমার্ক:\n" +
         "দ্বিতীয়বার কল করে যা জানলেন, সেটা এখানে লিখবেন।\n\n" +
-        "অন্য নাম্বার (Others Number):\n" +
+        "অন্যান্য নাম্বার:\n" +
         "কাস্টমারের যদি আরেকটা এক্সট্রা নাম্বার থাকে, সেটা এখানে অ্যাড করতে পারবেন।\n\n" +
-        "৪. Report\n" +
-        "নিচের মেনু থেকে Report-এ গেলে দিনের হিসাব দেওয়া যায়:\n" +
-        "• Registration: + চাপলে একটা করে বাড়বে, − চাপলে আজকের শেষটা বাদ যাবে; কোনো টাকা চাওয়া হবে না।\n" +
-        "• FTD: + চাপলে একটা করে বাড়বে; প্রতিবার নিচে ওই FTD-র টাকাটা লিখতে হবে। শুধু মোট সংখ্যা আর মোট টাকা দেখাবে, আলাদা আলাদা FTD-র টাকা দেখাবে না। ভুল হলে − চাপলে আজকের শেষ FTD-টা বাদ যাবে।\n" +
-        "• Invalid Number: আলাদা করে লিখতে হবে না — নিজে থেকে হিসাব হয়। যেসব নাম্বারে Not Connected আর Valid No দুটোই আছে, সেসব নাম্বার ওই দিনে একবার করে গোনা হয় (একই নাম্বার দুবার থাকলেও ১)। আগের হাতে লেখা Invalid লেখাগুলো শুধু পুরোনো হিসাব হিসেবে থেকে যাবে।\n" +
-        "• Problems: কাজের সময় কোনো সমস্যা হলে এখানে লিখুন।\n" +
-        "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। Generate Report চাপলে নির্বাচিত তারিখ, সময়, Agent ID, মোট কল, Connected, Registration, FTD, মোট টাকা, Invalid আর Problems দিয়ে রিপোর্ট তৈরি হবে। Copy চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
-        "৫. Website বাটন\n" +
-        "নিচের মেনু থেকে Website চাপলে আপনার সাইটটা অ্যাপের ভিতরেই খুলবে, আর নিচে মেনু দেখা যাবে। প্রথমবার ইউজারনেম-পাসওয়ার্ড দিয়ে লগইন করতে হবে; তারপর থেকে লগইন মনে থাকবে, আপডেট দিলেও ভুলবে না। মেনু থেকে যেকোনো অপশনে যেতে পারবেন।\n\n" +
+        "৪. রিপোর্ট\n" +
+        "নিচের মেনু থেকে রিপোর্ট-এ গেলে দিনের হিসাব দেওয়া যায়:\n" +
+        "• রেজিস্ট্রেশন: + চাপলে একটা করে বাড়বে, − চাপলে আজকের শেষটা বাদ যাবে; কোনো টাকা চাওয়া হবে না।\n" +
+        "• এফটিডি: + চাপলে একটা করে বাড়বে; প্রতিবার নিচে ওই এফটিডি-র টাকাটা লিখতে হবে। শুধু মোট সংখ্যা আর মোট টাকা দেখাবে, আলাদা আলাদা এফটিডি-র টাকা দেখাবে না। ভুল হলে − চাপলে আজকের শেষ এফটিডি-টা বাদ যাবে।\n" +
+        "• ইনভ্যালিড নাম্বার: আলাদা করে লিখতে হবে না — নিজে থেকে হিসাব হয়। যেসব নাম্বারে নট কানেক্টেড আর ভ্যালিড না দুটোই আছে, সেসব নাম্বার ওই দিনে একবার করে গোনা হয় (একই নাম্বার দুবার থাকলেও ১)। আগের হাতে লেখা ইনভ্যালিড লেখাগুলো শুধু পুরোনো হিসাব হিসেবে থেকে যাবে।\n" +
+        "• সমস্যা: কাজের সময় কোনো সমস্যা হলে এখানে লিখুন।\n" +
+        "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। রিপোর্ট বানান চাপলে নির্বাচিত তারিখ, সময়, এজেন্ট আইডি, মোট কল, কানেক্টেড, রেজিস্ট্রেশন, এফটিডি, মোট টাকা, ইনভ্যালিড আর সমস্যা দিয়ে রিপোর্ট তৈরি হবে। কপি চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
+        "৫. ওয়েবসাইট বাটন\n" +
+        "নিচের মেনু থেকে ওয়েবসাইট চাপলে আপনার সাইটটা অ্যাপের ভিতরেই খুলবে, আর নিচে মেনু দেখা যাবে। প্রথমবার ইউজারনেম-পাসওয়ার্ড দিয়ে লগইন করতে হবে; তারপর থেকে লগইন মনে থাকবে, আপডেট দিলেও ভুলবে না। মেনু থেকে যেকোনো অপশনে যেতে পারবেন।\n\n" +
         "৬. দিনের হিসাব (ড্যাশবোর্ড)\n" +
-        "ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, FTD, FTD টাকা আর Registration দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।" + "উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।";
+        "ড্যাশবোর্ডে ওই দিনের কানেক্টেড, নট কানেক্টেড, ভ্যালিড, ইনভ্যালিড, এফটিডি, এফটিডি টাকা আর রেজিস্ট্রেশন দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।" + "উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।";
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -267,10 +267,10 @@ public class MainActivity extends AppCompatActivity {
         // Batch fix #16: site/net down hole khali page noy — toast + retry flag reset.
         websiteWeb.setWebViewClient(new WebViewClient() {
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                if (request != null && request.isForMainFrame()) { websiteLoaded = false; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার Website চাপুন", Toast.LENGTH_LONG).show(); }
+                if (request != null && request.isForMainFrame()) { websiteLoaded = false; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার ওয়েবসাইট চাপুন", Toast.LENGTH_LONG).show(); }
             }
             @Override public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                websiteLoaded = false; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার Website চাপুন", Toast.LENGTH_LONG).show();
+                websiteLoaded = false; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার ওয়েবসাইট চাপুন", Toast.LENGTH_LONG).show();
             }
         });
         guideText = findViewById(R.id.guideText);
@@ -350,14 +350,14 @@ public class MainActivity extends AppCompatActivity {
         // Batch fix #2: avatar tap-e soja logout noy — age confirm.
         avatarView.setOnClickListener(v -> {
             new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Logout করবেন?")
+                .setTitle("লগআউট করবেন?")
                 .setMessage("আপনার অ্যাকাউন্ট থেকে বের হয়ে যাবেন।")
-                .setPositiveButton("হ্যাঁ, Logout", (d, w) -> {
+                .setPositiveButton("হ্যাঁ, লগআউট", (d, w) -> {
                     signInClient.signOut().addOnCompleteListener(t -> {
                         token = null; agentId = null; reportSheetId = null; statusLogSheetId = null;
                         getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").remove("agent_email").apply();
                         showLogin();
-                        Toast.makeText(this, "Logout hoyeche", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "লগআউট হয়েছে", Toast.LENGTH_SHORT).show();
                     });
                 })
                 .setNegativeButton("না", null)
@@ -436,18 +436,18 @@ public class MainActivity extends AppCompatActivity {
                 token = null; agentId = null; reportSheetId = null; statusLogSheetId = null;
                 getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").remove("agent_email").apply();
                 showLogin();
-                Toast.makeText(this, "Logout hoyeche", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "লগআউট হয়েছে", Toast.LENGTH_SHORT).show();
             });
         });
         findViewById(R.id.btnTabPending).setOnClickListener(v -> { adapter.setTab(0); setTabUI(); });
         findViewById(R.id.btnTabDone).setOnClickListener(v -> { adapter.setTab(1); setTabUI(); });
         findViewById(R.id.regPlusBtn).setOnClickListener(v -> { addReportEntry("Registration", new String[]{dhakaDate(), "1"}, () -> loadReportData()); });
-            findViewById(R.id.regMinusBtn).setOnClickListener(v -> { REntry last = null; for (REntry e : regToday) if (last == null || e.sourceOrder > last.sourceOrder || (e.sourceOrder == last.sourceOrder && e.sheetRow > last.sheetRow)) last = e; if (last == null) { Toast.makeText(this, "Registration nei", Toast.LENGTH_SHORT).show(); return; } REntry delReg = last; new AlertDialog.Builder(MainActivity.this).setTitle("বাদ দেবেন?").setMessage("শেষ Registration entry-ti বাদ দেবেন?").setPositiveButton("হ্যাঁ, বাদ দিন", (d, w) -> deleteReportEntry("Registration", delReg)).setNegativeButton("না", null).show(); });
+            findViewById(R.id.regMinusBtn).setOnClickListener(v -> { REntry last = null; for (REntry e : regToday) if (last == null || e.sourceOrder > last.sourceOrder || (e.sourceOrder == last.sourceOrder && e.sheetRow > last.sheetRow)) last = e; if (last == null) { Toast.makeText(this, "রেজিস্ট্রেশন নেই", Toast.LENGTH_SHORT).show(); return; } REntry delReg = last; new AlertDialog.Builder(MainActivity.this).setTitle("বাদ দেবেন?").setMessage("শেষ রেজিস্ট্রেশন এন্ট্রিটি বাদ দেবেন?").setPositiveButton("হ্যাঁ, বাদ দিন", (d, w) -> deleteReportEntry("Registration", delReg)).setNegativeButton("না", null).show(); });
             
         findViewById(R.id.ftdPlusBtn).setOnClickListener(v -> {
             if (ftdStepAmountRow.getVisibility() == View.VISIBLE) { ftdStepAmount.requestFocus(); return; }
             int cur = ftdToday == null ? 0 : ftdTotalCount(ftdToday);
-            ftdStepAmount.setHint((cur + 1) + " নম্বর FTD কত টাকার?");
+            ftdStepAmount.setHint((cur + 1) + " নম্বর এফটিডি কত টাকার?");
             ftdStepAmountRow.setVisibility(View.VISIBLE);
             ftdStepAmount.requestFocus();
         });
@@ -469,15 +469,15 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.ftdMinusBtn).setOnClickListener(v -> {
             REntry last = null;
             if (ftdToday != null) for (REntry e : ftdToday) if (last == null || e.sourceOrder > last.sourceOrder || (e.sourceOrder == last.sourceOrder && e.sheetRow > last.sheetRow)) last = e;
-            if (last == null) { Toast.makeText(this, "আজ কোনো FTD নেই", Toast.LENGTH_SHORT).show(); return; }
+            if (last == null) { Toast.makeText(this, "আজ কোনো এফটিডি নেই", Toast.LENGTH_SHORT).show(); return; }
             // Batch fix #17: konta bad jacche seta age dekhano — sesh FTD-r taka soho.
             REntry delFtd = last;
-            new AlertDialog.Builder(MainActivity.this).setTitle("বাদ দেবেন?").setMessage("শেষ FTD: ৳" + cellE(delFtd, 2) + " — বাদ দেবেন?").setPositiveButton("হ্যাঁ, বাদ দিন", (d, w) -> deleteReportEntry("FTD", delFtd)).setNegativeButton("না", null).show();
+            new AlertDialog.Builder(MainActivity.this).setTitle("বাদ দেবেন?").setMessage("শেষ এফটিডি: ৳" + cellE(delFtd, 2) + " — বাদ দেবেন?").setPositiveButton("হ্যাঁ, বাদ দিন", (d, w) -> deleteReportEntry("FTD", delFtd)).setNegativeButton("না", null).show();
         });
         // v4.18: manual Invalid entry removed.
             findViewById(R.id.probAddBtn).setOnClickListener(v -> {
             String t = txt(probText);
-            if (t.isEmpty()) { Toast.makeText(this, "Problem likhun", Toast.LENGTH_SHORT).show(); return; }
+            if (t.isEmpty()) { Toast.makeText(this, "সমস্যা লিখুন", Toast.LENGTH_SHORT).show(); return; }
             addReportEntry("Problems", new String[]{dhakaDate(), t}, () -> probText.setText(""));
         });
         findViewById(R.id.generateBtn).setOnClickListener(v -> generateReport());
@@ -485,7 +485,7 @@ public class MainActivity extends AppCompatActivity {
         // group/person user beche nebe (kono nirdisto ID-te sorasori pathano noy).
         findViewById(R.id.shareBtn).setOnClickListener(v -> {
             String text = reportOutput == null || reportOutput.getText() == null ? "" : reportOutput.getText().toString().trim();
-            if (text.isEmpty()) { Toast.makeText(this, "Age Generate korun, tarpor Share", Toast.LENGTH_SHORT).show(); return; }
+            if (text.isEmpty()) { Toast.makeText(this, "আগে রিপোর্ট বানান, তারপর শেয়ার করুন", Toast.LENGTH_SHORT).show(); return; }
             Intent send = new Intent(Intent.ACTION_SEND);
             send.setType("text/plain");
             send.putExtra(Intent.EXTRA_TEXT, text);
@@ -493,10 +493,10 @@ public class MainActivity extends AppCompatActivity {
         });
         findViewById(R.id.copyBtn).setOnClickListener(v -> {
             String t = reportOutput.getText() == null ? "" : reportOutput.getText().toString();
-            if (t.isEmpty()) { Toast.makeText(this, "Age Generate korun", Toast.LENGTH_SHORT).show(); return; }
+            if (t.isEmpty()) { Toast.makeText(this, "আগে রিপোর্ট বানান", Toast.LENGTH_SHORT).show(); return; }
             ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(ClipData.newPlainText("Daily Report", t));
-            Toast.makeText(this, "Copy hoyeche", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "কপি হয়েছে", Toast.LENGTH_SHORT).show();
         });
 
         RecyclerView recycler = findViewById(R.id.recycler);
@@ -515,7 +515,7 @@ public class MainActivity extends AppCompatActivity {
             // Batch fix #4: Not Connected + Valid Yes guide onujayi osombhob — save atkabe
             // na, sudhu sotorko korbe (agent jate bhul kore na fele).
             if ("not connected".equals(row.status) && "Yes".equals(row.valid))
-                Toast.makeText(MainActivity.this, "সতর্কতা: Not Connected-এর সাথে Valid Yes মেলে না — thik ache to?", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "সতর্কতা: নট কানেক্টেড-এর সাথে ভ্যালিড হ্যাঁ মেলে না — ঠিক আছে তো?", Toast.LENGTH_LONG).show();
             if (optChanged && !optClear && optimisticTileKeys.add(optKey)) applyLocalSaveToTiles(row.status, row.valid);
             // v4.26: notun call sathe sathe called tab-er upore; clear hole called theke sorbe.
             String optQ = searchBox.getText() == null ? "" : searchBox.getText().toString();
@@ -603,8 +603,8 @@ public class MainActivity extends AppCompatActivity {
                         authRetryUsed = false;
                         savingRows.remove(optKey); optimisticTileKeys.remove(optKey);
                         markRowCleanInSnapshot(row); refreshQueuedCounter();
-                        btn.setEnabled(true); btn.setText("Save korun");
-                        Toast.makeText(MainActivity.this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (log pore sync hobe)" : (finalLogCleared ? " (ajker log row muche geche)" : "")), Toast.LENGTH_LONG).show();
+                        btn.setEnabled(true); btn.setText("সেভ করুন");
+                        Toast.makeText(MainActivity.this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (লগ পরে সিঙ্ক হবে)" : (finalLogCleared ? " (আজকের লগ রো মুছে গেছে)" : "")), Toast.LENGTH_LONG).show();
                         adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
                         refreshRemainingHero();
                         if (finalLogAppended) { refreshInvalidTileAfterSave(); }
@@ -614,14 +614,14 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) {
                         authRetryUsed = true;
-                        runOnUiThread(() -> { savingRows.remove(optKey); btn.setEnabled(true); btn.setText("Save korun"); btn.performClick(); });
+                        runOnUiThread(() -> { savingRows.remove(optKey); btn.setEnabled(true); btn.setText("সেভ করুন"); btn.performClick(); });
                     } else {
                         // v4.32: tap-er somoyei outbox + pending-log commit() diye joma ache —
                         // abar queue korle duplicate hobe. Worker + drain pore pathabe.
                         runOnUiThread(() -> {
                             savingRows.remove(optKey);
-                            btn.setEnabled(true); btn.setText("Save korun");
-                            Toast.makeText(MainActivity.this, "সেভ হয়নি — pore abar chesta hobe (joma ache): " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            btn.setEnabled(true); btn.setText("সেভ করুন");
+                            Toast.makeText(MainActivity.this, "সেভ হয়নি — পরে আবার চেষ্টা হবে (জমা আছে): " + e.getMessage(), Toast.LENGTH_LONG).show();
                         });
                     }
                 }
@@ -785,17 +785,17 @@ public class MainActivity extends AppCompatActivity {
         refreshTeamsSection();
     }
     private void setAgentSubtitle() {
-        if (agentSubtitle != null && agentId != null) agentSubtitle.setText("Agent: " + agentId);
+        if (agentSubtitle != null && agentId != null) agentSubtitle.setText("এজেন্ট: " + agentId);
     }
     /** Admin: paste kora number-gulo target Agent-er tab-er seshe, paste kora order-e jog kore.
      *  Agertheke thaka number ba paste-er vitore duplicate thakle skip hobe (abar boshbe na). */
     private void submitAdminNumbers() {
         String target = txt(adminAgentInput);
         String pasted = adminNumbersInput.getText() == null ? "" : adminNumbersInput.getText().toString();
-        if (target.isEmpty()) { adminStatus.setText("Agent ID din"); return; }
-        if (pasted.trim().isEmpty()) { adminStatus.setText("Number paste korun"); return; }
+        if (target.isEmpty()) { adminStatus.setText("এজেন্ট আইডি দিন"); return; }
+        if (pasted.trim().isEmpty()) { adminStatus.setText("নাম্বার পেস্ট করুন"); return; }
         if (token == null) { showLogin(); return; }
-        adminStatus.setText("Jog kora hocche...");
+        adminStatus.setText("যোগ করা হচ্ছে...");
         new Thread(() -> {
             try {
                 tryRefreshConfig();
@@ -822,19 +822,19 @@ public class MainActivity extends AppCompatActivity {
                     if (existing.contains(n) || !seen.add(n)) { dup++; continue; }
                     toAdd.add(n);
                 }
-                if (toAdd.isEmpty()) throw new Exception("Notun kono number pai ni" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
+                if (toAdd.isEmpty()) throw new Exception("নতুন কোনো নাম্বার পাইনি" + (dup > 0 ? " (" + dup + "টা ডুপ্লিকেট বাদ)" : "") + (bad > 0 ? " (" + bad + "টা ঠিক নাম্বার না)" : ""));
                 java.util.List<String> finalToAdd = toAdd; int dupFinal = dup, badFinal = bad;
                 runOnUiThread(() -> {
                     // Batch fix #15: live list-e jawar age confirm — bhul paste atkano jabe.
                     new AlertDialog.Builder(MainActivity.this)
                         .setTitle("লাইভ লিস্টে যাবে")
-                        .setMessage("লাইভ লিস্টে " + finalToAdd.size() + "টা নাম্বার যাবে (" + finalMatch + ")" + (dupFinal > 0 ? " — " + dupFinal + "ta duplicate skip hobe" : "") + (badFinal > 0 ? " — " + badFinal + "ta thik number na, bad jabe" : "") + "। ঠিক আছে?")
+                        .setMessage("লাইভ লিস্টে " + finalToAdd.size() + "টা নাম্বার যাবে (" + finalMatch + ")" + (dupFinal > 0 ? " — " + dupFinal + "টা ডুপ্লিকেট বাদ যাবে" : "") + (badFinal > 0 ? " — " + badFinal + "টা ঠিক নাম্বার না, বাদ যাবে" : "") + "। ঠিক আছে?")
                         .setPositiveButton("হ্যাঁ, যোগ করুন", (d, w) -> doAppendAdminNumbers(finalMatch, finalToAdd, dupFinal, badFinal))
                         .setNegativeButton("না", null)
                         .show();
                 });
             } catch (Exception e) {
-                runOnUiThread(() -> adminStatus.setText("Hoyni: " + e.getMessage()));
+                runOnUiThread(() -> adminStatus.setText("হয়নি: " + e.getMessage()));
             }
         }).start();
     }
@@ -842,17 +842,17 @@ public class MainActivity extends AppCompatActivity {
      *  theke daka jay (thread-er bhetor dialog atkano jay na). */
     private void doAppendAdminNumbers(String match, java.util.List<String> toAdd, int dup, int bad) {
         if (token == null) { showLogin(); return; }
-        adminStatus.setText("Jog kora hocche...");
+        adminStatus.setText("যোগ করা হচ্ছে...");
         new Thread(() -> {
             try {
                 SheetsClient.appendNumbers(token, currentNumbersId(), match, toAdd);
                 int added = toAdd.size();
                 runOnUiThread(() -> {
-                    adminStatus.setText(added + "ta number " + match + "-er list-e jog hoyeche" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
+                    adminStatus.setText(added + "টা নাম্বার " + match + "-এর লিস্টে যোগ হয়েছে" + (dup > 0 ? " (" + dup + "টা ডুপ্লিকেট বাদ)" : "") + (bad > 0 ? " (" + bad + "টা ঠিক নাম্বার না)" : ""));
                     adminNumbersInput.setText("");
                 });
             } catch (Exception e) {
-                runOnUiThread(() -> adminStatus.setText("Hoyni: " + e.getMessage()));
+                runOnUiThread(() -> adminStatus.setText("হয়নি: " + e.getMessage()));
             }
         }).start();
     }
@@ -937,10 +937,10 @@ public class MainActivity extends AppCompatActivity {
                         try { fc = Integer.parseInt(cell(d, 5)); } catch (Exception ignored) {}
                         try { fa = Double.parseDouble(cell(d, 6)); } catch (Exception ignored) {}
                         totCall += tc; totConn += cc; totFtd += fc; totAmt += fa;
-                        lines.add(a + " — Total " + tc + " • Conn " + cc + " • FTD " + fc + " (৳" + fmtAmount(fa) + ") • বাকি " + remS);
+                        lines.add(a + " — মোট " + tc + " • কানেক্টেড " + cc + " • এফটিডি " + fc + " (৳" + fmtAmount(fa) + ") • বাকি " + remS);
                     }
                 }
-                final String head = "আজ (" + displayDay(today) + ") — " + agents.size() + " জন এজেন্ট • মোট কল " + totCall + " • Connected " + totConn + " • FTD " + totFtd + " (৳" + fmtAmount(totAmt) + ") • বাকি " + totRem;
+                final String head = "আজ (" + displayDay(today) + ") — " + agents.size() + " জন এজেন্ট • মোট কল " + totCall + " • কানেক্টেড " + totConn + " • এফটিডি " + totFtd + " (৳" + fmtAmount(totAmt) + ") • বাকি " + totRem;
                 runOnUiThread(() -> {
                     if (st != null) st.setText(head);
                     if (list != null) {
@@ -968,37 +968,37 @@ public class MainActivity extends AppCompatActivity {
         if (testSheetStatus == null) return;
         SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
         String id = p.getString("test_sheet_id", null);
-        if (id == null || id.isEmpty()) { testSheetStatus.setText("Kono test sheet save kora hoyni — age link/ID diye save korun"); return; }
+        if (id == null || id.isEmpty()) { testSheetStatus.setText("কোনো টেস্ট শিট সেভ করা হয়নি — আগে লিংক/আইডি দিয়ে সেভ করুন"); return; }
         String title = p.getString("test_sheet_title", null);
-        testSheetStatus.setText("Test sheet: " + (title != null && !title.isEmpty() ? title : id));
+        testSheetStatus.setText("টেস্ট শিট: " + (title != null && !title.isEmpty() ? title : id));
     }
     /** v4.30: test sheet link/ID jachai kore save — Drive files.get + spreadsheet mimeType (Sheet Settings-er motoi). Fail hole ager save bodlabe na. */
     private void saveTestSheet() {
         String id = SheetsClient.extractSpreadsheetId(txt(testSheetInput));
-        if (id.isEmpty()) { if (testSheetStatus != null) testSheetStatus.setText("Link ba ID din"); return; }
+        if (id.isEmpty()) { if (testSheetStatus != null) testSheetStatus.setText("লিংক বা আইডি দিন"); return; }
         if (token == null) { showLogin(); return; }
-        if (testSheetStatus != null) testSheetStatus.setText("Jachai hocche...");
+        if (testSheetStatus != null) testSheetStatus.setText("যাচাই হচ্ছে...");
         new Thread(() -> {
             try {
                 String[] info = SheetsClient.getSpreadsheetName(token, id);
                 if (!"application/vnd.google-apps.spreadsheet".equals(info[1])) throw new Exception("Eta spreadsheet noy — sheet-er link/ID din");
                 getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().putString("test_sheet_id", id).putString("test_sheet_title", info[0]).apply();
-                runOnUiThread(() -> { if (testSheetStatus != null) testSheetStatus.setText("Test sheet save hoyeche: " + info[0]); if (testSheetInput != null) testSheetInput.setText(""); });
+                runOnUiThread(() -> { if (testSheetStatus != null) testSheetStatus.setText("টেস্ট শিট সেভ হয়েছে: " + info[0]); if (testSheetInput != null) testSheetInput.setText(""); });
             } catch (Exception e) {
-                runOnUiThread(() -> { if (testSheetStatus != null) testSheetStatus.setText("Jachai hoyni: " + e.getMessage()); });
+                runOnUiThread(() -> { if (testSheetStatus != null) testSheetStatus.setText("যাচাই হয়নি: " + e.getMessage()); });
             }
         }).start();
     }
     /** v4.30: test sheet-e number bosan — legacy admin logic-i (normalize/dedupe/append A6:A RAW), sudhu target save kora test sheet, live sheet-e noy. */
     private void submitTestSheetNumbers() {
         String sheetId = savedTestSheetId();
-        if (sheetId == null || sheetId.isEmpty()) { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Age test sheet-er link/ID bosan"); return; }
+        if (sheetId == null || sheetId.isEmpty()) { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("আগে টেস্ট শিটের লিংক/আইডি বসান"); return; }
         String target = txt(testSheetTabInput);
         String pasted = testSheetNumbersInput.getText() == null ? "" : testSheetNumbersInput.getText().toString();
-        if (target.isEmpty()) { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Tab / Agent ID din"); return; }
-        if (pasted.trim().isEmpty()) { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Number paste korun"); return; }
+        if (target.isEmpty()) { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("ট্যাব / এজেন্ট আইডি দিন"); return; }
+        if (pasted.trim().isEmpty()) { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("নাম্বার পেস্ট করুন"); return; }
         if (token == null) { showLogin(); return; }
-        if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Jog kora hocche...");
+        if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("যোগ করা হচ্ছে...");
         new Thread(() -> {
             try {
                 List<String> tabs = SheetsClient.getTabs(token, sheetId);
@@ -1022,16 +1022,16 @@ public class MainActivity extends AppCompatActivity {
                     if (existing.contains(n) || !seen.add(n)) { dup++; continue; }
                     toAdd.add(n);
                 }
-                if (toAdd.isEmpty()) throw new Exception("Notun kono number pai ni" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
+                if (toAdd.isEmpty()) throw new Exception("নতুন কোনো নাম্বার পাইনি" + (dup > 0 ? " (" + dup + "টা ডুপ্লিকেট বাদ)" : "") + (bad > 0 ? " (" + bad + "টা ঠিক নাম্বার না)" : ""));
                 SheetsClient.appendNumbers(token, sheetId, finalMatch, toAdd);
                 int added = toAdd.size();
                 int dupFinal = dup, badFinal = bad;
                 runOnUiThread(() -> {
-                    if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText(added + "ta number " + finalMatch + "-er list-e jog hoyeche (test sheet)" + (dupFinal > 0 ? " (" + dupFinal + "ta duplicate skip)" : "") + (badFinal > 0 ? " (" + badFinal + "ta thik number na)" : ""));
+                    if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText(added + "টা নাম্বার " + finalMatch + "-এর লিস্টে যোগ হয়েছে (টেস্ট শিট)" + (dupFinal > 0 ? " (" + dupFinal + "টা ডুপ্লিকেট বাদ)" : "") + (badFinal > 0 ? " (" + badFinal + "টা ঠিক নাম্বার না)" : ""));
                     if (testSheetNumbersInput != null) testSheetNumbersInput.setText("");
                 });
             } catch (Exception e) {
-                runOnUiThread(() -> { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("Hoyni: " + e.getMessage()); });
+                runOnUiThread(() -> { if (testSheetNumbersStatus != null) testSheetNumbersStatus.setText("হয়নি: " + e.getMessage()); });
             }
         }).start();
     }
@@ -1113,16 +1113,16 @@ public class MainActivity extends AppCompatActivity {
     /** v4.29: Admin Panel theke arekjon admin add — Admins tab-e [Email, AddedBy, AddedDate]. Age theke thakle skip. */
     private void submitAddAdmin() {
         String email = txt(adminNewAdminInput).trim().toLowerCase(Locale.US);
-        if (email.isEmpty() || !email.contains("@")) { if (adminAdminStatus != null) adminAdminStatus.setText("Thik Gmail din (@ soho)"); return; }
+        if (email.isEmpty() || !email.contains("@")) { if (adminAdminStatus != null) adminAdminStatus.setText("ঠিক জিমেইল দিন (@ সহ)"); return; }
         if (token == null) { showLogin(); return; }
-        if (adminAdminStatus != null) adminAdminStatus.setText("Add kora hocche...");
+        if (adminAdminStatus != null) adminAdminStatus.setText("যোগ করা হচ্ছে...");
         new Thread(() -> {
             try {
                 SheetsClient.ensureAdminsTab(token, CONFIG_FILE_ID);
                 List<String[]> rows = SheetsClient.getReportRows(token, CONFIG_FILE_ID, "Admins");
                 for (String[] r : rows) {
                     if (r != null && r.length > 0 && email.equals(r[0] == null ? "" : r[0].trim().toLowerCase(Locale.US))) {
-                        runOnUiThread(() -> { if (adminAdminStatus != null) adminAdminStatus.setText("Ei Gmail age thekei admin ache"); });
+                        runOnUiThread(() -> { if (adminAdminStatus != null) adminAdminStatus.setText("এই জিমেইল আগে থেকেই অ্যাডমিন আছে"); });
                         return;
                     }
                 }
@@ -1130,9 +1130,9 @@ public class MainActivity extends AppCompatActivity {
                 String by = prefs.getString("current_email", "");
                 SheetsClient.appendReportRow(token, CONFIG_FILE_ID, "Admins", new String[]{email, by == null ? "" : by, dhakaDate()});
                 refreshAdminsCacheSync();
-                runOnUiThread(() -> { if (adminAdminStatus != null) adminAdminStatus.setText(email + " admin hisebe add hoyeche"); if (adminNewAdminInput != null) adminNewAdminInput.setText(""); });
+                runOnUiThread(() -> { if (adminAdminStatus != null) adminAdminStatus.setText(email + " অ্যাডমিন হিসেবে যোগ হয়েছে"); if (adminNewAdminInput != null) adminNewAdminInput.setText(""); });
             } catch (Exception e) {
-                runOnUiThread(() -> { if (adminAdminStatus != null) adminAdminStatus.setText("Hoyni: " + e.getMessage()); });
+                runOnUiThread(() -> { if (adminAdminStatus != null) adminAdminStatus.setText("হয়নি: " + e.getMessage()); });
             }
         }).start();
     }
@@ -1151,8 +1151,8 @@ public class MainActivity extends AppCompatActivity {
     private void createTeamSheet() {
         String name = txt(teamNameInput);
         String agentsRaw = teamAgentsInput.getText() == null ? "" : teamAgentsInput.getText().toString();
-        if (name.isEmpty()) { if (teamStatus != null) teamStatus.setText("Team-er nam din"); return; }
-        if (badTeamOrAgentName(name)) { if (teamStatus != null) teamStatus.setText("Team-er nam-e ei chinno cholbe na: [ ] : * ? / \\"); return; }
+        if (name.isEmpty()) { if (teamStatus != null) teamStatus.setText("টিমের নাম দিন"); return; }
+        if (badTeamOrAgentName(name)) { if (teamStatus != null) teamStatus.setText("টিমের নামে এই চিহ্ন চলবে না: [ ] : * ? / \\"); return; }
         java.util.LinkedHashSet<String> agents = new java.util.LinkedHashSet<>();
         java.util.Set<String> lowerSeen = new java.util.HashSet<>();
         int badAgents = 0;
@@ -1162,9 +1162,9 @@ public class MainActivity extends AppCompatActivity {
             if (badTeamOrAgentName(a) || !lowerSeen.add(a.toLowerCase(Locale.US))) { badAgents++; continue; }
             agents.add(a);
         }
-        if (agents.isEmpty()) { if (teamStatus != null) teamStatus.setText("Ontoto ekta Agent ID din (proti line-e ekta)"); return; }
+        if (agents.isEmpty()) { if (teamStatus != null) teamStatus.setText("অন্তত একটা এজেন্ট আইডি দিন (প্রতি লাইনে একটা)"); return; }
         if (token == null) { showLogin(); return; }
-        if (teamStatus != null) teamStatus.setText("Sheet banano hocche...");
+        if (teamStatus != null) teamStatus.setText("শিট বানানো হচ্ছে...");
         final int badAgentsFinal = badAgents;
         new Thread(() -> {
             try {
@@ -1189,9 +1189,9 @@ public class MainActivity extends AppCompatActivity {
                 String newId = SheetsClient.createTeamSpreadsheet(token, title, new ArrayList<>(agents), header);
                 SheetsClient.ensureTeamsTab(token, CONFIG_FILE_ID);
                 SheetsClient.appendReportRow(token, CONFIG_FILE_ID, "Teams", new String[]{name, newId, dhakaDate(), "No"});
-                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("'" + title + "' sheet toiri — " + agents.size() + "ta tab, ekhon Active noy (sobai-er jonno add korle cholbe)" + (badAgentsFinal > 0 ? " (" + badAgentsFinal + "ta Agent ID bad deoa hoyeche)" : "")); if (teamAgentsInput != null) teamAgentsInput.setText(""); refreshTeamsSection(); });
+                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("'" + title + "' শিট তৈরি — " + agents.size() + "টা ট্যাব, এখন অ্যাক্টিভ নয় (সবার জন্য যোগ করলে চলবে)" + (badAgentsFinal > 0 ? " (" + badAgentsFinal + "টা এজেন্ট আইডি বাদ দেওয়া হয়েছে)" : "")); if (teamAgentsInput != null) teamAgentsInput.setText(""); refreshTeamsSection(); });
             } catch (Exception e) {
-                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("Sheet banano hoyni: " + e.getMessage()); });
+                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("শিট বানানো হয়নি: " + e.getMessage()); });
             }
         }).start();
     }
@@ -1210,7 +1210,7 @@ public class MainActivity extends AppCompatActivity {
                 teamListContainer.removeAllViews();
                 if (rows.isEmpty()) {
                     TextView empty = new TextView(this);
-                    empty.setText("Ekhono kono team sheet banano hoyni");
+                    empty.setText("এখনো কোনো টিম শিট বানানো হয়নি");
                     empty.setTextColor(Color.parseColor("#9AA3C7"));
                     empty.setTextSize(13);
                     teamListContainer.addView(empty);
@@ -1221,7 +1221,7 @@ public class MainActivity extends AppCompatActivity {
                     row.setOrientation(LinearLayout.VERTICAL);
                     row.setPadding(0, 16, 0, 16);
                     TextView title = new TextView(this);
-                    title.setText(t.name + " — " + ("Yes".equalsIgnoreCase(t.active) ? "sobai-er jonno chalu" : "bondho") + " (" + t.created + ")");
+                    title.setText(t.name + " — " + ("Yes".equalsIgnoreCase(t.active) ? "সবার জন্য চালু" : "বন্ধ") + " (" + t.created + ")");
                     title.setTextColor(Color.WHITE);
                     title.setTextSize(15);
                     title.setTypeface(null, Typeface.BOLD);
@@ -1238,7 +1238,7 @@ public class MainActivity extends AppCompatActivity {
                     LinearLayout btnRow = new LinearLayout(this);
                     btnRow.setOrientation(LinearLayout.HORIZONTAL);
                     MaterialButton toggle = new MaterialButton(this);
-                    toggle.setText("Yes".equalsIgnoreCase(t.active) ? "Bondho korun" : "Sobai-er jonno add korun");
+                    toggle.setText("Yes".equalsIgnoreCase(t.active) ? "বন্ধ করুন" : "সবার জন্য যোগ করুন");
                     toggle.setTextColor(Color.WHITE);
                     toggle.setBackgroundResource("Yes".equalsIgnoreCase(t.active) ? R.drawable.glass_field : R.drawable.btn_gradient);
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
@@ -1246,7 +1246,7 @@ public class MainActivity extends AppCompatActivity {
                     toggle.setOnClickListener(v -> setTeamActive(t, !"Yes".equalsIgnoreCase(t.active)));
                     btnRow.addView(toggle);
                     MaterialButton nums = new MaterialButton(this);
-                    nums.setText("Number bosan");
+                    nums.setText("নাম্বার বসান");
                     nums.setTextColor(Color.WHITE);
                     nums.setBackgroundResource(R.drawable.glass_field);
                     LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
@@ -1263,32 +1263,32 @@ public class MainActivity extends AppCompatActivity {
     /** v4.29: team chalu/bondho — Teams tab-er Active ghor bodlano. SheetConfig NUMBERS switch-e kono hat noy. */
     private void setTeamActive(TeamRow t, boolean active) {
         if (token == null) { showLogin(); return; }
-        if (teamStatus != null) teamStatus.setText("Update hocche...");
+        if (teamStatus != null) teamStatus.setText("আপডেট হচ্ছে...");
         new Thread(() -> {
             try {
                 SheetsClient.updateCells(token, CONFIG_FILE_ID, "Teams!D" + t.sheetRow, new String[][]{{active ? "Yes" : "No"}});
-                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("'" + t.name + "' " + (active ? "sobai-er jonno chalu hoyeche" : "bondho hoyeche")); refreshTeamsSection(); });
+                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("'" + t.name + "' " + (active ? "সবার জন্য চালু হয়েছে" : "বন্ধ হয়েছে")); refreshTeamsSection(); });
             } catch (Exception e) {
-                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("Hoyni: " + e.getMessage()); });
+                runOnUiThread(() -> { if (teamStatus != null) teamStatus.setText("হয়নি: " + e.getMessage()); });
             }
         }).start();
     }
     /** v4.29: team select — tarpor tab nam + number paste kore oi team-er sheet-e jog hobe (live sheet-e noy). */
     private void selectTeam(TeamRow t) {
         selectedTeam = t;
-        if (teamSelectedLabel != null) teamSelectedLabel.setText("Select kora team: " + t.name + " — tab (Agent ID) likhun, number paste korun");
+        if (teamSelectedLabel != null) teamSelectedLabel.setText("নির্বাচিত টিম: " + t.name + " — ট্যাব (এজেন্ট আইডি) লিখুন, নাম্বার পেস্ট করুন");
         if (teamTabInput != null) teamTabInput.requestFocus();
     }
     /** v4.29: select kora team-er sheet-er ekta tab-e number jog — ager admin number-logic-i (normalize/dedupe/append A6:A RAW). Live sheet-e kichu jabe na. */
     private void submitTeamNumbers() {
         TeamRow team = selectedTeam;
-        if (team == null) { if (teamNumbersStatus != null) teamNumbersStatus.setText("Age team list theke ekta team-er 'Number bosan' chapun"); return; }
+        if (team == null) { if (teamNumbersStatus != null) teamNumbersStatus.setText("আগে টিম লিস্ট থেকে একটা টিমের 'নাম্বার বসান' চাপুন"); return; }
         String target = txt(teamTabInput);
         String pasted = teamNumbersInput.getText() == null ? "" : teamNumbersInput.getText().toString();
-        if (target.isEmpty()) { if (teamNumbersStatus != null) teamNumbersStatus.setText("Tab / Agent ID din"); return; }
-        if (pasted.trim().isEmpty()) { if (teamNumbersStatus != null) teamNumbersStatus.setText("Number paste korun"); return; }
+        if (target.isEmpty()) { if (teamNumbersStatus != null) teamNumbersStatus.setText("ট্যাব / এজেন্ট আইডি দিন"); return; }
+        if (pasted.trim().isEmpty()) { if (teamNumbersStatus != null) teamNumbersStatus.setText("নাম্বার পেস্ট করুন"); return; }
         if (token == null) { showLogin(); return; }
-        if (teamNumbersStatus != null) teamNumbersStatus.setText("Jog kora hocche...");
+        if (teamNumbersStatus != null) teamNumbersStatus.setText("যোগ করা হচ্ছে...");
         new Thread(() -> {
             try {
                 List<String> tabs = SheetsClient.getTabs(token, team.sheetId);
@@ -1312,15 +1312,15 @@ public class MainActivity extends AppCompatActivity {
                     if (existing.contains(n) || !seen.add(n)) { dup++; continue; }
                     toAdd.add(n);
                 }
-                if (toAdd.isEmpty()) throw new Exception("Notun kono number pai ni" + (dup > 0 ? " (" + dup + "ta duplicate skip)" : "") + (bad > 0 ? " (" + bad + "ta thik number na)" : ""));
+                if (toAdd.isEmpty()) throw new Exception("নতুন কোনো নাম্বার পাইনি" + (dup > 0 ? " (" + dup + "টা ডুপ্লিকেট বাদ)" : "") + (bad > 0 ? " (" + bad + "টা ঠিক নাম্বার না)" : ""));
                 SheetsClient.appendNumbers(token, team.sheetId, finalMatch, toAdd);
                 int added = toAdd.size(), dupFinal = dup, badFinal = bad;
                 runOnUiThread(() -> {
-                    if (teamNumbersStatus != null) teamNumbersStatus.setText(added + "ta number " + team.name + " / " + finalMatch + "-e jog hoyeche" + (dupFinal > 0 ? " (" + dupFinal + "ta duplicate skip)" : "") + (badFinal > 0 ? " (" + badFinal + "ta thik number na)" : ""));
+                    if (teamNumbersStatus != null) teamNumbersStatus.setText(added + "টা নাম্বার " + team.name + " / " + finalMatch + "-এ যোগ হয়েছে" + (dupFinal > 0 ? " (" + dupFinal + "টা ডুপ্লিকেট বাদ)" : "") + (badFinal > 0 ? " (" + badFinal + "টা ঠিক নাম্বার না)" : ""));
                     if (teamNumbersInput != null) teamNumbersInput.setText("");
                 });
             } catch (Exception e) {
-                runOnUiThread(() -> { if (teamNumbersStatus != null) teamNumbersStatus.setText("Hoyni: " + e.getMessage()); });
+                runOnUiThread(() -> { if (teamNumbersStatus != null) teamNumbersStatus.setText("হয়নি: " + e.getMessage()); });
             }
         }).start();
     }
@@ -1422,7 +1422,7 @@ public class MainActivity extends AppCompatActivity {
         if (searchBox != null) searchBox.setText(dial);
         boolean loadingCalled = (tab == 1 && selectedDate != null && !selectedDate.equals(adapter.getCalledDate()));
         if (adapter.getItemCount() == 0 && !loadingCalled) {
-            Toast.makeText(this, "Ei number ajker list-e pelam na \u2014 hoyto onno din call hoyeche ba list theke sorano hoyeche", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "এই নাম্বার আজকের লিস্টে পেলাম না — হয়তো অন্য দিন কল হয়েছে বা লিস্ট থেকে সরানো হয়েছে", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -1441,10 +1441,10 @@ public class MainActivity extends AppCompatActivity {
     private void showReminderDialog(Row row) {
         if (row == null) return;
         final String number = RowAdapter.dialNumber(row.number);
-        if (number.isEmpty()) { Toast.makeText(this, "Number pai ni", Toast.LENGTH_SHORT).show(); return; }
-        final String[] opts = {"Aj bikel 4ta", "Agamikal sokal 10ta", "Nijer somoy"};
+        if (number.isEmpty()) { Toast.makeText(this, "নাম্বার পাইনি", Toast.LENGTH_SHORT).show(); return; }
+        final String[] opts = {"আজ বিকেল ৪টা", "আগামীকাল সকাল ১০টা", "নিজের সময়"};
         new AlertDialog.Builder(this)
-                .setTitle("Kokhon mone koriye debo?")
+                .setTitle("কখন মনে করিয়ে দেবো?")
                 .setItems(opts, (d, which) -> {
                     if (which == 0) scheduleReminder(number, atDhaka(0, 16, 0));
                     else if (which == 1) scheduleReminder(number, atDhaka(1, 10, 0));
@@ -1454,22 +1454,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void pickCustomReminderTime(final String number) {
-        final String[] days = {"Aj", "Agamikal"};
-        new AlertDialog.Builder(this)
-                .setTitle("Kon din?")
-                .setItems(days, (d, which) -> {
-                    final int dayOffset = which;
-                    Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Asia/Dhaka"));
-                    new TimePickerDialog(MainActivity.this, (view, hour, minute) -> {
-                        scheduleReminder(number, atDhaka(dayOffset, hour, minute));
-                    }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), false).show();
-                })
-                .show();
+        // v4.36: যেকোনো তারিখ বাছা যাবে (আগে শুধু আজ/আগামীকাল ছিল)।
+        // অতীতের তারিখ পিকারেই বন্ধ; অতীতের সময় হলে scheduleReminder আগের মতোই আটকাবে।
+        Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Asia/Dhaka"));
+        DatePickerDialog dp = new DatePickerDialog(MainActivity.this, (view, year, month, day) -> {
+            Calendar t = Calendar.getInstance(TimeZone.getTimeZone("Asia/Dhaka"));
+            new TimePickerDialog(MainActivity.this, (v2, hour, minute) -> {
+                Calendar picked = Calendar.getInstance(TimeZone.getTimeZone("Asia/Dhaka"));
+                picked.set(year, month, day, hour, minute, 0);
+                picked.set(Calendar.MILLISECOND, 0);
+                scheduleReminder(number, picked.getTimeInMillis());
+            }, t.get(Calendar.HOUR_OF_DAY), t.get(Calendar.MINUTE), false).show();
+        }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+        Calendar todayStart = Calendar.getInstance(TimeZone.getTimeZone("Asia/Dhaka"));
+        todayStart.set(Calendar.HOUR_OF_DAY, 0);
+        todayStart.set(Calendar.MINUTE, 0);
+        todayStart.set(Calendar.SECOND, 0);
+        todayStart.set(Calendar.MILLISECOND, 0);
+        dp.getDatePicker().setMinDate(todayStart.getTimeInMillis());
+        dp.show();
     }
 
     private void scheduleReminder(String number, long epoch) {
         if (epoch <= System.currentTimeMillis()) {
-            Toast.makeText(this, "Ei somoy par hoye geche — bhabishyoter somoy din", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "এই সময় পার হয়ে গেছে — ভবিষ্যতের সময় দিন", Toast.LENGTH_SHORT).show();
             return;
         }
         // Android 13+: notification onumoti age (prothom reminder-e chawa hobe)
@@ -1487,7 +1495,7 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             if (am != null && !am.canScheduleExactAlarms()) {
-                Toast.makeText(this, "Thik somoye reminder-er jonno alarm onumoti din", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "ঠিক সময়ে রিমাইন্ডারের জন্য অ্যালার্ম অনুমতি দিন", Toast.LENGTH_LONG).show();
                 try {
                     Intent i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
                     i.setData(Uri.parse("package:" + getPackageName()));
@@ -1502,7 +1510,7 @@ public class MainActivity extends AppCompatActivity {
         // Batch feature #9: sheet-eo backup (phone bodol/reinstall-eo thakbe).
         new Thread(() -> ReminderSheetSync.save(token, agentId, number, epoch)).start();
         refreshReminderList();
-        Toast.makeText(this, "Mone koriye deoa holo: " + fmtReminderTime(epoch), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "মনে করিয়ে দেওয়া হলো: " + fmtReminderTime(epoch), Toast.LENGTH_SHORT).show();
     }
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -1515,7 +1523,7 @@ public class MainActivity extends AppCompatActivity {
             if (num != null && t > 0 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 scheduleReminderNow(num, t);
             } else {
-                Toast.makeText(this, "Notification onumoti na dile reminder asbe na", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "নোটিফিকেশন অনুমতি না দিলে রিমাইন্ডার আসবে না", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -1688,9 +1696,9 @@ public class MainActivity extends AppCompatActivity {
     /** Agent ID jachai: sheet-e oi nam-e tab ache kina dekhbe, thakle save kore list khulbe. */
     private void submitAgent() {
         String id = txt(agentInput);
-        if (id.isEmpty()) { agentError.setText("Agent ID likhun"); return; }
+        if (id.isEmpty()) { agentError.setText("এজেন্ট আইডি লিখুন"); return; }
         if (token == null) { showLogin(); return; }
-        agentError.setText("List check kora hocche...");
+        agentError.setText("লিস্ট চেক করা হচ্ছে...");
         new Thread(() -> {
             try {
                 tryRefreshConfig();
@@ -1707,7 +1715,7 @@ public class MainActivity extends AppCompatActivity {
                 prefs1.edit().putString("agent_id", finalMatch).putString("agent_email", prefs1.getString("current_email", null)).apply();
                 runOnUiThread(() -> { agentId = finalMatch; reportSheetId = null; statusLogSheetId = null; setAgentSubtitle(); showMain(); loadRows(); });
             } catch (Exception e) {
-                runOnUiThread(() -> agentError.setText("Hoyni: " + e.getMessage()));
+                runOnUiThread(() -> agentError.setText("হয়নি: " + e.getMessage()));
             }
         }).start();
     }
@@ -1907,7 +1915,7 @@ public class MainActivity extends AppCompatActivity {
                 try { logs = readLogRowsForDate(day); }
                 catch (Exception le) {
                     runOnUiThread(() -> {
-                        if (weekSummary != null) weekSummary.setText("Hisab load hoyni: log file pai ni — Refresh korun");
+                        if (weekSummary != null) weekSummary.setText("হিসাব লোড হয়নি: লগ ফাইল পাইনি — রিফ্রেশ করুন");
                         if (adapter != null) adapter.setCalledRows(null, day);
                     });
                     return;
@@ -1967,7 +1975,7 @@ public class MainActivity extends AppCompatActivity {
                     statRegDay.setText(String.valueOf(finalReg));
                     statFtdDay.setText(String.valueOf(finalFtdN));
                     statFtdAmtDay.setText("৳" + fmtAmount(finalFtdSum));
-                    weekSummary.setText("Ei 7 din (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • FTD " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • Valid " + finalValidW + " • Invalid " + finalInvW + " • Registration " + finalRegW + (finalUsedLegacy ? " • Purono log file use hocche (shared file pai ni)" : "") + (finalPartialFail ? " • ekta sheet porte parini (hisab asompurno hote pare)" : ""));
+                    weekSummary.setText("এই ৭ দিন (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): কানেক্টেড " + finalConnW + " • নট কানেক্টেড " + finalNotConnW + " • এফটিডি " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • ভ্যালিড " + finalValidW + " • ইনভ্যালিড " + finalInvW + " • রেজিস্ট্রেশন " + finalRegW + (finalUsedLegacy ? " • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)" : "") + (finalPartialFail ? " • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)" : ""));
                     buildCalledRows(logs, day);
                     reportStatsFallbackUsed = false;
                 });
@@ -1975,7 +1983,7 @@ public class MainActivity extends AppCompatActivity {
                 maybeInvalidateLogCache(e);
                 if (isNotFoundError(e) && !reportStatsFallbackUsed) { reportStatsFallbackUsed = true; clearReportCache(); loadDayStats(); return; }
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; loadDayStats(); return; }
-                runOnUiThread(() -> weekSummary.setText("Hisab load hoyni: " + e.getMessage()));
+                runOnUiThread(() -> weekSummary.setText("হিসাব লোড হয়নি: " + e.getMessage()));
             }
         }).start();
     }
@@ -2007,7 +2015,7 @@ public class MainActivity extends AppCompatActivity {
                     // dutoi bola ache (age in-place chesta, na bosle Uninstall).
                     runOnUiThread(() -> { if (isFinishing()) return; new AlertDialog.Builder(MainActivity.this)
                             .setTitle("অ্যাপ আপডেট করা জরুরি")
-                            .setMessage("এই ভার্সন আর চলবে না। নতুন ভার্সন " + remoteName + " পেতে আপডেট চাপুন — ফাইল ডাউনলোড হবে, তারপর ইনস্টল চাপলেই বসে যাবে। (যদি ইনস্টল না বসে, তখন পুরোনো অ্যাপটা Uninstall করে Downloads থেকে ফাইলটা ইনস্টল করুন। আগে Refresh চেপে জমা সেভ সিঙ্ক করে নিন।)")
+                            .setMessage("এই ভার্সন আর চলবে না। নতুন ভার্সন " + remoteName + " পেতে আপডেট চাপুন — ফাইল ডাউনলোড হবে, তারপর ইনস্টল চাপলেই বসে যাবে। (যদি ইনস্টল না বসে, তখন পুরোনো অ্যাপটা আনইনস্টল করে ডাউনলোডস থেকে ফাইলটা ইনস্টল করুন। আগে রিফ্রেশ চেপে জমা সেভ সিঙ্ক করে নিন।)")
                             .setCancelable(false)
                             .setPositiveButton("আপডেট", (d, w) -> startUpdateDownload(apkUrl))
                             .show(); });
@@ -2032,7 +2040,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
             DownloadManager.Request req = new DownloadManager.Request(Uri.parse(apkUrl));
-            req.setTitle("Telesales app update");
+            req.setTitle("টেলিসেলস অ্যাপ আপডেট");
             req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "telesales-status.apk");
             req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             req.setMimeType("application/vnd.android.package-archive");
@@ -2161,7 +2169,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regPlusBtn, R.id.regMinusBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
         if (token == null) { showLogin(); return; }
-        reportStatus.setText("Report load hocche...");
+        reportStatus.setText("রিপোর্ট লোড হচ্ছে...");
         new Thread(() -> {
             try {
                 tryRefreshConfig();
@@ -2173,7 +2181,7 @@ public class MainActivity extends AppCompatActivity {
                 invToday = filterTodayE(s.inv, today);
                 probToday = filterTodayE(s.prob, today);
                 final boolean partialReport = lastReportPartialFail;
-                runOnUiThread(() -> { if (seq != reportSeq || !reportDate.equals(today)) return; reportLoadFallbackUsed = false; refreshReportLists(); reportStatus.setText(partialReport ? "Report load hoyeche, kintu ekta sheet porte parini — hisab asompurno hote pare" : ""); loadAutoInvalidForReport(); });
+                runOnUiThread(() -> { if (seq != reportSeq || !reportDate.equals(today)) return; reportLoadFallbackUsed = false; refreshReportLists(); reportStatus.setText(partialReport ? "রিপোর্ট লোড হয়েছে, কিন্তু একটা শিট পড়তে পারিনি — হিসাব অসম্পূর্ণ হতে পারে" : ""); loadAutoInvalidForReport(); });
             } catch (Exception e) {
                 if (isNotFoundError(e) && !reportLoadFallbackUsed) {
                     reportLoadFallbackUsed = true;
@@ -2181,14 +2189,14 @@ public class MainActivity extends AppCompatActivity {
                     loadReportData(); return;
                 }
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; loadReportData(); return; }
-                runOnUiThread(() -> reportStatus.setText("Report load hoyni: " + e.getMessage()));
+                runOnUiThread(() -> reportStatus.setText("রিপোর্ট লোড হয়নি: " + e.getMessage()));
             }
         }).start();
     }
 
     private int countAutoInvalid(List<REntry> logs, String date) { return countAutoInvalidRange(logs, date, date); }
     /** Batch fix #12: range-er Invalid (distinct number, not connected + Valid No) — week hisab-er jonno. */
-    private int countAutoInvalidRange(List<REntry> logs, String start, String end) { java.util.Set<String> seen = new java.util.HashSet<>(); if (logs == null) return 0; for (REntry e : logs) { if (e == null) continue; String d = cellE(e, 0); if (d.compareTo(start) < 0 || d.compareTo(end) > 0) continue; if (!"not connected".equalsIgnoreCase(cellE(e, 2).trim())) continue; if (!"No".equalsIgnoreCase(cellE(e, 3).trim())) continue; String n = cellE(e, 1).replace(" ", "").replace("-", ""); if (n.startsWith("+880")) n = "0" + n.substring(4); else if (n.startsWith("880")) n = "0" + n.substring(3); else if (!n.startsWith("0")) n = "0" + n; if (!n.isEmpty()) seen.add(n); } return seen.size(); } private void loadAutoInvalidForReport() { final String d = reportDate; new Thread(() -> { try { if (token == null) return; List<REntry> logs = readLogRowsForDate(d); final int c = countAutoInvalid(logs, d); runOnUiThread(() -> { if (invAutoText != null) invAutoText.setText("Invalid: " + c); }); } catch (Exception ignored) { } }).start(); } private void refreshReportLists() {
+    private int countAutoInvalidRange(List<REntry> logs, String start, String end) { java.util.Set<String> seen = new java.util.HashSet<>(); if (logs == null) return 0; for (REntry e : logs) { if (e == null) continue; String d = cellE(e, 0); if (d.compareTo(start) < 0 || d.compareTo(end) > 0) continue; if (!"not connected".equalsIgnoreCase(cellE(e, 2).trim())) continue; if (!"No".equalsIgnoreCase(cellE(e, 3).trim())) continue; String n = cellE(e, 1).replace(" ", "").replace("-", ""); if (n.startsWith("+880")) n = "0" + n.substring(4); else if (n.startsWith("880")) n = "0" + n.substring(3); else if (!n.startsWith("0")) n = "0" + n; if (!n.isEmpty()) seen.add(n); } return seen.size(); } private void loadAutoInvalidForReport() { final String d = reportDate; new Thread(() -> { try { if (token == null) return; List<REntry> logs = readLogRowsForDate(d); final int c = countAutoInvalid(logs, d); runOnUiThread(() -> { if (invAutoText != null) invAutoText.setText("ইনভ্যালিড: " + c); }); } catch (Exception ignored) { } }).start(); } private void refreshReportLists() {
         if (regStepCount != null) regStepCount.setText(String.valueOf(regTotalCount(regToday)));
         // v4.18: Invalid per-entry list removed; auto-count is shown in invAutoText.
         fillList(probList, probToday, "Problems");
@@ -2208,7 +2216,7 @@ public class MainActivity extends AppCompatActivity {
         parent.removeAllViews();
         if (list.isEmpty()) {
             TextView t = new TextView(this);
-            t.setText("ekhono kichu add hoyni");
+            t.setText("এখনো কিছু যোগ হয়নি");
             t.setTextSize(14);
             t.setTextColor(Color.WHITE);
             parent.addView(t);
@@ -2250,7 +2258,7 @@ public class MainActivity extends AppCompatActivity {
      *  (asol unified row) miliye dekha hoy. */
     private void deleteReportEntry(String tab, REntry e) { if (!isReportToday()) { Toast.makeText(this, "অতীতের রিপোর্ট শুধু দেখা ও কপি করা যাবে", Toast.LENGTH_SHORT).show(); return; }
         if (token == null) { showLogin(); return; }
-        reportStatus.setText("Delete hocche...");
+        reportStatus.setText("মুছে ফেলা হচ্ছে...");
         new Thread(() -> {
             try {
                 // v4.28: row-ta je sheet-e ache sekhan thekei muchbe (switch diner row purono sheet-eo thakte pare).
@@ -2270,7 +2278,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> { reportOutputCard.setVisibility(View.GONE); loadReportData(); loadDayStats(); });
             } catch (Exception ex) {
                 if (isAuthError(ex) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; deleteReportEntry(tab, e); return; }
-                runOnUiThread(() -> reportStatus.setText("Delete hoyni: " + ex.getMessage()));
+                runOnUiThread(() -> reportStatus.setText("মুছে ফেলা হয়নি: " + ex.getMessage()));
             }
         }).start();
     }
@@ -2280,7 +2288,7 @@ public class MainActivity extends AppCompatActivity {
      *  [Date, Type, Number, Amount, Note]. */
     private void addReportEntry(String tab, String[] vals, Runnable clear) { if (!isReportToday()) { Toast.makeText(this, "অতীতের রিপোর্ট শুধু দেখা ও কপি করা যাবে", Toast.LENGTH_SHORT).show(); return; }
         if (token == null) { showLogin(); return; }
-        reportStatus.setText("Add hocche...");
+        reportStatus.setText("যোগ করা হচ্ছে...");
         new Thread(() -> {
             try {
                 String wid = ensureReportSheetForWrite();
@@ -2296,7 +2304,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> { if (clear != null) clear.run(); loadReportData(); loadDayStats(); });
             } catch (Exception e) {
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; addReportEntry(tab, vals, clear); return; }
-                runOnUiThread(() -> reportStatus.setText("Add hoyni: " + e.getMessage()));
+                runOnUiThread(() -> reportStatus.setText("যোগ হয়নি: " + e.getMessage()));
             }
         }).start();
     }
@@ -2320,7 +2328,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void generateReport() {
         if (token == null) { showLogin(); return; }
-        reportStatus.setText("Report banano hocche...");
+        reportStatus.setText("রিপোর্ট বানানো হচ্ছে...");
         new Thread(() -> {
             try {
                 tryRefreshConfig();
@@ -2343,22 +2351,22 @@ public class MainActivity extends AppCompatActivity {
                     try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}
                 }
                 StringBuilder sb = new StringBuilder();
-                sb.append("Date: ").append(displayDay(today)).append("\n");
+                sb.append("তারিখ: ").append(displayDay(today)).append("\n");
                 // Batch fix #10: past-date report-e bortoman somoy dekhale mone hoy oi
                 // somoye call hoyeche — tai past date-e "pore banano", ajker date-e somoy.
-                if (today.equals(dhakaDate())) sb.append("Time: ").append(dhaka("hh:mm a")).append("\n");
-                else sb.append("Time: পরে বানানো\n");
-                sb.append("Agent ID: ").append(agentId).append("\n");
-                sb.append("Total Calls: ").append(total).append("\n");
-                sb.append("Connected: ").append(conn).append("\n");
-                sb.append("Registration: ").append(regTotalCount(regToday)).append("\n");
+                if (today.equals(dhakaDate())) sb.append("সময়: ").append(dhaka("hh:mm a")).append("\n");
+                else sb.append("সময়: পরে বানানো\n");
+                sb.append("এজেন্ট আইডি: ").append(agentId).append("\n");
+                sb.append("মোট কল: ").append(total).append("\n");
+                sb.append("কানেক্টেড: ").append(conn).append("\n");
+                sb.append("রেজিস্ট্রেশন: ").append(regTotalCount(regToday)).append("\n");
                 // v4.27: Registration details ar dekhabo na — sudhu count (user order).
-                sb.append("FTD: ").append(ftdTotalCount(ftdToday)).append("\n");
-                sb.append("Total Amount Recharged: ").append(fmtAmount(sum)).append("\n");
-                sb.append("Invalid: ").append(countAutoInvalid(logs, today)).append("\n");
+                sb.append("এফটিডি: ").append(ftdTotalCount(ftdToday)).append("\n");
+                sb.append("মোট রিচার্জ টাকা: ").append(fmtAmount(sum)).append("\n");
+                sb.append("ইনভ্যালিড: ").append(countAutoInvalid(logs, today)).append("\n");
                 // v4.18: manual Invalid rows are not listed. sb.append("-\n");
                 // v4.18: manual Invalid rows are not listed. sb.append(cellE(r, 1)).append(" - ").append(cellE(r, 2)).append("\n");
-                sb.append("Problems:\n");
+                sb.append("সমস্যা:\n");
                 if (probToday.isEmpty()) sb.append("-\n");
                 else for (REntry r : probToday) sb.append(cellE(r, 1)).append("\n");
                 String text = sb.toString().trim();
@@ -2392,7 +2400,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             } catch (Exception e) {
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; generateReport(); return; }
-                runOnUiThread(() -> reportStatus.setText("Generate hoyni: " + e.getMessage()));
+                runOnUiThread(() -> reportStatus.setText("রিপোর্ট বানানো হয়নি: " + e.getMessage()));
             }
         }).start();
     }
@@ -2952,14 +2960,14 @@ public class MainActivity extends AppCompatActivity {
             if (token == null || agentId == null) return "";
             String dailyId = writeSheetFor(currentConfig(), "DAILY", day);
             if (dailyId == null) dailyId = DAILY_REPORTS_ID;
-            if (dailyId == null) return "Daily Reports file-e joma hoyni (file pai ni) — report text thik ache, copy korte parben";
+            if (dailyId == null) return "ডেইলি রিপোর্টস ফাইলে জমা হয়নি (ফাইল পাইনি) — রিপোর্ট ঠিক আছে, কপি করতে পারবেন";
             SheetsClient.ensureDailyTab(token, dailyId);
             StringBuilder probsText = new StringBuilder();
             for (REntry r : probs) { if (probsText.length() > 0) probsText.append("; "); probsText.append(cellE(r, 1)); }
             SheetsClient.appendReportRow(token, dailyId, "Reports", new String[]{displayDay(day), agentId, String.valueOf(total), String.valueOf(conn), String.valueOf(regTotalCount(regs)), String.valueOf(ftdTotalCount(ftds)), fmtAmount(sum), String.valueOf(countAutoInvalid(logs, day)), probsText.length() == 0 ? "-" : probsText.toString(), dhaka("dd-MM-yyyy hh:mm a")});
             return "";
         } catch (Exception e) {
-            return "Daily Reports file-e joma hoyni (" + e.getMessage() + ") — report text thik ache, copy korte parben";
+            return "ডেইলি রিপোর্টস ফাইলে জমা হয়নি (" + e.getMessage() + ") — রিপোর্ট ঠিক আছে, কপি করতে পারবেন";
         }
     }
 

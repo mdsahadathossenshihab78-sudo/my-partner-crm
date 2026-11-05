@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v4.36 logo গ: navy rounded square + white T monogram + pink call-wave arc.
+     Old palette only (#0B1026 navy, white, #EC4899 pink). Vector, no font. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#0B1026"
+        android:pathData="M30,8 H78 Q100,8 100,30 V78 Q100,100 78,100 H30 Q8,100 8,78 V30 Q8,8 30,8 Z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M34,28 H74 V40 H34 Z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M48,40 H60 V70 H48 Z" />
+    <path android:fillColor="#00000000" android:strokeColor="#EC4899"
+        android:strokeWidth="6" android:strokeLineCap="round"
+        android:pathData="M30,80 Q54,60 78,80" />
+</vector>
