@@ -84,13 +84,11 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:layout_marginTop="8dp">
         <com.google.android.material.button.MaterialButton android:id="@+id/btnCall" android:layout_width="0dp"
-            android:layout_height="48dp" android:layout_weight="1" android:text="কল" android:minWidth="0dp" android:minHeight="0dp" android:gravity="center" android:textSize="14sp"
-            app:icon="@drawable/ic_call" app:iconSize="20dp" app:iconPadding="8dp" app:iconGravity="textStart"
+            android:layout_height="48dp" android:layout_weight="1" android:text="কল" android:minWidth="0dp" android:minHeight="0dp" android:gravity="center" android:textSize="14sp" android:paddingHorizontal="0dp"
             app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
         <com.google.android.material.button.MaterialButton android:id="@+id/btnCopy" android:layout_width="0dp"
-            android:layout_height="48dp" android:layout_weight="1" android:minWidth="0dp" android:minHeight="0dp" android:gravity="center" android:textSize="14sp"
+            android:layout_height="48dp" android:layout_weight="1" android:minWidth="0dp" android:minHeight="0dp" android:gravity="center" android:textSize="14sp" android:paddingHorizontal="0dp"
             android:layout_marginStart="10dp" android:text="কপি"
-            app:icon="@drawable/ic_copy" app:iconSize="20dp" app:iconPadding="8dp" app:iconGravity="textStart"
             app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/white" />
         <com.google.android.material.button.MaterialButton android:id="@+id/btnSave"
             android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1.4" android:minHeight="0dp" android:gravity="center" android:textSize="14sp"
