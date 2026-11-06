@@ -45,6 +45,7 @@ label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}.muted{colo
 .badge-ok{background:#14532d}.badge-no{background:#7f1d1d}.badge-blank{background:#713f12}
 .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 18px;border-radius:12px;display:none;z-index:99;max-width:92vw;text-align:center;pointer-events:none}
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stats-grid.hero{grid-template-columns:repeat(3,1fr)}
 .stat{min-width:0;border-radius:14px;padding:14px}
 .stat b{font-size:22px;display:block;overflow-wrap:anywhere}.stat span{font-size:12px;color:rgba(255,255,255,.9)}.stats-grid.hero .stat{text-align:center}.stats-grid.hero .stat svg{display:block;margin:0 auto 6px}.stats-grid.tiles .stat{display:flex;align-items:center;gap:8px}.stats-grid.tiles .stat svg{flex:none}
 .s-blue{background:rgba(37,99,235,.35);border:1px solid rgba(96,165,250,.4)}
@@ -71,7 +72,7 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 .wrap{max-width:1120px}
 .card{padding:24px}
 .stats-grid.tiles{grid-template-columns:repeat(4,1fr)}
-.stats-grid.hero{grid-template-columns:repeat(2,1fr)}
+.stats-grid.hero{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:480px){
 .top-inner{padding:0 12px}
@@ -134,6 +135,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #c7d2fe;outline-offset:2p
 <div class="row stats-grid hero" style="margin-top:12px">
 <div class="stat s-blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><b id="heroCalls">0</b><span>মোট কল (এই দিন)</span></div>
 <div class="stat s-violet"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><b id="heroNums">0</b><span>মোট নাম্বার (লিস্ট)</span></div>
+<div class="stat s-rose"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><b id="heroRemain">0</b><span>মোট বাকি</span></div>
 </div>
 <div class="row stats-grid tiles" style="margin-top:12px">
 <div class="stat s-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14 9 11"/></svg><div><b id="stConn">0</b><span>Connected</span></div></div>
@@ -145,9 +147,11 @@ button:focus-visible,a:focus-visible{outline:2px solid #c7d2fe;outline-offset:2p
 <div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg><div><b id="stReg">0</b><span>রেজিস্ট্রেশন</span></div></div>
 </div>
 <p class="muted" id="weekSummary"></p>
+<p class="muted" id="targetLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px"></p>
 </div>
 <div id="listView" style="display:none">
 <div class="row" style="margin-top:8px"><button class="btn tab-on" id="tabPendingBtn" style="flex:1">কল বাকি</button><button class="btn btn-light" id="tabDoneBtn" style="flex:1">কল করা হয়েছে</button></div>
+<p class="muted" id="filterNote" style="display:none"></p>
 <div class="row" style="margin-top:12px"><input id="search" placeholder="নাম্বার দিয়ে খুঁজুন" style="flex:1"><button class="btn btn-light" id="refreshBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> রিফ্রেশ</button></div>
 <p class="muted" id="syncStatus">লোড হচ্ছে...</p>
 <div id="list"></div>
@@ -157,14 +161,14 @@ button:focus-visible,a:focus-visible{outline:2px solid #c7d2fe;outline-offset:2p
 
 <div id="reportView" style="display:none"><div class="card">
 <div class="row report-head" style="justify-content:space-between"><h2 style="margin:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Report</h2></div>
-<div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="repPrevDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light" id="repDateBtn" style="flex:1"></button><button class="btn btn-light" id="repNextDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>
+<div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="repPrevDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light" id="repDateBtn" style="flex:1"></button><button class="btn btn-light" id="repNextDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button><button class="btn btn-light btn-sm" id="repTodayBtn">আজ</button></div>
 <p class="muted" id="repDateNote"></p>
 <div class="rep-sec"><h3 style="margin:0 0 8px">Registration</h3><div class="row" id="regAddRow"><input id="regCount" placeholder="Registration সংখ্যা" inputmode="numeric" style="flex:1"><button class="btn btn-primary btn-sm" id="regAddBtn">+ যোগ করুন</button></div><div id="regList"></div></div>
-<div class="rep-sec"><h3 style="margin:0 0 8px">FTD</h3><div class="row" style="align-items:center" id="ftdStepRow"><button class="btn btn-primary btn-sm" id="ftdMinusBtn">-</button><b id="ftdStepCount" style="flex:1;text-align:center;font-size:22px">0</b><button class="btn btn-primary btn-sm" id="ftdPlusBtn">+</button></div><div class="row" id="ftdStepAmountRow" style="display:none"><input id="ftdStepAmt" placeholder="এই FTD কত টাকার?" inputmode="decimal" style="flex:1"><button class="btn btn-primary btn-sm" id="ftdStepAddBtn">টাকা যোগ করুন</button></div><p class="muted" id="ftdStepSummary">আজ: 0টা • মোট ৳0</p></div>
+<div class="rep-sec"><h3 style="margin:0 0 8px">FTD</h3><div class="row" style="align-items:center" id="ftdStepRow"><button class="btn btn-primary btn-sm" id="ftdMinusBtn">-</button><b id="ftdStepCount" style="flex:1;text-align:center;font-size:22px">0</b><button class="btn btn-primary btn-sm" id="ftdPlusBtn">+</button></div><div class="row" id="ftdStepAmountRow" style="display:none"><input id="ftdStepAmt" placeholder="এই FTD কত টাকার?" inputmode="decimal" style="flex:1"><button type="button" class="btn btn-light btn-sm" onclick="setFtdAmt(100)">৳১০০</button><button type="button" class="btn btn-light btn-sm" onclick="setFtdAmt(200)">৳২০০</button><button class="btn btn-primary btn-sm" id="ftdStepAddBtn">টাকা যোগ করুন</button></div><p class="muted" id="ftdStepSummary">আজ: 0টা • মোট ৳0</p></div>
 <div class="rep-sec"><h3 style="margin:0 0 8px">Invalid Number (অটো)</h3><p class="muted" id="invAutoSummary">হিসাব হচ্ছে...</p><div id="invAutoList"></div><p class="muted">এই সংখ্যা লগ থেকে অটো হিসাব হয় (Not Connected + Valid No, এক দিনে এক নাম্বার একবার)। পুরোনো হাতে লেখা Invalid রো শিটে ইতিহাস হিসেবে থাকবে, কিন্তু কাউন্টে ধরা হবে না।</p></div>
 <div class="rep-sec"><h3 style="margin:0 0 8px">Problems</h3><div class="row" id="probAddRow"><input id="probText" placeholder="সমস্যা লিখুন" style="flex:1"><button class="btn btn-primary btn-sm" id="probAddBtn">+ যোগ করুন</button></div><div id="probList"></div></div>
 <div class="row" style="margin-top:20px"><button class="btn btn-grad" id="genBtn" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Generate Report</button></div>
-<div id="reportOut" style="display:none;margin-top:16px"><pre class="out" id="reportText"></pre><button class="btn btn-primary" id="copyReportBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> কপি করুন</button><p class="muted" id="dailyNote"></p></div>
+<div id="reportOut" style="display:none;margin-top:16px"><pre class="out" id="reportText"></pre><button class="btn btn-primary" id="copyReportBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> কপি করুন</button> <button class="btn btn-primary" id="shareReportBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> শেয়ার করুন</button><p class="muted" id="dailyNote"></p></div>
 </div></div>
 <div id="guideView" style="display:none"><div class="card">
 <h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> ইউজার গাইড</h2>
@@ -201,6 +205,7 @@ const DAILY_REPORTS_ID='1BPaQrV6Znqcs45pNEUib8AOHnxzz93Z8Y8vEMAAHOzg';
 const CONFIG_FILE_ID=SHARED_STATUS_LOG_ID;
 const firebaseConfig={apiKey:"AIzaSyB03sx0s65ycG3MYcSbB2HfGMigs9DI-r4",authDomain:"fir-a-topup-bazar.firebaseapp.com",databaseURL:"https://fir-a-topup-bazar-default-rtdb.firebaseio.com",projectId:"fir-a-topup-bazar",storageBucket:"fir-a-topup-bazar.firebasestorage.app",messagingSenderId:"928168996366",appId:"1:928168996366:web:fd879d795202891ee9965f",measurementId:"G-9QBLYHR817"};
 let auth=null, token=null, agentId=null, userEmail=null, rows=[], tab='pending', lastStatusMap={};
+let typeFilter='';
 let calledRows=[]; let sheetConfigCache=null; let ensuredLogSheets={}; let ensuredReportSheets={}; let verifiedSheets={}; let logMigratedThisSession=false; let lastLogPartialFail=false; let lastReportPartialFail=false; let lastLogReadUsedLegacy=false;
 let selectedDate=dhakaToday();
 let reportDate=dhakaToday();
@@ -219,7 +224,7 @@ function fmtDay(ms){const d=new Date(ms);return d.getUTCFullYear()+'-'+String(d.
 function addDays(day,n){return fmtDay(parseDay(day)+n*86400000)}
 function daysBetween(a,b){return Math.floor((parseDay(b)-parseDay(a))/86400000)}
 function dialNumber(n){n=(n||'').replace(/[^0-9+]/g,'');if(!n)return '';if(n.startsWith('+'))return n;if(n.startsWith('0'))return n;return '0'+n}
-function digits(n){return (n||'').replace(/[^0-9]/g,'')}
+function digits(n){return (n||'').replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d)).replace(/[^0-9]/g,'')}
 function normLogNum(n){let d=(n||'').replace(/[^0-9]/g,'');if(!d)return '';if(d.startsWith('880')&&d.length===13)d='0'+d.slice(3);else if(!d.startsWith('0'))d='0'+d;return d;}
 function autoInvalidNumbers(logs,day){const seen=new Set(),out=[];logs.forEach(e=>{if(cellE(e,0)!==day)return;if(cellE(e,2)!=='not connected')return;if(cellE(e,3)!=='No')return;const n=normLogNum(cellE(e,1));if(!n||seen.has(n))return;seen.add(n);out.push(n);});return out;}
 function showLogin(){window.scrollTo(0,0);$('loginCard').style.display='block';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('bottomMenu').style.display='none'}
@@ -408,9 +413,35 @@ $('dateBtn').onclick=()=>{
   inp.onchange=()=>{if(inp.value){selectedDate=inp.value;updateDateBtn();loadDayStats();} inp.remove();};
   inp.showPicker?inp.showPicker():inp.click();
 };
-$('tabPendingBtn').onclick=()=>{tab='pending';setTabUI();render();};
-$('tabDoneBtn').onclick=()=>{tab='done';setTabUI();render();};
+$('tabPendingBtn').onclick=()=>{tab='pending';typeFilter='';updateFilterNote();setTabUI();render();};
+$('tabDoneBtn').onclick=()=>{tab='done';typeFilter='';updateFilterNote();setTabUI();render();};
 function setTabUI(){$('tabPendingBtn').className='btn '+(tab==='pending'?'tab-on':'btn-light');$('tabDoneBtn').className='btn '+(tab==='done'?'tab-on':'btn-light');}
+function updateFilterNote(){
+  const n=$('filterNote'); if(!n)return;
+  if(!typeFilter){n.style.display='none';n.textContent='';return;}
+  const label={connected:'Connected',notconnected:'Not Connected',valid:'Valid',invalid:'Invalid'}[typeFilter]||typeFilter;
+  n.style.display='block';
+  n.innerHTML='ফিল্টার: '+label+' <button type="button" class="btn btn-light btn-sm" onclick="clearTypeFilter()">✕ সাফ করুন</button>';
+}
+window.clearTypeFilter=()=>{typeFilter='';updateFilterNote();render();};
+(function(){
+  const tileOf=id=>{const el=$(id);return el?el.closest('.stat'):null;};
+  const bindTile=(bid,filter,goReport)=>{
+    const t=tileOf(bid); if(!t)return; t.style.cursor='pointer';
+    t.onclick=()=>{
+      if(goReport){showReport();return;}
+      typeFilter=(typeFilter===filter)?'':filter;
+      tab='done'; setTabUI(); showList(); updateFilterNote(); render();
+    };
+  };
+  bindTile('stConn','connected'); bindTile('stNotConn','notconnected'); bindTile('stValid','valid'); bindTile('stInv','invalid');
+  bindTile('stFtd',null,true); bindTile('stFtdAmt',null,true); bindTile('stReg',null,true);
+})();
+window.addPhrase=(rowNum,text)=>{
+  const inp=$('r1-'+rowNum); if(!inp)return;
+  inp.value=inp.value?inp.value+' '+text:text; dirty=true; inp.focus();
+};
+window.setFtdAmt=(v)=>{const i=$('ftdStepAmt'); if(i){i.value=String(v); i.focus();}};
 $('refreshBtn').onclick=loadRows;
 $('search').addEventListener('input',render);
 let dirty=false;
@@ -456,12 +487,28 @@ async function loadRows(){
     $('syncStatus').textContent='শিটের সাথে সংযুক্ত — '+rows.length+'টি রো'; dirty=false;
   }catch(e){$('syncStatus').textContent='লোড হয়নি, আবার চেষ্টা করুন।';}
 }
+function matchesTypeFilter(r,f){
+  if(f==='connected') return r.status==='call connected';
+  if(f==='notconnected') return r.status==='not connected';
+  if(f==='valid') return r.valid==='Yes';
+  if(f==='invalid') return r.status==='not connected'&&r.valid==='No';
+  return true;
+}
 function filteredRows(){
-  const q=digits($('search').value.trim());
+  const qRaw=($('search').value||'').trim();
+  const q=digits(qRaw);
+  const qt=qRaw.toLowerCase();
   let list;
   if(tab==='done'){ list=calledRows.slice(); }
   else { list=rows.filter(r=>!r.status); }
-  if(q) list=list.filter(r=>digits(r.number).includes(q)||digits(dialNumber(r.number)).includes(q));
+  if(typeFilter) list=list.filter(r=>matchesTypeFilter(r,typeFilter));
+  if(qRaw){
+    list=list.filter(r=>{
+      if(q && (digits(r.number).includes(q)||digits(dialNumber(r.number)).includes(q))) return true;
+      const hay=((r.remark1||'')+' '+(r.remark2||'')+' '+(r.others||'')).toLowerCase();
+      return qt && hay.includes(qt);
+    });
+  }
   return list;
 }
 function render(){
@@ -481,6 +528,7 @@ function render(){
     <div style="margin-top:10px"><label>CALLING STATUS</label><div class="row" style="margin-top:6px"><button type="button" id="stc-${r.row}-conn" class="chip ${r.status==='call connected'?'chip-on-green':'chip-off'}" onclick="setChip(${r.row},'status','call connected')">Connected</button><button type="button" id="stc-${r.row}-notconn" class="chip ${r.status==='not connected'?'chip-on-rose':'chip-off'}" onclick="setChip(${r.row},'status','not connected')">Not Connected</button></div></div>
     <div style="margin-top:8px"><label>Valid Conversation</label><div class="row" style="margin-top:6px"><button type="button" id="vcc-${r.row}-yes" class="chip ${r.valid==='Yes'?'chip-on-blue':'chip-off'}" onclick="setChip(${r.row},'valid','Yes')">Yes</button><button type="button" id="vcc-${r.row}-no" class="chip ${r.valid==='No'?'chip-on-grey':'chip-off'}" onclick="setChip(${r.row},'valid','No')">No</button></div></div>
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-${r.row}" value="${esc(r.remark1)}" placeholder="1st call remark লিখুন"></div>
+    <div class="row" style="margin-top:6px"><button type="button" class="btn btn-light btn-sm" onclick="addPhrase(${r.row},'বিকেলে করবে')">বিকেলে করবে</button><button type="button" class="btn btn-light btn-sm" onclick="addPhrase(${r.row},'ফোন বন্ধ')">ফোন বন্ধ</button><button type="button" class="btn btn-light btn-sm" onclick="addPhrase(${r.row},'পরে কল করতে বলেছে')">পরে কল করতে বলেছে</button></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-${r.row}" value="${esc(r.remark2)}" placeholder="2nd call remark লিখুন"></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-${r.row}" value="${esc(r.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
     <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> সেভ করুন</button></div></div>`;
@@ -517,6 +565,7 @@ function refreshChips(rowNum){
 window.saveRow=async (rowNum)=>{
   const r=rows.find(x=>x.row===rowNum); if(!r)return;
   const val=r.status, vc=r.valid, r1=$('r1-'+rowNum).value.trim(), r2=$('r2-'+rowNum).value.trim(), ot=$('ot-'+rowNum).value.trim();
+  if(!val && !vc){ const _old=lastStatusMap[(r.number||'').trim()]||''; if(_old && _old!=='|'){ if(!confirm('এই রো-র আজকের হিসাব (লগ রো) মুছে যাবে। ঠিক আছে?')) return; } }
   try{
     await tryRefreshConfig();
     const numsId=currentNumbersId();
@@ -624,9 +673,21 @@ async function loadDayStats(){
     const ftdWeek=filterRangeE(ftds,blockStart,blockEnd); let ftdSumW=0;
     ftdWeek.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSumW+=v;});
     $('stConn').textContent=conn; $('stNotConn').textContent=notConn; $('stValid').textContent=valid; $('stInv').textContent=inv; $('stReg').textContent=reg;
-    $('heroCalls').textContent=logs.filter(e=>cellE(e,0)===day).length; $('heroNums').textContent=rows.length;
+    $('heroCalls').textContent=logs.filter(e=>cellE(e,0)===day).length; $('heroNums').textContent=rows.length; $('heroRemain').textContent=rows.filter(r=>!r.status).length;
+    const _blk=filterRangeE(logs,blockStart,blockEnd);
+    const validW=_blk.filter(e=>cellE(e,3)==='Yes').length;
+    const _invSet=new Set(); _blk.forEach(e=>{if(cellE(e,2)==='not connected'&&cellE(e,3)==='No'){const _n=normLogNum(cellE(e,1));if(_n)_invSet.add(_n);}});
+    const invW=_invSet.size, regW=regTotalCount(filterRangeE(regs,blockStart,blockEnd));
+    const _tLine=$('targetLine');
+    if(_tLine){
+      if(day===dhakaToday()){
+        const _done=logs.filter(e=>cellE(e,0)===day).length, _rem=rows.filter(r=>!r.status).length;
+        _tLine.style.display='block';
+        _tLine.textContent=_rem===0?'আজকের সব কল শেষ ✓ — মোট '+_done+'টা কল হয়েছে':'আজ: '+_done+'টা কল হয়েছে • '+_rem+'টা বাকি';
+      } else { _tLine.style.display='none'; }
+    }
     $('stFtd').textContent=ftdTotalCount(ftdToday); $('stFtdAmt').textContent='৳'+fmtAmt(ftdSum);
-    $('weekSummary').textContent='এই ৭ দিন ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • এফটিডি '+ftdTotalCount(ftdWeek)+' (৳'+fmtAmt(ftdSumW)+')'+(lastLogReadUsedLegacy?' • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)':'')+((lastLogPartialFail||lastReportPartialFail)?' • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)':'');
+    $('weekSummary').textContent='এই ৭ দিন ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • Valid '+validW+' • Invalid '+invW+' • এফটিডি '+ftdTotalCount(ftdWeek)+' (৳'+fmtAmt(ftdSumW)+') • রেজিস্ট্রেশন '+regW+(lastLogReadUsedLegacy?' • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)':'')+((lastLogPartialFail||lastReportPartialFail)?' • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)':'');
     buildCalledRows(logs,day);
     if(tab==='done'&&!dirty) render();
   }catch(e){$('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।';}
@@ -717,12 +778,21 @@ $('genBtn').onclick=async()=>{
     const dailyId=writeSheetFor(currentConfig(),'DAILY',day)||DAILY_REPORTS_ID;
     await ensureDailyTab(dailyId);
     const probsText=r.probs.length?r.probs.map(e=>cellE(e,1)).join('; '):'-';
+    let _already=false;
+    try{ const _ex=await getTabRows(dailyId,'Reports'); _already=_ex.some(e=>cellE(e,0)===displayDay(day)&&cellE(e,1)===agentId); }catch(e){}
+    if(_already && !confirm('এই দিনের রিপোর্ট আগেই জমা আছে। আবার জমা করবেন?')){ $('dailyNote').textContent='আবার জমা করা হয়নি।'; return; }
     await appendRowRaw(dailyId,'Reports',[displayDay(day),agentId,String(total),String(conn),String(regTotalCount(r.regs)),String(ftdTotalCount(r.ftds)),fmtAmt(ftdSum),String(r.autoInv?r.autoInv.length:0),probsText,displayDay(day)+' '+now.time]);
   }catch(e){ $('dailyNote').textContent='Daily Reports file-e joma hoyni — report text thik ache, copy korte parben'; }
 };
 $('copyReportBtn').onclick=async()=>{try{await navigator.clipboard.writeText($('reportText').textContent);toast('Copy হয়েছে');}catch(e){toast('কপি হয়নি');}};
+$('shareReportBtn').onclick=async()=>{
+  const t=$('reportText').textContent||'';
+  if(navigator.share){ try{ await navigator.share({text:t}); return; }catch(e){ if(e&&e.name==='AbortError') return; } }
+  try{ await navigator.clipboard.writeText(t); toast('Copy হয়েছে'); }catch(e){ toast('শেয়ার হয়নি'); }
+};
 $('repPrevDayBtn').onclick=()=>shiftRepDay(-1);
 $('repNextDayBtn').onclick=()=>shiftRepDay(1);
+$('repTodayBtn').onclick=()=>{reportDate=dhakaToday();updateRepDateBtn();$('reportOut').style.display='none';loadReportData();};
 $('repDateBtn').onclick=()=>{const inp=document.createElement('input');inp.type='date';inp.value=reportDate;inp.max=dhakaToday();inp.style.position='fixed';inp.style.opacity='0';document.body.appendChild(inp);inp.onchange=()=>{if(inp.value){reportDate=inp.value;updateRepDateBtn();$('reportOut').style.display='none';loadReportData();}inp.remove();};if(inp.showPicker)inp.showPicker();else inp.click();};
 setTabUI(); updateDateBtn();
 </script></body></html>
