@@ -40,9 +40,6 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     private String calledDate = null;
     public void setCalledRows(List<Row> rows, String date) { calledRows = rows == null ? null : new ArrayList<>(rows); calledDate = date; filter(lastQ); }
     public String getCalledDate() { return calledDate; }
-    /** v4.26: notun call sathe sathe called tab-er upore (Save-er por Refresh charai).
-     *  Ekoi Row object all + calledRows — duitotei thake, tai reference-e sorano nirapad. */
-    public void moveCalledToTop(Row r, String q) { if (calledRows == null || r == null) { filter(q); return; } calledRows.remove(r); calledRows.add(0, r); filter(q); }
     /** v4.26: clear-save (status+valid khali) hole row-ta called tab theke sorbe. */
     public void removeCalledRow(Row r, String q) { if (calledRows == null || r == null) { filter(q); return; } calledRows.remove(r); filter(q); }
 
@@ -88,9 +85,12 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         List<Row> src = (tab == 1 && calledRows != null) ? calledRows : all;
         for (Row r : src) {
             boolean inTab;
-            if (tab == 0) inTab = (r.status == null || r.status.isEmpty());
+            // v5.3: tab-er hishab savedStatus diye — draft/chip-e bodlano status diye noy.
+            // Na hole chip chaplei (Save-er agei) row pending theke gayeb hoye jeto,
+            // kintu log-e entry na thakay called tab-eo asto na.
+            if (tab == 0) inTab = (r.savedStatus == null || r.savedStatus.isEmpty());
             else if (calledRows != null) inTab = true; // calledRows-e thaka manei oi date-e call hoyeche
-            else inTab = (r.status != null && !r.status.isEmpty());
+            else inTab = (r.savedStatus != null && !r.savedStatus.isEmpty());
             if (!inTab) continue;
             if (tab == 1 && !matchesTypeFilter(r)) continue;
             if (qn.isEmpty() || r.number.contains(qn) || dialNumber(r.number).contains(qn)

@@ -518,10 +518,11 @@ public class MainActivity extends AppCompatActivity {
             if ("not connected".equals(row.status) && "Yes".equals(row.valid))
                 Toast.makeText(MainActivity.this, "সতর্কতা: Not Connected-এর সাথে Valid Yes মেলে না — ঠিক আছে তো?", Toast.LENGTH_LONG).show();
             if (optChanged && !optClear && optimisticTileKeys.add(optKey)) applyLocalSaveToTiles(row.status, row.valid);
-            // v4.26: notun call sathe sathe called tab-er upore; clear hole called theke sorbe.
+            // v5.3: Save-e row ar called tab-e jhanp debe na — row jekhane ache sekhanei
+            // thakbe; porer load/refresh-e sheet/log onujayi thik tab-e jabe. Clear-save
+            // hole row-ta abar pending-e (savedStatus khali kore).
             String optQ = searchBox.getText() == null ? "" : searchBox.getText().toString();
-            if (optChanged && !optClear) adapter.moveCalledToTop(row, optQ);
-            else if (optClear) adapter.removeCalledRow(row, optQ);
+            if (optClear) { row.savedStatus = ""; adapter.removeCalledRow(row, optQ); }
             else adapter.filter(optQ);
             // v4.33: row-ta screen-e jemon ache, baki hero-o sathe sathe temon (save/clear duitotei).
             refreshRemainingHero();
@@ -1839,7 +1840,14 @@ public class MainActivity extends AppCompatActivity {
                     rowsLoading = false;
                     if (seq != rowsSeq) return; // purono response notun data-r upor boshbe na
                     authRetryUsed = false;
-                    takeLoadedSnapshot(rows); applyDrafts(rows, false); adapter.setRows(rows); statTotalNumDay.setText(String.valueOf(rows.size())); refreshRemainingHero();
+                    takeLoadedSnapshot(rows);
+                    // v5.3: tab-er hishab + change-check — sheet-er value diye (draft diye noy).
+                    // Draft apply howar AGEI savedStatus + lastStatusMap sheet value diye bosate hobe;
+                    // na hole draft-kei 'age thekei save kora' mone kore Save-e log lekha hoto na,
+                    // aar draft thaka row filter-e pending theke gayeb hoye jeto.
+                    lastStatusMap.clear();
+                    for (Row r : rows) { r.savedStatus = r.status == null ? "" : r.status; lastStatusMap.put(r.number == null ? "" : r.number.trim(), (r.status == null ? "" : r.status) + "|" + (r.valid == null ? "" : r.valid)); }
+                    applyDrafts(rows, false); adapter.setRows(rows); statTotalNumDay.setText(String.valueOf(rows.size())); refreshRemainingHero();
                     refreshQueuedCounter();
                     adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
                     rowsLoaded = true; maybeOpenPendingReminder();
@@ -1857,8 +1865,6 @@ public class MainActivity extends AppCompatActivity {
                         slp.topMargin = 0;
                         statusText.setLayoutParams(slp);
                     }
-                    lastStatusMap.clear();
-                    for (Row r : rows) lastStatusMap.put(r.number == null ? "" : r.number.trim(), (r.status == null ? "" : r.status) + "|" + (r.valid == null ? "" : r.valid));
                     loadDayStats();
                     drainOutboxAsync();
                 });
