@@ -33,6 +33,13 @@ input,select,textarea{width:100%;padding:13px;border:1px solid rgba(255,255,255,
 input::placeholder,textarea::placeholder{color:#9aa3b8}select option{color:#111827}
 label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}.muted{color:#b8c0d8;font-size:14px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chip{flex:1;min-height:44px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;padding:10px 8px}
+.chip-off{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#fff}
+.chip-on-green{background:rgba(16,185,129,.8);border:2px solid #10B981}
+.chip-on-rose{background:rgba(244,63,94,.8);border:2px solid #F43F5E}
+.chip-on-blue{background:rgba(56,189,248,.8);border:2px solid #38BDF8}
+.chip-on-grey{background:rgba(148,163,184,.8);border:2px solid #94A3B8}
+.chip:disabled{opacity:.55;cursor:default}
 .report{border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px;margin-top:10px;background:rgba(255,255,255,.05)}
 .badge{display:inline-block;background:rgba(255,255,255,.12);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700}
 .badge-ok{background:#14532d}.badge-no{background:#7f1d1d}.badge-blank{background:#713f12}
@@ -463,16 +470,16 @@ function render(){
     const badge=r.status==='call connected'?'badge-ok':r.status==='not connected'?'badge-no':'badge-blank';
     if(r.viewOnly){
       return `<div class="report"><div class="row"><b>${esc(dialNumber(r.number))}</b>${r.logTime?`<span class="badge"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fmtTimeBn(r.logTime)}</span>`:''}<span class="badge ${badge}">${r.status==='call connected'?'● call connected':r.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">লগ থেকে</span>${r.valid?`<span class="badge">Valid: ${esc(r.valid)}</span>`:''}</div>
-    <div style="margin-top:10px"><label>CALLING STATUS</label><select id="st-log-${idx}" disabled><option value="" ${!r.status?'selected':''}>— খালি —</option><option value="call connected" ${r.status==='call connected'?'selected':''}>call connected</option><option value="not connected" ${r.status==='not connected'?'selected':''}>not connected</option></select></div>
-    <div style="margin-top:8px"><label>Valid Conversation</label><select id="vc-log-${idx}" disabled><option value="" ${!r.valid?'selected':''}>— খালি —</option><option value="Yes" ${r.valid==='Yes'?'selected':''}>Yes</option><option value="No" ${r.valid==='No'?'selected':''}>No</option></select></div>
+    <div style="margin-top:10px"><label>CALLING STATUS</label><div class="row" style="margin-top:6px"><button type="button" class="chip ${r.status==='call connected'?'chip-on-green':'chip-off'}" disabled>Connected</button><button type="button" class="chip ${r.status==='not connected'?'chip-on-rose':'chip-off'}" disabled>Not Connected</button></div></div>
+    <div style="margin-top:8px"><label>Valid Conversation</label><div class="row" style="margin-top:6px"><button type="button" class="chip ${r.valid==='Yes'?'chip-on-blue':'chip-off'}" disabled>Yes</button><button type="button" class="chip ${r.valid==='No'?'chip-on-grey':'chip-off'}" disabled>No</button></div></div>
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-log-${idx}" value="${esc(r.remark1)}" disabled></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-log-${idx}" value="${esc(r.remark2)}" disabled></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-log-${idx}" value="${esc(r.others)}" disabled></div>
     <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button></div></div>`;
     }
     return `<div class="report"><div class="row"><b>${esc(dialNumber(r.number))}</b>${r.logTime?`<span class="badge"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fmtTimeBn(r.logTime)}</span>`:''}<span class="badge ${badge}">${r.status==='call connected'?'● call connected':r.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${r.row}</span>${r.valid?`<span class="badge">Valid: ${esc(r.valid)}</span>`:''}</div>
-    <div style="margin-top:10px"><label>CALLING STATUS</label><select id="st-${r.row}"><option value="" ${!r.status?'selected':''}>— খালি —</option><option value="call connected" ${r.status==='call connected'?'selected':''}>call connected</option><option value="not connected" ${r.status==='not connected'?'selected':''}>not connected</option></select></div>
-    <div style="margin-top:8px"><label>Valid Conversation</label><select id="vc-${r.row}"><option value="" ${!r.valid?'selected':''}>— খালি —</option><option value="Yes" ${r.valid==='Yes'?'selected':''}>Yes</option><option value="No" ${r.valid==='No'?'selected':''}>No</option></select></div>
+    <div style="margin-top:10px"><label>CALLING STATUS</label><div class="row" style="margin-top:6px"><button type="button" id="stc-${r.row}-conn" class="chip ${r.status==='call connected'?'chip-on-green':'chip-off'}" onclick="setChip(${r.row},'status','call connected')">Connected</button><button type="button" id="stc-${r.row}-notconn" class="chip ${r.status==='not connected'?'chip-on-rose':'chip-off'}" onclick="setChip(${r.row},'status','not connected')">Not Connected</button></div></div>
+    <div style="margin-top:8px"><label>Valid Conversation</label><div class="row" style="margin-top:6px"><button type="button" id="vcc-${r.row}-yes" class="chip ${r.valid==='Yes'?'chip-on-blue':'chip-off'}" onclick="setChip(${r.row},'valid','Yes')">Yes</button><button type="button" id="vcc-${r.row}-no" class="chip ${r.valid==='No'?'chip-on-grey':'chip-off'}" onclick="setChip(${r.row},'valid','No')">No</button></div></div>
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-${r.row}" value="${esc(r.remark1)}" placeholder="1st call remark লিখুন"></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-${r.row}" value="${esc(r.remark2)}" placeholder="2nd call remark লিখুন"></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-${r.row}" value="${esc(r.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
@@ -492,9 +499,24 @@ async function copyNum(n){
   toast('কপি হয়নি — নাম্বার: '+n);
 }
 window.copyNum=copyNum;
+window.setChip=(rowNum,kind,value)=>{
+  const r=rows.find(x=>x.row===rowNum); if(!r)return;
+  if(kind==='status'){r.status=(r.status===value)?'':value;}
+  else{r.valid=(r.valid===value)?'':value;}
+  dirty=true; refreshChips(rowNum);
+};
+function refreshChips(rowNum){
+  const r=rows.find(x=>x.row===rowNum); if(!r)return;
+  const sc=$('stc-'+rowNum+'-conn'), sn=$('stc-'+rowNum+'-notconn');
+  if(sc)sc.className='chip '+(r.status==='call connected'?'chip-on-green':'chip-off');
+  if(sn)sn.className='chip '+(r.status==='not connected'?'chip-on-rose':'chip-off');
+  const vy=$('vcc-'+rowNum+'-yes'), vn=$('vcc-'+rowNum+'-no');
+  if(vy)vy.className='chip '+(r.valid==='Yes'?'chip-on-blue':'chip-off');
+  if(vn)vn.className='chip '+(r.valid==='No'?'chip-on-grey':'chip-off');
+}
 window.saveRow=async (rowNum)=>{
   const r=rows.find(x=>x.row===rowNum); if(!r)return;
-  const val=$('st-'+rowNum).value, vc=$('vc-'+rowNum).value, r1=$('r1-'+rowNum).value.trim(), r2=$('r2-'+rowNum).value.trim(), ot=$('ot-'+rowNum).value.trim();
+  const val=r.status, vc=r.valid, r1=$('r1-'+rowNum).value.trim(), r2=$('r2-'+rowNum).value.trim(), ot=$('ot-'+rowNum).value.trim();
   try{
     await tryRefreshConfig();
     const numsId=currentNumbersId();
