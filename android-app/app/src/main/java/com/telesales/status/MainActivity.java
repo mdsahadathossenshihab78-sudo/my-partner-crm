@@ -513,6 +513,9 @@ public class MainActivity extends AppCompatActivity {
             String optOld = lastStatusMap.get(row.number == null ? "" : row.number.trim());
             boolean optChanged = !optNow.equals(optOld);
             boolean optClear = (row.status == null || row.status.isEmpty()) && (row.valid == null || row.valid.isEmpty());
+            // v5.6 (35-rows fix): ager diner call — Save-e ajker log-e uthbe, status na bodleo.
+            final boolean isPrevDay = row.prevDay;
+            optChanged = optChanged || (isPrevDay && !optClear);
             // Batch fix #4: Not Connected + Valid Yes guide onujayi osombhob — save atkabe
             // na, sudhu sotorko korbe (agent jate bhul kore na fele).
             if ("not connected".equals(row.status) && "Yes".equals(row.valid))
@@ -523,8 +526,8 @@ public class MainActivity extends AppCompatActivity {
             // notun value-e bosano hoy, jate row-ta pending theke sore; moveCalledToTop-e
             // called-er upore bosbe. Clear-save hole ulto: row-ta abar pending-e.
             String optQ = searchBox.getText() == null ? "" : searchBox.getText().toString();
-            if (optClear) { row.savedStatus = ""; adapter.removeCalledRow(row, optQ); }
-            else if (optChanged) { row.savedStatus = row.status == null ? "" : row.status; adapter.moveCalledToTop(row, optQ); }
+            if (optClear) { row.savedStatus = ""; row.prevDay = false; adapter.removeCalledRow(row, optQ); }
+            else if (optChanged) { row.savedStatus = row.status == null ? "" : row.status; row.prevDay = false; adapter.moveCalledToTop(row, optQ); }
             else adapter.filter(optQ);
             // v4.33: row-ta screen-e jemon ache, baki hero-o sathe sathe temon (save/clear duitotei).
             refreshRemainingHero();
@@ -551,8 +554,8 @@ public class MainActivity extends AppCompatActivity {
                 String key = row.number == null ? "" : row.number.trim();
                 String now = (row.status == null ? "" : row.status) + "|" + (row.valid == null ? "" : row.valid);
                 String old = lastStatusMap.get(key);
-                boolean changed = !now.equals(old);
                 boolean isClear = (row.status == null || row.status.isEmpty()) && (row.valid == null || row.valid.isEmpty());
+                boolean changed = !now.equals(old) || (isPrevDay && !isClear);
                 String dialNum = RowAdapter.dialNumber(row.number);
                 try {
                     tryRefreshConfig();
@@ -3047,6 +3050,17 @@ public class MainActivity extends AppCompatActivity {
                 int pa = lastPos.getOrDefault(na, -1), pb = lastPos.getOrDefault(nb, -1);
                 return Integer.compare(pb, pa);
             });
+            // v5.6 (35-rows fix): sheet-e status ache kintu ajker log-e entry nei (ager diner call)
+            // — kono tab-ei asto na; called tab-er seshe "আগের দিনের কল" badge soho dekhabe.
+            for (Row rr : adapter.getAll()) rr.prevDay = false;
+            java.util.Set<String> inCalled = new java.util.HashSet<>(latest.keySet());
+            for (Row r : adapter.getAll()) {
+                if (r.savedStatus == null || r.savedStatus.isEmpty()) continue;
+                String n = SheetsClient.normLogNumber(r.number);
+                if (n.isEmpty() || inCalled.contains(n)) continue;
+                r.prevDay = true; r.statusTime = "";
+                called.add(r);
+            }
             applyDrafts(called, true); adapter.setCalledRows(called, day);
             // Batch feature #2: prottek number-er ager call-er itihas (log theke, proti
             // date-e sesh row-tai — eki din-e ekadhik save hole ekbar dekhabe).

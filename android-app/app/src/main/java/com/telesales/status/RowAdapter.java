@@ -135,7 +135,7 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         Row r = shown.get(pos);
         h.tvNumber.setText(dialNumber(r.number));
         String timeTxt = (r.statusTime != null && !r.statusTime.isEmpty()) ? " • " + MainActivity.formatTimeBn(r.statusTime) : "";
-        h.tvRow.setText((r.viewOnly ? "লগ থেকে" : "রো " + r.row) + timeTxt);
+        h.tvRow.setText((r.viewOnly ? "লগ থেকে" : "রো " + r.row) + timeTxt + (r.prevDay ? " • আগের দিনের কল" : ""));
         // Batch feature #2: ager call — called tab-e oi din-er ager gulo, pending tab-e sob
         // (notun theke purono, prothom 3ta + baki sonkha).
         java.util.List<Hist> hist = history.get(dialNumber(r.number));

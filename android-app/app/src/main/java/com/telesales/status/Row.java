@@ -10,6 +10,9 @@ public class Row {
     public boolean viewOnly = false;
     /** v5.5: status-ta kokhon dewa hoyeche ("HH:mm", Dhaka) — log-er Time column theke; khali mane somoy jana nei. */
     public String statusTime = "";
+    /** v5.6 (35-rows fix): sheet-e status ache kintu ajker log-e entry nei (ager diner call)
+     *  — called tab-er seshe "আগের দিনের কল" badge soho dekhabe; Save-e ajker log-e uthbe. */
+    public boolean prevDay = false;
     public Row(int row, String number, String status, String valid, String remark1, String remark2, String others) {
         this.row = row; this.number = number == null ? "" : number;
         this.status = status == null ? "" : status; this.valid = valid == null ? "" : valid;
