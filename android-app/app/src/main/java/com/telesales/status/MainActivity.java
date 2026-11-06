@@ -582,7 +582,7 @@ public class MainActivity extends AppCompatActivity {
                                 lastStatusMap.put(key, now);
                                 logCleared = true;
                             } else {
-                                SheetsClient.appendReportRow(token, statusLogSheetId, statusLogTab, new String[]{dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid});
+                                SheetsClient.appendReportRow(token, statusLogSheetId, statusLogTab, new String[]{dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid, dhakaTimeFrom(saveTs)});
                                 lastStatusMap.put(key, now);
                                 logAppended = true;
                                 purgePendingFor(dhakaDate(), dialNum, "clear");
@@ -2126,6 +2126,37 @@ public class MainActivity extends AppCompatActivity {
         return f.format(new Date());
     }
     private static String dhakaDate() { return dhaka("yyyy-MM-dd"); }
+    /** v5.5: kono millis timestamp-ke Dhaka "HH:mm" banano (save-er tap-time theke). ts<=0 hole ekhoner somoy. */
+    private static String dhakaTimeFrom(long ts) {
+        if (ts <= 0) return dhaka("HH:mm");
+        SimpleDateFormat f = new SimpleDateFormat("HH:mm", Locale.US);
+        f.setTimeZone(TimeZone.getTimeZone("Asia/Dhaka"));
+        return f.format(new Date(ts));
+    }
+    /** v5.5: log-er "HH:mm" somoy-ke Bangla 12-ghonta rup-e dekhanor jonno (16:32 -> ৪:৩২ বিকেল). RowAdapter-o eita byabohar kore. */
+    static String formatTimeBn(String hhmm) {
+        if (hhmm == null || hhmm.isEmpty()) return "";
+        String[] pp = hhmm.split(":");
+        int h;
+        try { h = Integer.parseInt(pp[0]); } catch (Exception e) { return ""; }
+        String m = pp.length > 1 ? pp[1] : "00";
+        String ap;
+        if (h >= 5 && h < 12) ap = "সকাল";
+        else if (h >= 12 && h < 16) ap = "দুপুর";
+        else if (h >= 16 && h < 20) ap = "বিকেল";
+        else ap = "রাত";
+        int h12 = h % 12; if (h12 == 0) h12 = 12;
+        return toBnDigits(String.valueOf(h12)) + ":" + toBnDigits(m) + " " + ap;
+    }
+    private static String toBnDigits(String s) {
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c >= '0' && c <= '9') b.append("০১২৩৪৫৬৭৮৯".charAt(c - '0'));
+            else b.append(c);
+        }
+        return b.toString();
+    }
     private static String fmtAmount(double v) {
         if (v == Math.floor(v)) return String.valueOf((long) v);
         return String.valueOf(v);
@@ -2908,7 +2939,7 @@ public class MainActivity extends AppCompatActivity {
                                 String dupKey = o.optString("date") + "|" + num + "|" + o.optString("status") + "|" + o.optString("valid");
                                 if (existing.contains(dupKey)) { arr.remove(i); changed = true; continue; }
                             }
-                            SheetsClient.appendReportRow(token, et.sheetId, et.tab, new String[]{o.optString("date"), RowAdapter.dialNumber(o.optString("number")), o.optString("status"), o.optString("valid")});
+                            SheetsClient.appendReportRow(token, et.sheetId, et.tab, new String[]{o.optString("date"), RowAdapter.dialNumber(o.optString("number")), o.optString("status"), o.optString("valid"), dhakaTimeFrom(o.optLong("ts", 0))});
                             // v4.32: eki drain-e porer duplicate entry-o jate skip hoy.
                             java.util.Set<String> ex = logRowsCache.get(et.sheetId + "|" + et.tab);
                             if (ex != null) ex.add(o.optString("date") + "|" + num + "|" + o.optString("status") + "|" + o.optString("valid"));
@@ -2966,7 +2997,7 @@ public class MainActivity extends AppCompatActivity {
                 if (st == null || st.isEmpty()) continue;
                 String norm = SheetsClient.normLogNumber(cellE(e, 1));
                 if (norm.isEmpty()) continue;
-                latest.put(norm, new String[]{st, cellE(e, 3)});
+                latest.put(norm, new String[]{st, cellE(e, 3), cellE(e, 4)});
                 displayNum.put(norm, cellE(e, 1));
                 lastPos.put(norm, e.sheetRow);
                 lastOrder.put(norm, e.sourceOrder);
@@ -2987,19 +3018,23 @@ public class MainActivity extends AppCompatActivity {
                     if (pst.isEmpty()) continue;
                     String pnorm = SheetsClient.normLogNumber(o.optString("number", ""));
                     if (pnorm.isEmpty() || latest.containsKey(pnorm)) continue;
-                    latest.put(pnorm, new String[]{pst, o.optString("valid", "")});
+                    latest.put(pnorm, new String[]{pst, o.optString("valid", ""), dhakaTimeFrom(o.optLong("ts", 0))});
                     displayNum.put(pnorm, o.optString("number", ""));
                     lastOrder.put(pnorm, Integer.MAX_VALUE);
                     lastPos.put(pnorm, (int) (o.optLong("ts", 0) / 1000));
                 }
             } catch (Exception ignored) {}
             java.util.List<Row> called = new java.util.ArrayList<>();
+            // v5.5: ager din-er somoy jate notun din-e na dekha jay — age sobar somoy muchhe, tarpor ajker called-der-tai bosbe.
+            for (Row rr : adapter.getAll()) rr.statusTime = "";
             for (java.util.Map.Entry<String, String[]> en : latest.entrySet()) {
+                String tm = en.getValue().length > 2 && en.getValue()[2] != null ? en.getValue()[2] : "";
                 Row m = mainByNorm.get(en.getKey());
-                if (m != null) called.add(m);
+                if (m != null) { m.statusTime = tm; called.add(m); }
                 else {
                     Row s = new Row(-1, displayNum.get(en.getKey()), en.getValue()[0], en.getValue()[1], "", "", "");
                     s.viewOnly = true;
+                    s.statusTime = tm;
                     called.add(s);
                 }
             }
@@ -3024,7 +3059,8 @@ public class MainActivity extends AppCompatActivity {
                 if (st == null || st.isEmpty()) continue;
                 String num = RowAdapter.dialNumber(cellE(e, 1));
                 if (num.isEmpty()) continue;
-                String label = displayDay(d0) + " " + ("call connected".equalsIgnoreCase(st.trim()) ? "Connected" : "Not Connected") + ("Yes".equals(cellE(e, 3)) ? " ✓" : "");
+                String tm = cellE(e, 4);
+                String label = displayDay(d0) + " " + ("call connected".equalsIgnoreCase(st.trim()) ? "Connected" : "Not Connected") + (tm != null && !tm.isEmpty() ? " " + formatTimeBn(tm) : "") + ("Yes".equals(cellE(e, 3)) ? " ✓" : "");
                 java.util.TreeMap<String, String> m = byNum.get(num);
                 if (m == null) { m = new java.util.TreeMap<>(); byNum.put(num, m); }
                 m.put(d0, label);

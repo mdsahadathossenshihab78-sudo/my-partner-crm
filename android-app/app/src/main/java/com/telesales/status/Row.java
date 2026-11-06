@@ -8,6 +8,8 @@ public class Row {
     public String savedStatus = "";
     /** Log theke asa view-only row (main sheet-e nei) — Save hobena, sudhu dekha jabe. */
     public boolean viewOnly = false;
+    /** v5.5: status-ta kokhon dewa hoyeche ("HH:mm", Dhaka) — log-er Time column theke; khali mane somoy jana nei. */
+    public String statusTime = "";
     public Row(int row, String number, String status, String valid, String remark1, String remark2, String others) {
         this.row = row; this.number = number == null ? "" : number;
         this.status = status == null ? "" : status; this.valid = valid == null ? "" : valid;

@@ -259,7 +259,7 @@ public class SheetsClient {
         if (code != 200) throw new Exception("Status log create failed: " + code + " " + readAll(c.getErrorStream()));
         String id = new JSONObject(readAll(c.getInputStream())).optString("spreadsheetId");
         if (id.isEmpty()) throw new Exception("Status log ID paini");
-        writeHeader(token, id, "Status Log", new String[]{"Date", "Number", "Status", "Valid"});
+        writeHeader(token, id, "Status Log", new String[]{"Date", "Number", "Status", "Valid", "Time"});
         return id;
     }
 
@@ -292,7 +292,7 @@ public class SheetsClient {
             if (err != null && err.toLowerCase().contains("already exists")) return;
             throw new Exception("Status log tab create failed: " + code + " " + err);
         }
-        writeHeader(token, spreadsheetId, title, new String[]{"Date", "Number", "Status", "Valid"});
+        writeHeader(token, spreadsheetId, title, new String[]{"Date", "Number", "Status", "Valid", "Time"});
         try { formatStatusLogTab(token, spreadsheetId, title); } catch (Exception ignored) { /* format na bosleo tab + header thik thakbe */ }
     }
 
