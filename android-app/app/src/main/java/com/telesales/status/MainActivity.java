@@ -518,11 +518,13 @@ public class MainActivity extends AppCompatActivity {
             if ("not connected".equals(row.status) && "Yes".equals(row.valid))
                 Toast.makeText(MainActivity.this, "সতর্কতা: Not Connected-এর সাথে Valid Yes মেলে না — ঠিক আছে তো?", Toast.LENGTH_LONG).show();
             if (optChanged && !optClear && optimisticTileKeys.add(optKey)) applyLocalSaveToTiles(row.status, row.valid);
-            // v5.3: Save-e row ar called tab-e jhanp debe na — row jekhane ache sekhanei
-            // thakbe; porer load/refresh-e sheet/log onujayi thik tab-e jabe. Clear-save
-            // hole row-ta abar pending-e (savedStatus khali kore).
+            // v5.4 (user correction — v5.3 bhul porechilo): Save-e row sathe sathe called
+            // tab-e jabe aar sekhanei thakbe — kono number bad jabe na. savedStatus ekhanei
+            // notun value-e bosano hoy, jate row-ta pending theke sore; moveCalledToTop-e
+            // called-er upore bosbe. Clear-save hole ulto: row-ta abar pending-e.
             String optQ = searchBox.getText() == null ? "" : searchBox.getText().toString();
             if (optClear) { row.savedStatus = ""; adapter.removeCalledRow(row, optQ); }
+            else if (optChanged) { row.savedStatus = row.status == null ? "" : row.status; adapter.moveCalledToTop(row, optQ); }
             else adapter.filter(optQ);
             // v4.33: row-ta screen-e jemon ache, baki hero-o sathe sathe temon (save/clear duitotei).
             refreshRemainingHero();
@@ -2969,6 +2971,28 @@ public class MainActivity extends AppCompatActivity {
                 lastPos.put(norm, e.sheetRow);
                 lastOrder.put(norm, e.sourceOrder);
             }
+            // v5.4: joma thaka (ekhono log-e na jawa) save-o called tab-e dekhabe.
+            // Log append-e ektu deri holeo number-ta called theke gayeb hobe na;
+            // log-e entry ele pending entry-ti sorbe, tokhon log-er entry-i thakbe.
+            try {
+                SharedPreferences pp = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                JSONArray parr = new JSONArray(pp.getString(PENDING_LOG_KEY, "[]"));
+                for (int i = 0; i < parr.length(); i++) {
+                    JSONObject o = parr.optJSONObject(i);
+                    if (o == null) continue;
+                    if (!"log".equals(o.optString("type"))) continue;
+                    if (agentId == null || !agentId.equals(o.optString("agent"))) continue;
+                    if (!day.equals(o.optString("date"))) continue;
+                    String pst = o.optString("status", "");
+                    if (pst.isEmpty()) continue;
+                    String pnorm = SheetsClient.normLogNumber(o.optString("number", ""));
+                    if (pnorm.isEmpty() || latest.containsKey(pnorm)) continue;
+                    latest.put(pnorm, new String[]{pst, o.optString("valid", "")});
+                    displayNum.put(pnorm, o.optString("number", ""));
+                    lastOrder.put(pnorm, Integer.MAX_VALUE);
+                    lastPos.put(pnorm, (int) (o.optLong("ts", 0) / 1000));
+                }
+            } catch (Exception ignored) {}
             java.util.List<Row> called = new java.util.ArrayList<>();
             for (java.util.Map.Entry<String, String[]> en : latest.entrySet()) {
                 Row m = mainByNorm.get(en.getKey());
