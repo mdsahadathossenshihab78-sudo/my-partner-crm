@@ -172,7 +172,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #c7d2fe;outline-offset:2p
 <p><b>২য় কল রিমার্ক:</b> দ্বিতীয়বার কল করে যা জানলেন, সেটা এখানে লিখবেন।</p>
 <p><b>অন্যান্য নাম্বার:</b> কাস্টমারের যদি আরেকটা এক্সট্রা নাম্বার থাকে, সেটা এখানে অ্যাড করতে পারবেন।</p></div>
 <div class="guide-sec"><h3>৪. রিপোর্ট</h3><p>নিচের মেনু থেকে রিপোর্ট-এ গেলে দিনের হিসাব দেওয়া যায়: রেজিস্ট্রেশন (সংখ্যা লিখে + যোগ করুন চাপুন; প্রতিটা এন্ট্রির পাশের ✕ চাপলে সেটা বাদ যাবে; কোনো টাকা চাওয়া হবে না), এফটিডি (+ চাপলে একটা করে বাড়বে; প্রতিবার নিচে ওই এফটিডি-র টাকাটা লিখতে হবে), Invalid নাম্বার (আলাদা করে লিখতে হবে না — নিজে থেকে হিসাব হয়), সমস্যা (কাজের সময় কোনো সমস্যা হলে এখানে লিখুন)। রিপোর্ট বানান চাপলে নির্বাচিত তারিখ, সময়, এজেন্ট আইডি, মোট কল, Connected, রেজিস্ট্রেশন, এফটিডি, মোট টাকা, Invalid আর সমস্যা দিয়ে রিপোর্ট তৈরি হবে। কপি চাপলে পুরো রিপোর্ট কপি হবে।</p></div>
-<div class="guide-sec"><h3>৫. ওয়েবসাইট বাটন</h3><p>নিচের মেনু থেকে ওয়েবসাইট চাপলে মূল পেজে (ড্যাশবোর্ড) ফিরে যাবেন।</p></div>
+<div class="guide-sec"><h3>৫. ওয়েবসাইট বাটন</h3><p>নিচের মেনু থেকে ওয়েবসাইট চাপলে 12bajeevip ওয়েবসাইট নতুন ট্যাবে খুলবে।</p></div>
 <div class="guide-sec"><h3>৬. দিনের হিসাব (ড্যাশবোর্ড)</h3><p>ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, এফটিডি, এফটিডি টাকা আর রেজিস্ট্রেশন দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে। উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।</p></div>
 <div class="card footer-card"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> অ্যাপ ডাউনলোড (APK)</h2><p class="muted">ফোনে অ্যাপ হিসেবে ব্যবহার করতে চাইলে APK ডাউনলোড করে ইনস্টল করুন। ইনস্টলের সময় “Install unknown apps” অনুমতি চাইলে Allow করবেন।</p><a class="btn btn-primary" href="telesales-status.apk" style="text-decoration:none;display:inline-block"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> APK ডাউনলোড করুন</a></div>
 </div></div>
@@ -391,7 +391,7 @@ async function copyAgentTabs(prevId,newId,isLog){
 $('bmDash').onclick=()=>{showMain();};
 $('bmList').onclick=()=>{showList();};
 $('bmReport').onclick=()=>{showReport();};
-$('bmSite').onclick=()=>{showMain();setBm('bmSite');};
+$('bmSite').onclick=()=>{window.open('https://www.12bajeevip.com/m/member/home','_blank');};
 $('bmGuide').onclick=()=>{showGuide();};
 $('prevDayBtn').onclick=()=>shiftDay(-1);
 $('nextDayBtn').onclick=()=>shiftDay(1);
@@ -650,7 +650,7 @@ async function loadReportData(){
     let autoInv=[];
     try{ const lrows=await readLogRowsForDate(day); autoInv=autoInvalidNumbers(lrows,day); }catch(e){}
     $('invAutoSummary').textContent=displayDay(day)+' — Invalid (অটো): '+autoInv.length+'টা';
-    $('invAutoList').innerHTML=autoInv.length?autoInv.map(n=>'<div class="entry"><span>'+esc(n)+'</span></div>').join(''):'<p class="muted">এই তারিখে কোনো Invalid নেই।</p>';
+    $('invAutoList').innerHTML='';
     window._rep={regs:regs,ftds:ftds,invs:s.inv,probs:probs,autoInv:autoInv,repDay:day};
   }catch(e){toast('Report লোড হয়নি, আবার চেষ্টা করুন');}
 }
