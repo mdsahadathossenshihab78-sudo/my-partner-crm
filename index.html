@@ -687,7 +687,7 @@ function render(){
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-log-${idx}" value="${esc(r.others)}" disabled></div>
     <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button></div></div>`;
     }
-    return `<div class="report"><div class="row"><b>${esc(dialNumber(r.number))}</b>${r.logTime?`<span class="badge"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fmtTimeBn(r.logTime)}</span>`:''}<span class="badge ${badge}">${r.status==='call connected'?'● call connected':r.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${r.row}</span>${r.valid?`<span class="badge">Valid: ${esc(r.valid)}</span>`:''}</div>${_histTxt?`<p class="muted" style="margin:6px 0 0;font-size:12px">${esc(_histTxt)}</p>`:''}
+    return `<div class="report"><div class="row"><b>${esc(dialNumber(r.number))}</b>${r.logTime?`<span class="badge"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fmtTimeBn(r.logTime)}</span>`:''}<span class="badge ${badge}">${r.status==='call connected'?'● call connected':r.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${r.row}</span>${r.prevDay?`<span class="badge">আগের দিনের কল</span>`:''}${r.valid?`<span class="badge">Valid: ${esc(r.valid)}</span>`:''}</div>${_histTxt?`<p class="muted" style="margin:6px 0 0;font-size:12px">${esc(_histTxt)}</p>`:''}
     <div style="margin-top:10px"><label>CALLING STATUS</label><div class="row" style="margin-top:6px"><button type="button" id="stc-${r.row}-conn" class="chip ${r.status==='call connected'?'chip-on-green':'chip-off'}" onclick="setChip(${r.row},'status','call connected')">Connected</button><button type="button" id="stc-${r.row}-notconn" class="chip ${r.status==='not connected'?'chip-on-rose':'chip-off'}" onclick="setChip(${r.row},'status','not connected')">Not Connected</button></div></div>
     <div style="margin-top:8px"><label>Valid Conversation</label><div class="row" style="margin-top:6px"><button type="button" id="vcc-${r.row}-yes" class="chip ${r.valid==='Yes'?'chip-on-blue':'chip-off'}" onclick="setChip(${r.row},'valid','Yes')">Yes</button><button type="button" id="vcc-${r.row}-no" class="chip ${r.valid==='No'?'chip-on-grey':'chip-off'}" onclick="setChip(${r.row},'valid','No')">No</button></div></div>
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-${r.row}" value="${esc(r.remark1)}" placeholder="1st call remark লিখুন"></div>
@@ -741,7 +741,7 @@ window.saveRow=async (rowNum)=>{
     const isClear=!val&&!vc;
     r.status=val; r.valid=vc; r.remark1=r1; r.remark2=r2; r.others=ot;
     let cleared=false;
-    if(changed){
+    if(changed || r.prevDay){
       try{
         const today=dhakaToday();
         if(isClear){ await deleteLogRowsEverywhere(today,dialNumber(r.number)); cleared=true; }
@@ -889,6 +889,17 @@ function buildCalledRows(logs,day){
       const oa=lastOrder[na]||0, ob=lastOrder[nb]||0;
       if(oa!==ob) return ob-oa;
       return (lastPos[nb]||0)-(lastPos[na]||0);
+    });
+    // 35-rows fix: sheet-e status ache kintu ajker log-e entry nei (ager diner call)
+    // — kono tab-ei aschilo na; called tab-er seshe "আগের দিনের কল" badge soho dekhabe.
+    rows.forEach(r=>{ r.prevDay=false; });
+    const _inCalled=new Set(Object.keys(latest));
+    rows.forEach(r=>{
+      if(!r.status) return;
+      const _n=normLogNum(r.number||'');
+      if(!_n||_inCalled.has(_n)) return;
+      r.prevDay=true; r.logTime='';
+      called.push(r);
     });
     calledRows=called;
   }catch(e){}
