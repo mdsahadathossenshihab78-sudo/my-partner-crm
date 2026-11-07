@@ -89,6 +89,17 @@ public class MainActivity extends AppCompatActivity {
     static final String SHARED_REPORT_ID = "1jYB5KeGw1LDH4FnjbwBr9qL-IHgmzPIhWU7GNeb5uhk";
     private String selectedDate = dhakaDate(); private String reportDate = dhakaDate();
     private Map<String,String> lastStatusMap = new HashMap<>();
+    /** v5.8: Save-er por reload-e sheet-er stale read (write-er porpori read-e
+     *  purono value aste pare) row-ke abar pending-e ferat pathato. Tai just-save
+     *  kora number-er notun status + somoy mone rakha hoy; loadRows-e sheet-er
+     *  value na mille ei value-i biswas kora hobe, 5 min porjonto. Clear-save-er
+     *  jonnou ulto guard (justClearedTs) — stale read purono status firiye anle
+     *  row-ta abar called-e jeto. Key: normLogNumber (dialNumber-er +880 rup
+     *  alada, tai ektai canonical key). */
+    private final java.util.Map<String,String> justSavedStatus = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<String,Long> justSavedTs = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<String,Long> justClearedTs = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final long JUST_SAVED_WINDOW_MS = 300000L;
     // Batch fix #20: notification tap-e asa number — row load howar por khulte hobe.
     private boolean rowsLoaded = false;
     // v4.24 optimistic save: Save tap-er sathe sathe UI update, network background-e.
@@ -540,6 +551,13 @@ public class MainActivity extends AppCompatActivity {
             // (load kokhono hoyni) worker skip korbe, in-app drain pathabe.
             final long saveTs = System.currentTimeMillis();
             final String saveDate = dhakaDate();
+            // v5.8: just-save guard — tap-er somoyei bosano hoy, jate save cholakalin
+            // ba save-er porer kono reload-ei stale read notun status muchhe na fele.
+            String guardNum = SheetsClient.normLogNumber(row.number);
+            if (!guardNum.isEmpty()) {
+                if (optClear) { justSavedStatus.remove(guardNum); justSavedTs.remove(guardNum); justClearedTs.put(guardNum, saveTs); }
+                else if (optChanged) { justSavedStatus.put(guardNum, optNow); justSavedTs.put(guardNum, saveTs); justClearedTs.remove(guardNum); }
+            }
             final boolean preQueuedLog = optChanged;
             final String preDialNum = RowAdapter.dialNumber(row.number);
             queueOutboxWithTs(row, saveTs, true);
@@ -622,9 +640,11 @@ public class MainActivity extends AppCompatActivity {
                         if (finalLogAppended) { refreshInvalidTileAfterSave(); }
                         else if (finalLogCleared) loadDayStats();
                         drainOutboxAsync(); drainPendingLogsAsync();
-                        // Save-er por list-e sathe sathe notun hisab dekhabe — Refresh chapte hobe na.
-                        // Sheet-e save land koreche, tai reload-e notun status asbe.
-                        if (changed) debouncedLoadRows();
+                        // v5.8: Save-er por reload 3s pore — sheet-e write uthte ektu
+                        // somoy lage; 400ms-e reload korle stale read row-ke abar
+                        // pending-e ferat pathato. Guard (justSavedStatus) thakleo
+                        // reload-e notun status-i asbe.
+                        if (changed) debouncedLoadRows(3000);
                     });
                 } catch (Exception e) {
                     if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) {
@@ -1843,6 +1863,34 @@ public class MainActivity extends AppCompatActivity {
                 String resolvedNumbersId = resolveNumbersIdForAgent(agentId);
                 if (resolvedNumbersId != null && !resolvedNumbersId.isEmpty()) lastResolvedNumbersId = resolvedNumbersId;
                 List<Row> rows = SheetsClient.getRows(token, resolvedNumbersId, agentId);
+                // v5.8: stale-read guard — sheet-e save ekhono na uthle (write-er
+                // porpori read purono value dey) just-save kora row-er notun status-i
+                // rakha hobe; sheet-e notun value ele guard sorbe. Clear-save-er
+                // khetre ulto: stale purono status ele khali kore dewa hobe.
+                long guardNow = System.currentTimeMillis();
+                for (Row gr : rows) {
+                    if (gr == null) continue;
+                    String gn = SheetsClient.normLogNumber(gr.number);
+                    if (gn.isEmpty()) continue;
+                    Long gts = justSavedTs.get(gn);
+                    if (gts != null && guardNow - gts.longValue() < JUST_SAVED_WINDOW_MS) {
+                        String js = justSavedStatus.get(gn);
+                        if (js != null) {
+                            String sheetNow = (gr.status == null ? "" : gr.status) + "|" + (gr.valid == null ? "" : gr.valid);
+                            if (js.equals(sheetNow)) { justSavedStatus.remove(gn); justSavedTs.remove(gn); }
+                            else {
+                                String[] gp = js.split("\\|", -1);
+                                gr.status = gp.length > 0 ? gp[0] : "";
+                                gr.valid = gp.length > 1 ? gp[1] : "";
+                            }
+                        }
+                    }
+                    Long cts = justClearedTs.get(gn);
+                    if (cts != null && guardNow - cts.longValue() < JUST_SAVED_WINDOW_MS) {
+                        if ((gr.status != null && !gr.status.isEmpty()) || (gr.valid != null && !gr.valid.isEmpty())) { gr.status = ""; gr.valid = ""; }
+                        else { justClearedTs.remove(gn); }
+                    }
+                }
                 rowsLoading = false;
                 runOnUiThread(() -> {
                     rowsLoading = false;
@@ -2517,9 +2565,12 @@ public class MainActivity extends AppCompatActivity {
 
     /** v4.19 debounce: Refresh / tarikh bodol druto chaple shudhu sesh chap-ta 400ms pore cholbe. */
     private void debouncedLoadRows() {
+        debouncedLoadRows(400);
+    }
+    private void debouncedLoadRows(long delayMs) {
         if (pendingRowsLoad != null) uiHandler.removeCallbacks(pendingRowsLoad);
         pendingRowsLoad = this::loadRows;
-        uiHandler.postDelayed(pendingRowsLoad, 400);
+        uiHandler.postDelayed(pendingRowsLoad, delayMs);
     }
     private void debouncedLoadDayStats() {
         if (pendingStatsLoad != null) uiHandler.removeCallbacks(pendingStatsLoad);
@@ -3061,6 +3112,14 @@ public class MainActivity extends AppCompatActivity {
                 if (r.savedStatus == null || r.savedStatus.isEmpty()) continue;
                 String n = SheetsClient.normLogNumber(r.number);
                 if (n.isEmpty() || inCalled.contains(n)) continue;
+                // v5.8: ekhuni save kora row — log-e entry ekhono na uthleu called-e
+                // thakbe, kintu "আগের দিনের কল" badge noy (eta ajkeri call).
+                Long sts = justSavedTs.get(n);
+                if (sts != null && System.currentTimeMillis() - sts.longValue() < JUST_SAVED_WINDOW_MS) {
+                    r.prevDay = false; r.statusTime = dhakaTimeFrom(sts.longValue());
+                    called.add(r);
+                    continue;
+                }
                 r.prevDay = true; r.statusTime = "";
                 called.add(r);
             }
