@@ -622,6 +622,9 @@ public class MainActivity extends AppCompatActivity {
                         if (finalLogAppended) { refreshInvalidTileAfterSave(); }
                         else if (finalLogCleared) loadDayStats();
                         drainOutboxAsync(); drainPendingLogsAsync();
+                        // Save-er por list-e sathe sathe notun hisab dekhabe — Refresh chapte hobe na.
+                        // Sheet-e save land koreche, tai reload-e notun status asbe.
+                        if (changed) debouncedLoadRows();
                     });
                 } catch (Exception e) {
                     if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) {
