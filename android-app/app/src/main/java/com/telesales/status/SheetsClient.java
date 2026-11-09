@@ -27,6 +27,22 @@ public class SheetsClient {
         return c;
     }
 
+    /** v6.4: GET-only 429 retry — 429 hole 2s, 5s, 10s wait kore abar try (moat 4 bar).
+     *  POST/PUT/DELETE-e kokhono babohar kora jabe na — getResponseCode() age
+     *  dakle request body lekha vangbe. */
+    private static HttpURLConnection openGetWithRetry(URL url, String token) throws Exception {
+        HttpURLConnection c = open(url, token);
+        int[] waits = {2000, 5000, 10000};
+        for (int i = 0; i < waits.length; i++) {
+            int code = c.getResponseCode();
+            if (code != 429) return c;
+            c.disconnect();
+            Thread.sleep(waits[i]);
+            c = open(url, token);
+        }
+        return c;
+    }
+
     private static String q(String tab) {
         return "'" + tab.replace("'", "''") + "'";
     }
@@ -111,8 +127,9 @@ public class SheetsClient {
             sb.append(i == 0 ? "?" : "&").append("ranges=").append(URLEncoder.encode(ranges.get(i), "UTF-8"));
         }
         URL url = new URL(sb.toString());
-        HttpURLConnection c = open(url, token);
+        HttpURLConnection c = openGetWithRetry(url, token);
         int code = c.getResponseCode();
+        if (code == 429) throw new Exception("Batch load failed: 429 — শিটের লিমিট শেষ, একটু পরে আবার চেষ্টা করুন");
         if (code != 200) throw new Exception("Batch load failed: " + code + " " + readAll(c.getErrorStream()));
         JSONObject j = new JSONObject(readAll(c.getInputStream()));
         java.util.Map<String, List<String[]>> out = new java.util.HashMap<>();
@@ -463,8 +480,9 @@ public class SheetsClient {
     public static List<String[]> getReportRows(String token, String sheetId, String tab) throws Exception {
         String range = URLEncoder.encode(tab + "!A2:Z", "UTF-8");
         URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + sheetId + "/values/" + range);
-        HttpURLConnection c = open(url, token);
+        HttpURLConnection c = openGetWithRetry(url, token);
         int code = c.getResponseCode();
+        if (code == 429) throw new Exception("Report load failed: 429 — শিটের লিমিট শেষ, একটু পরে আবার চেষ্টা করুন");
         if (code != 200) throw new Exception("Report load failed: " + code + " " + readAll(c.getErrorStream()));
         JSONObject j = new JSONObject(readAll(c.getInputStream()));
         List<String[]> out = new ArrayList<>();
@@ -791,7 +809,24 @@ public class SheetsClient {
     }
 
     public static List<String[]> getConfigRows(String token, String spreadsheetId) throws Exception {
-        return getReportRows(token, spreadsheetId, CONFIG_TAB);
+        String range = URLEncoder.encode(CONFIG_TAB + "!A2:Z", "UTF-8");
+        URL url = new URL("https://sheets.googleapis.com/v4/spreadsheets/" + spreadsheetId + "/values/" + range);
+        HttpURLConnection c = openGetWithRetry(url, token);
+        int code = c.getResponseCode();
+        if (code == 429) throw new Exception("Config load failed: 429 — শিটের লিমিট শেষ, একটু পরে আবার চেষ্টা করুন");
+        if (code != 200) throw new Exception("Config load failed: " + code + " " + readAll(c.getErrorStream()));
+        JSONObject j = new JSONObject(readAll(c.getInputStream()));
+        List<String[]> out = new ArrayList<>();
+        JSONArray values = j.optJSONArray("values");
+        if (values != null) {
+            for (int i = 0; i < values.length(); i++) {
+                JSONArray v = values.getJSONArray(i);
+                String[] row = new String[v.length()];
+                for (int k = 0; k < v.length(); k++) row[k] = v.optString(k);
+                out.add(row);
+            }
+        }
+        return out;
     }
 
     public static void appendConfigRow(String token, String spreadsheetId, String[] vals) throws Exception {
