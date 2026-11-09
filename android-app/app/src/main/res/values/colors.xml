@@ -11,10 +11,24 @@
     <color name="green">#10B981</color>
     <color name="rose">#F43F5E</color>
     <color name="orange">#F97316</color>
-    <color name="glass_white">#1AFFFFFF</color>
-    <color name="glass_border">#38FFFFFF</color>
-    <color name="field_bg">#14FFFFFF</color>
-    <color name="field_border">#2EFFFFFF</color>
-    <color name="dropdown_bg">#1E293B</color>
-    <color name="error_light">#FECDD3</color>
+    <!-- v6.6 Energy Sales skin (design 3): cream background, orange accent, dark ink text -->
+    <color name="cream">#FFF7ED</color>
+    <color name="card_white">#FFFFFF</color>
+    <color name="field_cream">#FFFBEB</color>
+    <color name="ink">#1F2937</color>
+    <color name="muted_warm">#78716C</color>
+    <color name="orange_deep">#EA580C</color>
+    <color name="orange_dark">#C2410C</color>
+    <color name="orange_light">#FFEDD5</color>
+    <color name="orange_border">#FED7AA</color>
+    <color name="green_deep">#16A34A</color>
+    <color name="blue_deep">#2563EB</color>
+    <color name="rose_deep">#E11D48</color>
+    <color name="error">#DC2626</color>
+    <color name="glass_white">#FFFFFF</color>
+    <color name="glass_border">#FED7AA</color>
+    <color name="field_bg">#FFFBEB</color>
+    <color name="field_border">#FED7AA</color>
+    <color name="dropdown_bg">#FFF7ED</color>
+    <color name="error_light">#DC2626</color>
 </resources>

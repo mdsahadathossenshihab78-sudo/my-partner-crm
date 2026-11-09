@@ -141,6 +141,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
     private TextView autoSyncTime;
     private TextView ftdUsersCount, ftdUsersSyncTime, ftdUsersEmpty;
+    private TextView ftdTodayCount, ftdTotalCount, regTodayCount, regTotalCount;
+    /** v6.6: professional loading — logo pulse + progress bar dialog. */
+    private android.app.Dialog loadingDialog;
+    private android.view.animation.Animation pulseAnim;
     private LinearLayout ftdUsersList;
     private volatile boolean commissionStatsShown = false;
     /** Batch feature #10: ajker target card-er obostha (duitar source-i load hole tobei dekhabe). */
@@ -150,8 +154,7 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton dateBtn; private Button reportPrevBtn, reportDateBtn, reportNextBtn, reportTodayBtn; private TextView reportDateNote;
     private TextInputEditText searchBox;
     private View reportView, reportOutputCard;
-    private View guideView;
-    private TextView guideText;
+    private View ftdView;
     private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay, statTotalRemainDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
     private int currentSection = 0;
     private static final String DAILY_REPORTS_ID = "1BPaQrV6Znqcs45pNEUib8AOHnxzz93Z8Y8vEMAAHOzg";
@@ -174,8 +177,9 @@ public class MainActivity extends AppCompatActivity {
     /** Report sheet-er ekta row: cells + sheet-er row number (delete korar jonno) + v4.28 source sheet/order (switch diner row kon sheet-e, seta chenar jonno). */
     static class REntry { final String[] cells; final int sheetRow; final String[] rawCells; final String sourceSheet; final int sourceOrder; REntry(String[] c, int r) { this(c, r, null, null, 0); } REntry(String[] c, int r, String[] raw) { this(c, r, raw, null, 0); } REntry(String[] c, int r, String[] raw, String src, int ord) { cells = c; sheetRow = r; rawCells = raw; sourceSheet = src; sourceOrder = ord; } }
     /** v6.3: FTD Users sheet-er ekta row — Username | First Deposit Amount |
-     *  Account Created | Last Login | Deposit Date | Synced At. */
-    private static class FtdUserRow { final String user, amt, created, login, depDate; FtdUserRow(String u, String a, String c, String l, String d) { user = u; amt = a; created = c; login = l; depDate = d; } }
+     *  Account Created | Last Login | Deposit Date | Synced At. v6.6: Synced At
+     *  same-day tiebreak-e lage — notun sync upore. */
+    private static class FtdUserRow { final String user, amt, created, login, depDate, syncAt; FtdUserRow(String u, String a, String c, String l, String d, String s) { user = u; amt = a; created = c; login = l; depDate = d; syncAt = s; } }
     // v4.28 SHEET SWITCHER: config file kokhono switch hoy na — ORIGINAL shared Status Log
     // file-ei "SheetConfig" tab-e 4 store-er ID chain thake. Chain-er prottek entry:
     // (sheetId, fromDate) — fromDate khali mane "age theke". Hardcoded ID-gulo sudhu
@@ -217,40 +221,6 @@ public class MainActivity extends AppCompatActivity {
     private List<REntry> regToday = new ArrayList<>(), ftdToday = new ArrayList<>(), invToday = new ArrayList<>(), probToday = new ArrayList<>();
     private final String[] reasons = {"কল ধরেনি", "নট কানেক্টেড", "বন্ধ", "ভুল নাম্বার"};
 
-    /** Bangla user manual: agent-ra kobe Connected/Not Connected/Valid Yes/No dibe, remark, report. */
-    private static final String GUIDE_TEXT =
-        "১. লগইন\n" +
-        "গুগল দিয়ে চালিয়ে যান চাপুন, আপনার জিমেইল দিয়ে লগইন করুন। প্রথমবার এজেন্ট আইডি চাইবে — আপনার ট্যাবের নাম (যেমন bdxsukuna03) লিখুন। এরপর থেকে ওই জিমেইলে লগইন করলেই সরাসরি আপনার লিস্ট খুলবে। উপরের অক্ষরে চাপ দিলে লগআউট হবে।\n\n" +
-        "২. কল লিস্ট\n" +
-        "কল লিস্টে নাম্বারগুলো থাকে। কল বাকি ট্যাবে যেসব নাম্বারে এখনো কল করা হয়নি, সেগুলো থাকে। কল করে স্ট্যাটাস দিলে সেটা কল করা হয়েছে ট্যাবে চলে যাবে। ড্যাশবোর্ডে তারিখ বদলে ওই দিনের হিসাব দেখতে পারবেন। সার্চ বক্সে নাম্বার লিখে খুঁজতে পারবেন। রিফ্রেশ চাপলে শিট থেকে নতুন লিস্ট আসবে।\n\n" +
-        "৩. কল করা ও স্ট্যাটাস দেওয়া\n" +
-        "কল চাপলে কল যাবে। কপি চাপলে নাম্বার কপি হবে। কল করার পর স্ট্যাটাস দিন, তারপর সেভ চাপুন। সেভ না চাপলে শিটে কিছু বদলাবে না।\n\n" +
-        "কল Connected কখন দিবেন:\n" +
-        "যখন কলটা ধরেছে — অর্থাৎ কেউ ফোন রিসিভ করেছে — তখন Connected দিবেন।\n\n" +
-        "কল Not Connected কখন দিবেন:\n" +
-        "যখন কেউ কল রিসিভ করেনি, বা ফোন বন্ধ, বা কল কেটে দিয়েছে — তখন Not Connected দিবেন।\n\n" +
-        "ভ্যালিড কখন Yes দিবেন:\n" +
-        "কল ধরেছে এবং সে ডিপোজিট করবে — এখনই করুক, বা বিকালে করুক, বা সন্ধ্যায় করুক — ডিপোজিট করার কথা যারা বলেছে, তাদের Yes দিবেন।\n\n" +
-        "ভ্যালিড কখন না দিবেন:\n" +
-        "যারা ডিপোজিট করবে না; যারা গেম খেলে না; ফোন ধরেছে কিন্তু ডিপোজিট করবে না বলেছে; বা যার নাম্বার দিয়ে অ্যাকাউন্ট খোলা নেই — তাদের না দিবেন।\n\n" +
-        "১ম কল রিমার্ক:\n" +
-        "প্রথম কল করে যা জানতে পারলেন — ফোন ধরেছে না ধরেনি, ডিপোজিট করতে চেয়েছে কি চায়নি, যেকোনো কথা — এখানে লিখে দিতে পারবেন।\n\n" +
-        "২য় কল রিমার্ক:\n" +
-        "দ্বিতীয়বার কল করে যা জানলেন, সেটা এখানে লিখবেন।\n\n" +
-        "অন্যান্য নাম্বার:\n" +
-        "কাস্টমারের যদি আরেকটা এক্সট্রা নাম্বার থাকে, সেটা এখানে অ্যাড করতে পারবেন।\n\n" +
-        "৪. রিপোর্ট\n" +
-        "নিচের মেনু থেকে রিপোর্ট-এ গেলে দিনের হিসাব দেওয়া যায়:\n" +
-        "• রেজিস্ট্রেশন: + চাপলে একটা করে বাড়বে, − চাপলে আজকের শেষটা বাদ যাবে; কোনো টাকা চাওয়া হবে না।\n" +
-        "• এফটিডি: + চাপলে একটা করে বাড়বে; প্রতিবার নিচে ওই এফটিডি-র টাকাটা লিখতে হবে। শুধু মোট সংখ্যা আর মোট টাকা দেখাবে, আলাদা আলাদা এফটিডি-র টাকা দেখাবে না। ভুল হলে − চাপলে আজকের শেষ এফটিডি-টা বাদ যাবে।\n" +
-        "• Invalid নাম্বার: আলাদা করে লিখতে হবে না — নিজে থেকে হিসাব হয়। যেসব নাম্বারে Not Connected আর Valid No দুটোই আছে, সেসব নাম্বার ওই দিনে একবার করে গোনা হয় (একই নাম্বার দুবার থাকলেও ১)। আগের হাতে লেখা Invalid লেখাগুলো শুধু পুরোনো হিসাব হিসেবে থেকে যাবে।\n" +
-        "• সমস্যা: কাজের সময় কোনো সমস্যা হলে এখানে লিখুন।\n" +
-        "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। রিপোর্ট বানান চাপলে নির্বাচিত তারিখ, সময়, এজেন্ট আইডি, মোট কল, Connected, রেজিস্ট্রেশন, এফটিডি, মোট টাকা, Invalid আর সমস্যা দিয়ে রিপোর্ট তৈরি হবে। কপি চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
-        "৫. ওয়েবসাইট বাটন\n" +
-        "নিচের মেনু থেকে ওয়েবসাইট চাপলে আপনার সাইটটা অ্যাপের ভিতরেই খুলবে, আর নিচে মেনু দেখা যাবে। প্রথমবার ইউজারনেম-পাসওয়ার্ড দিয়ে লগইন করতে হবে; তারপর থেকে লগইন মনে থাকবে, আপডেট দিলেও ভুলবে না। মেনু থেকে যেকোনো অপশনে যেতে পারবেন।\n\n" +
-        "৬. দিনের হিসাব (ড্যাশবোর্ড)\n" +
-        "ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, এফটিডি, এফটিডি টাকা আর রেজিস্ট্রেশন দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।" + "উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।";
-
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Keyboard: app-e dhuklei search field-e keyboard auto-khulbe na — sudhu tap korle khulbe
@@ -269,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
         statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); statTotalRemainDay = findViewById(R.id.statTotalRemainDay);
         autoSyncTime = findViewById(R.id.autoSyncTime);
         ftdUsersCount = findViewById(R.id.ftdUsersCount); ftdUsersSyncTime = findViewById(R.id.ftdUsersSyncTime); ftdUsersEmpty = findViewById(R.id.ftdUsersEmpty); ftdUsersList = findViewById(R.id.ftdUsersList);
+        ftdTodayCount = findViewById(R.id.ftdTodayCount); ftdTotalCount = findViewById(R.id.ftdTotalCount); regTodayCount = findViewById(R.id.regTodayCount); regTotalCount = findViewById(R.id.regTotalCount);
         // Batch feature #1: dashboard tile tap -> oi din-er oi type-er list (FTD/Registration-er
         // entry Report screen-e thake, tai ogulo Report-e khulbe).
         statConnDay.setOnClickListener(v -> openFilteredList("connected"));
@@ -286,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
         statusText = findViewById(R.id.statusText);
         searchBox = findViewById(R.id.searchBox);
         reportView = findViewById(R.id.reportView);
-        guideView = findViewById(R.id.guideView); bottomMenuBar = findViewById(R.id.bottomMenuBar); websiteView = findViewById(R.id.websiteView); websiteWeb = findViewById(R.id.websiteWeb); websiteWeb.getSettings().setJavaScriptEnabled(true); websiteWeb.getSettings().setDomStorageEnabled(true); CookieManager.getInstance().setAcceptCookie(true); CookieManager.getInstance().setAcceptThirdPartyCookies(websiteWeb, true);
+        ftdView = findViewById(R.id.ftdView); bottomMenuBar = findViewById(R.id.bottomMenuBar); websiteView = findViewById(R.id.websiteView); websiteWeb = findViewById(R.id.websiteWeb); websiteWeb.getSettings().setJavaScriptEnabled(true); websiteWeb.getSettings().setDomStorageEnabled(true); CookieManager.getInstance().setAcceptCookie(true); CookieManager.getInstance().setAcceptThirdPartyCookies(websiteWeb, true);
         // Batch fix #16: site/net down hole khali page noy — toast + retry flag reset.
         websiteWeb.setWebViewClient(new WebViewClient() {
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
@@ -296,8 +267,6 @@ public class MainActivity extends AppCompatActivity {
                 websiteLoaded = false; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার ওয়েবসাইট চাপুন", Toast.LENGTH_LONG).show();
             }
         });
-        guideText = findViewById(R.id.guideText);
-        guideText.setText(GUIDE_TEXT);
         dashboardView = findViewById(R.id.dashboardView);
         reminderListContainer = findViewById(R.id.reminderList);
         reminderSection = findViewById(R.id.reminderSection);
@@ -368,6 +337,7 @@ public class MainActivity extends AppCompatActivity {
         MaterialButton googleBtn = findViewById(R.id.googleBtn);
         googleBtn.setOnClickListener(v -> {
             loginError.setText("");
+            showLoading("লগইন হচ্ছে...");
             startActivityForResult(signInClient.getSignInIntent(), RC_SIGN_IN);
         });
         // Batch fix #2: avatar tap-e soja logout noy — age confirm.
@@ -396,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.menuHomeBtn).setOnClickListener(v -> { applySection(1); maybeAutoRefreshList(); });
         findViewById(R.id.menuReportBtn).setOnClickListener(v -> showReport());
         findViewById(R.id.menuWebsiteBtn).setOnClickListener(v -> showWebsite());
-        findViewById(R.id.menuGuideBtn).setOnClickListener(v -> showGuide());
+        findViewById(R.id.menuFtdBtn).setOnClickListener(v -> showFtdUsers());
          
          
         findViewById(R.id.btnPrevDay).setOnClickListener(v -> shiftDay(-1));
@@ -720,7 +690,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
+        ftdView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
     }
     // Batch fix #7: login/Agent ID screen-e atke thakleo update check cholbe (age sudhu
     // main view-e cholto); fetch-e token lage na, tai login/agent branch-e token shorto nei.
@@ -739,7 +709,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE);
+        ftdView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE);
         setAgentSubtitle();
         loadDayStats();
         refreshReminderList();
@@ -798,10 +768,10 @@ public class MainActivity extends AppCompatActivity {
      *  (append "tab missing" hole ekhan theke daka hoy). */
     private void invalidateSharedLogCache() { sharedLogCacheAgent = null; sharedLogCacheId = null; }
 
-    private void updateMenuState(int active) { MaterialButton[] btns = new MaterialButton[]{(MaterialButton) findViewById(R.id.menuDashboardBtn), (MaterialButton) findViewById(R.id.menuHomeBtn), (MaterialButton) findViewById(R.id.menuReportBtn), (MaterialButton) findViewById(R.id.menuWebsiteBtn), (MaterialButton) findViewById(R.id.menuGuideBtn)}; int dim = Color.parseColor("#9AA3C7"); for (int i = 0; i < btns.length; i++) { MaterialButton b = btns[i]; if (b == null) continue; boolean on = (i == active); b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field); b.setTextColor(on ? Color.WHITE : dim); b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL); b.setIconTint(ColorStateList.valueOf(on ? Color.WHITE : dim)); } } private void applySection(int sec) {
+    private void updateMenuState(int active) { MaterialButton[] btns = new MaterialButton[]{(MaterialButton) findViewById(R.id.menuDashboardBtn), (MaterialButton) findViewById(R.id.menuHomeBtn), (MaterialButton) findViewById(R.id.menuReportBtn), (MaterialButton) findViewById(R.id.menuWebsiteBtn), (MaterialButton) findViewById(R.id.menuFtdBtn)}; int dim = Color.parseColor("#78716C"); for (int i = 0; i < btns.length; i++) { MaterialButton b = btns[i]; if (b == null) continue; boolean on = (i == active); b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field); b.setTextColor(on ? Color.WHITE : dim); b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL); b.setIconTint(ColorStateList.valueOf(on ? Color.WHITE : dim)); } } private void applySection(int sec) {
         currentSection = sec;
         dashboardView.setVisibility(sec == 0 ? View.VISIBLE : View.GONE);
-        listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); mainView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE);
+        listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE); reportView.setVisibility(View.GONE); ftdView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); mainView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE);
         updateMenuState(sec);
         findViewById(R.id.menuHomeBtn).setBackgroundResource(sec == 1 ? R.drawable.btn_gradient : R.drawable.glass_field);
         // v4.20: list-e dhukle called tab-er date purono hole taja hisab ana.
@@ -813,7 +783,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.VISIBLE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
+        ftdView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
         agentError.setText("");
     }
     /** Admin Panel: sudhu admin Gmail-e login korle khulbe, Agent ID lagbe na. */
@@ -823,7 +793,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.VISIBLE);
-        guideView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
+        ftdView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.GONE); websiteView.setVisibility(View.GONE);
         adminStatus.setText("");
         showAdminSection("NUMBER");
         refreshTestSheetStatus();
@@ -911,7 +881,7 @@ public class MainActivity extends AppCompatActivity {
         if (adminSectionDashboard != null) adminSectionDashboard.setVisibility("DASHBOARD".equals(section) ? View.VISIBLE : View.GONE);
         MaterialButton[] tabs = new MaterialButton[]{(MaterialButton) findViewById(R.id.adminTabNumber), (MaterialButton) findViewById(R.id.adminTabTeam), (MaterialButton) findViewById(R.id.adminTabSheet), (MaterialButton) findViewById(R.id.adminTabAdmins), (MaterialButton) findViewById(R.id.adminTabDashboard)};
         String[] keys = new String[]{"NUMBER", "TEAM", "SHEET", "ADMINS", "DASHBOARD"};
-        int dim = Color.parseColor("#9AA3C7");
+        int dim = Color.parseColor("#78716C");
         for (int i = 0; i < tabs.length; i++) {
             MaterialButton b = tabs[i];
             if (b == null) continue;
@@ -994,7 +964,7 @@ public class MainActivity extends AppCompatActivity {
                             TextView t = new TextView(MainActivity.this);
                             t.setText(ln);
                             t.setTextSize(13);
-                            t.setTextColor(Color.WHITE);
+                            t.setTextColor(Color.parseColor("#1F2937"));
                             t.setPadding(0, 8, 0, 8);
                             list.addView(t);
                         }
@@ -1257,7 +1227,7 @@ public class MainActivity extends AppCompatActivity {
                 if (rows.isEmpty()) {
                     TextView empty = new TextView(this);
                     empty.setText("এখনো কোনো টিম শিট বানানো হয়নি");
-                    empty.setTextColor(Color.parseColor("#9AA3C7"));
+                    empty.setTextColor(Color.parseColor("#78716C"));
                     empty.setTextSize(13);
                     teamListContainer.addView(empty);
                     return;
@@ -1268,7 +1238,7 @@ public class MainActivity extends AppCompatActivity {
                     row.setPadding(0, 16, 0, 16);
                     TextView title = new TextView(this);
                     title.setText(t.name + " — " + ("Yes".equalsIgnoreCase(t.active) ? "সবার জন্য চালু" : "বন্ধ") + " (" + t.created + ")");
-                    title.setTextColor(Color.WHITE);
+                    title.setTextColor(Color.parseColor("#1F2937"));
                     title.setTextSize(15);
                     title.setTypeface(null, Typeface.BOLD);
                     row.addView(title);
@@ -1278,14 +1248,14 @@ public class MainActivity extends AppCompatActivity {
                     if (tb == null || tb.isEmpty()) tbText.append("kono tab pai ni");
                     else for (int k = 0; k < tb.size(); k++) { if (k > 0) tbText.append(", "); tbText.append(tb.get(k)); }
                     tabs.setText(tbText.toString());
-                    tabs.setTextColor(Color.parseColor("#9AA3C7"));
+                    tabs.setTextColor(Color.parseColor("#78716C"));
                     tabs.setTextSize(12);
                     row.addView(tabs);
                     LinearLayout btnRow = new LinearLayout(this);
                     btnRow.setOrientation(LinearLayout.HORIZONTAL);
                     MaterialButton toggle = new MaterialButton(this);
                     toggle.setText("Yes".equalsIgnoreCase(t.active) ? "বন্ধ করুন" : "সবার জন্য যোগ করুন");
-                    toggle.setTextColor(Color.WHITE);
+                    toggle.setTextColor("Yes".equalsIgnoreCase(t.active) ? Color.parseColor("#1F2937") : Color.WHITE);
                     toggle.setBackgroundResource("Yes".equalsIgnoreCase(t.active) ? R.drawable.glass_field : R.drawable.btn_gradient);
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
                     toggle.setLayoutParams(lp);
@@ -1293,7 +1263,7 @@ public class MainActivity extends AppCompatActivity {
                     btnRow.addView(toggle);
                     MaterialButton nums = new MaterialButton(this);
                     nums.setText("নাম্বার বসান");
-                    nums.setTextColor(Color.WHITE);
+                    nums.setTextColor(Color.parseColor("#1F2937"));
                     nums.setBackgroundResource(R.drawable.glass_field);
                     LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
                     lp2.setMargins(10, 0, 0, 0);
@@ -1421,11 +1391,11 @@ public class MainActivity extends AppCompatActivity {
             tv.setLayoutParams(lp);
             tv.setText(fmtReminderTime(it.time) + " — " + it.number);
             tv.setTextSize(13);
-            tv.setTextColor(Color.WHITE);
+            tv.setTextColor(Color.parseColor("#1F2937"));
             TextView x = new TextView(this);
             x.setText("✕");
             x.setTextSize(18);
-            x.setTextColor(Color.WHITE);
+            x.setTextColor(Color.parseColor("#1F2937"));
             x.setPadding(24, 12, 24, 12);
             final String num = it.number;
             x.setOnClickListener(v -> {
@@ -1785,22 +1755,66 @@ public class MainActivity extends AppCompatActivity {
         updateMenuState(2); reportView.setVisibility(View.VISIBLE); updateReportDateBtn(); updateReportEditState();
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
+        ftdView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
         loadReportData();
     }
 
-    /** User Guide khulbe: Bangla manual, niche menu theke. */
-    private void showGuide() {
+    /** FTD list khulbe: notun FTD upore, purono niche — niche menu theke. */
+    private void showFtdUsers() {
+        if (token == null) { showLogin(); return; }
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.GONE);
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        updateMenuState(4); guideView.setVisibility(View.VISIBLE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
+        updateMenuState(4); ftdView.setVisibility(View.VISIBLE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
+        showLoading("এফটিডি লিস্ট লোড হচ্ছে...");
+        loadFtdUsers();
+        loadFtdSummaryRegs();
+    }
+
+    /** v6.6 Energy Sales: professional digital loading — branded logo pulse +
+     *  polished progress bar (dialog). Kono thread theke daka jabe; already
+     *  khola thakle sudhu text bodlay. Kokhono crash kore na. */
+    private void showLoading(String msg) {
+        runOnUiThread(() -> {
+            try {
+                if (isFinishing() || isDestroyed()) return;
+                if (loadingDialog != null && loadingDialog.isShowing()) {
+                    TextView t = loadingDialog.findViewById(R.id.loadingText);
+                    if (t != null) t.setText(msg == null || msg.isEmpty() ? "লোড হচ্ছে..." : msg);
+                    return;
+                }
+                android.view.View v = getLayoutInflater().inflate(R.layout.loading_dialog, null);
+                if (pulseAnim == null) pulseAnim = android.view.animation.AnimationUtils.loadAnimation(this, R.anim.logo_pulse);
+                android.widget.ImageView logo = v.findViewById(R.id.loadingLogo);
+                if (logo != null && pulseAnim != null) logo.startAnimation(pulseAnim);
+                TextView t = v.findViewById(R.id.loadingText);
+                if (t != null) t.setText(msg == null || msg.isEmpty() ? "লোড হচ্ছে..." : msg);
+                loadingDialog = new android.app.Dialog(this);
+                loadingDialog.setContentView(v);
+                loadingDialog.setCancelable(false);
+                if (loadingDialog.getWindow() != null) loadingDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+                loadingDialog.show();
+            } catch (Exception ignored) { /* loading dialog kokhono kaj atkabe na */ }
+        });
+    }
+    private void hideLoading() {
+        runOnUiThread(() -> {
+            try {
+                if (loadingDialog != null) {
+                    android.view.View v = loadingDialog.findViewById(R.id.loadingLogo);
+                    if (v != null) v.clearAnimation();
+                    if (loadingDialog.isShowing()) loadingDialog.dismiss();
+                    loadingDialog = null;
+                }
+            } catch (Exception ignored) {}
+        });
     }
 
     private void fetchToken(GoogleSignInAccount acct) {
         loginError.setText("লগইন হচ্ছে...");
+        showLoading("লগইন হচ্ছে...");
         new Thread(() -> {
             try {
                 token = GoogleAuthUtil.getToken(this, acct.getAccount(), "oauth2:" + SHEET_SCOPE + " " + DRIVE_SCOPE);
@@ -1817,6 +1831,7 @@ public class MainActivity extends AppCompatActivity {
                         boolean owner = checkIsAdminWithEmail(acct.getEmail());
                         boolean isOwner = owner;
                         runOnUiThread(() -> {
+                            hideLoading();
                             if (isOwner) { showAdmin(); return; }
                             String saved = prefs0.getString("agent_id", null);
                             String savedEmail = prefs0.getString("agent_email", null);
@@ -1831,9 +1846,9 @@ public class MainActivity extends AppCompatActivity {
                     }).start();
                 });
             } catch (UserRecoverableAuthException e) {
-                runOnUiThread(() -> startActivityForResult(e.getIntent(), RC_AUTH));
+                runOnUiThread(() -> { hideLoading(); startActivityForResult(e.getIntent(), RC_AUTH); });
             } catch (Exception e) {
-                runOnUiThread(() -> { loginError.setText(loginFailText(e)); showLogin(); });
+                runOnUiThread(() -> { hideLoading(); loginError.setText(loginFailText(e)); showLogin(); });
             }
         }).start();
     }
@@ -1846,6 +1861,7 @@ public class MainActivity extends AppCompatActivity {
                 GoogleSignInAccount acct = task.getResult(ApiException.class);
                 fetchToken(acct);
             } catch (Exception e) {
+                hideLoading();
                 loginError.setText(loginFailText(e));
             }
         } else if (requestCode == RC_AUTH) {
@@ -1866,6 +1882,7 @@ public class MainActivity extends AppCompatActivity {
         if (agentId == null) { showAgent(); return; }
         if (rowsLoading) return; // v4.19: choloman load thakle double load noy
         rowsLoading = true;
+        if (adapter == null || adapter.getItemCount() == 0) showLoading("ডাটা লোড হচ্ছে...");
         final int seq = ++rowsSeq;
         statusText.setText("শিট থেকে লোড হচ্ছে...");
         new Thread(() -> {
@@ -1904,6 +1921,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 rowsLoading = false;
                 runOnUiThread(() -> {
+                    hideLoading();
                     rowsLoading = false;
                     if (seq != rowsSeq) return; // purono response notun data-r upor boshbe na
                     authRetryUsed = false;
@@ -1938,7 +1956,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 rowsLoading = false;
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; loadRows(); return; }
-                runOnUiThread(() -> statusText.setText("লোড হয়নি: " + e.getMessage()));
+                runOnUiThread(() -> { hideLoading(); statusText.setText("লোড হয়নি: " + e.getMessage()); });
             }
         }).start();
     }
@@ -2074,9 +2092,9 @@ public class MainActivity extends AppCompatActivity {
                     if (user.isEmpty() || "Username".equals(user)) continue;
                     String when = cell(r, 5).trim();
                     if (!when.isEmpty() && when.compareTo(latestSync) > 0) latestSync = when;
-                    users.add(new FtdUserRow(user, cell(r, 1).trim(), cell(r, 2).trim(), cell(r, 3).trim(), cell(r, 4).trim()));
+                    users.add(new FtdUserRow(user, cell(r, 1).trim(), cell(r, 2).trim(), cell(r, 3).trim(), cell(r, 4).trim(), when));
                 }
-                java.util.Collections.sort(users, (a, b) -> b.depDate.compareTo(a.depDate));
+                java.util.Collections.sort(users, (a, b) -> { int d = b.depDate.compareTo(a.depDate); if (d != 0) return d; return b.syncAt.compareTo(a.syncAt); });
                 final List<FtdUserRow> shown = users;
                 final String syncText = latestSync;
                 runOnUiThread(() -> fillFtdUsers(shown, syncText));
@@ -2086,6 +2104,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void postFtdUsersEmpty() {
         runOnUiThread(() -> {
+            hideLoading();
             if (ftdUsersCount != null) ftdUsersCount.setText("—");
             if (ftdUsersSyncTime != null) ftdUsersSyncTime.setText("সিঙ্ক হয়নি");
             if (ftdUsersEmpty != null) ftdUsersEmpty.setVisibility(View.VISIBLE);
@@ -2093,8 +2112,54 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /** v6.6: FTD tab-er 4 সংখ্যার সারাংশ — Registration Commission Stats sheet
+     *  theke: ajker row-er Registered + sob row-er Registered-er jogfol.
+     *  FTD-er 2 সংখ্যা fillFtdUsers-e FTD Users sheet theke ase. Sheet na
+     *  thakle / read na hole "—" dekhay, crash kore na. */
+    private void loadFtdSummaryRegs() {
+        if (token == null) return;
+        new Thread(() -> {
+            try {
+                String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
+                if (id == null) { postFtdSummaryRegsEmpty(); return; }
+                List<String[]> rows = null;
+                try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
+                catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
+                String today = dhakaDate();
+                int todayReg = -1, totalReg = 0;
+                for (String[] r : rows) {
+                    if (r == null || r.length < 4) continue;
+                    String d = cell(r, 0).trim();
+                    if (d.isEmpty() || "Date".equals(d)) continue;
+                    int v = 0;
+                    try { v = (int) Math.round(Double.parseDouble(cell(r, 3).trim())); } catch (Exception ignored) { continue; }
+                    totalReg += v;
+                    if (d.equals(today)) todayReg = v;
+                }
+                final int tReg = todayReg, totReg = totalReg;
+                runOnUiThread(() -> {
+                    if (regTodayCount != null) regTodayCount.setText(tReg < 0 ? "—" : String.valueOf(tReg));
+                    if (regTotalCount != null) regTotalCount.setText(String.valueOf(totReg));
+                });
+            } catch (Exception e) { postFtdSummaryRegsEmpty(); }
+        }).start();
+    }
+
+    private void postFtdSummaryRegsEmpty() {
+        runOnUiThread(() -> {
+            if (regTodayCount != null) regTodayCount.setText("—");
+            if (regTotalCount != null) regTotalCount.setText("—");
+        });
+    }
+
     private void fillFtdUsers(List<FtdUserRow> users, String syncText) {
         if (ftdUsersList == null) return;
+        hideLoading();
+        int todayFtd = 0;
+        String today = dhakaDate();
+        for (FtdUserRow u : users) if (today.equals(u.depDate)) todayFtd++;
+        if (ftdTodayCount != null) ftdTodayCount.setText(String.valueOf(todayFtd));
+        if (ftdTotalCount != null) ftdTotalCount.setText(String.valueOf(users.size()));
         ftdUsersList.removeAllViews();
         if (ftdUsersCount != null) ftdUsersCount.setText("মোট: " + users.size() + " জন");
         if (ftdUsersSyncTime != null) ftdUsersSyncTime.setText(syncText.isEmpty() ? "সিঙ্ক হয়নি" : "সর্বশেষ সিঙ্ক: " + syncText);
@@ -2113,19 +2178,19 @@ public class MainActivity extends AppCompatActivity {
             name.setText(u.user);
             name.setTextSize(14);
             name.setTypeface(null, Typeface.BOLD);
-            name.setTextColor(Color.WHITE);
+            name.setTextColor(Color.parseColor("#1F2937"));
             name.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             TextView amt = new TextView(this);
             amt.setText(u.amt.isEmpty() ? "—" : "৳" + u.amt);
             amt.setTextSize(14);
             amt.setTypeface(null, Typeface.BOLD);
-            amt.setTextColor(Color.WHITE);
+            amt.setTextColor(Color.parseColor("#1F2937"));
             top.addView(name);
             top.addView(amt);
             TextView detail = new TextView(this);
             detail.setText("জমা: " + (u.depDate.isEmpty() ? "—" : u.depDate) + " • অ্যাকাউন্ট: " + (u.created.isEmpty() ? "—" : u.created) + " • লগইন: " + (u.login.isEmpty() ? "—" : u.login));
             detail.setTextSize(13);
-            detail.setTextColor(Color.parseColor("#94A3B8"));
+            detail.setTextColor(Color.parseColor("#78716C"));
             row.addView(top);
             row.addView(detail);
             ftdUsersList.addView(row);
@@ -2135,7 +2200,7 @@ public class MainActivity extends AppCompatActivity {
             TextView more = new TextView(this);
             more.setText("আরো " + (users.size() - 100) + " জন আছে");
             more.setTextSize(13);
-            more.setTextColor(Color.parseColor("#94A3B8"));
+            more.setTextColor(Color.parseColor("#78716C"));
             more.setPadding(0, (int) (6 * dens), 0, (int) (6 * dens));
             ftdUsersList.addView(more);
         }
@@ -2230,7 +2295,7 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
+    private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); ftdView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
 
     /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
     private JSONObject fetchVersionJson() throws Exception { String cb = "?t=" + (System.currentTimeMillis() / 60000); String[] urls = { "https://raw.githubusercontent.com/mdsahadathossenshihab1-lgtm/telesales-status-app/main/version.json" + cb, "https://telesales-status-app.vercel.app/version.json" + cb }; Exception lastError = null; for (String urlString : urls) { try { java.net.URL url = new java.net.URL(urlString); java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection(); c.setConnectTimeout(15000); c.setReadTimeout(15000); java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream())); StringBuilder sb = new StringBuilder(); String line; while ((line = br.readLine()) != null) sb.append(line); br.close(); return new JSONObject(sb.toString()); } catch (Exception e) { lastError = e; } } if (lastError != null) throw lastError; throw new Exception("version fetch failed"); } private void checkForUpdate() {
@@ -2443,7 +2508,6 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regPlusBtn, R.id.regMinusBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
         if (token == null) { showLogin(); return; }
-        loadFtdUsers();
         reportStatus.setText("রিপোর্ট লোড হচ্ছে...");
         new Thread(() -> {
             try {
@@ -2493,7 +2557,7 @@ public class MainActivity extends AppCompatActivity {
             TextView t = new TextView(this);
             t.setText("এখনো কিছু যোগ হয়নি");
             t.setTextSize(14);
-            t.setTextColor(Color.WHITE);
+            t.setTextColor(Color.parseColor("#1F2937"));
             parent.addView(t);
             return;
         }
@@ -2512,12 +2576,12 @@ public class MainActivity extends AppCompatActivity {
             TextView t = new TextView(this);
             t.setText(text);
             t.setTextSize(14);
-            t.setTextColor(Color.WHITE);
+            t.setTextColor(Color.parseColor("#1F2937"));
             t.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             Button del = new Button(this);
             del.setText("✕");
             del.setTextSize(14);
-            del.setTextColor(Color.WHITE);
+            del.setTextColor(Color.parseColor("#1F2937"));
             del.setBackgroundResource(R.drawable.glass_field);
             del.setMinWidth(0);
             del.setMinimumHeight(0);
@@ -2607,6 +2671,7 @@ public class MainActivity extends AppCompatActivity {
     private void generateReport() {
         if (token == null) { showLogin(); return; }
         reportStatus.setText("রিপোর্ট বানানো হচ্ছে...");
+        showLoading("রিপোর্ট বানানো হচ্ছে...");
         new Thread(() -> {
             try {
                 tryRefreshConfig();
@@ -2652,13 +2717,14 @@ public class MainActivity extends AppCompatActivity {
                 if (alreadySubmittedDaily(today)) {
                     // Batch fix #11: age joma thakle na janiye abar joma noy — jigges korbe.
                     runOnUiThread(() -> {
+                        hideLoading();
                         new AlertDialog.Builder(MainActivity.this)
                             .setTitle("আগেই জমা আছে")
                             .setMessage("এই দিনের রিপোর্ট আগেই জমা আছে। আবার জমা করবেন?")
                             .setPositiveButton("হ্যাঁ, আবার জমা করুন", (d, w) -> {
                                 new Thread(() -> {
                                     final String note = appendDailyReport(totalF, connF, regToday, ftdToday, sumF, logs, today, probToday);
-                                    runOnUiThread(() -> { refreshReportLists(); reportOutput.setText(text); reportOutputCard.setVisibility(View.VISIBLE); reportStatus.setText(note); });
+                                    runOnUiThread(() -> { hideLoading(); refreshReportLists(); reportOutput.setText(text); reportOutputCard.setVisibility(View.VISIBLE); reportStatus.setText(note); });
                                 }).start();
                             })
                             .setNegativeButton("না", (d, w) -> {
@@ -2670,6 +2736,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     final String dailyNote = appendDailyReport(total, conn, regToday, ftdToday, sum, logs, today, probToday);
                     runOnUiThread(() -> {
+                        hideLoading();
                         refreshReportLists();
                         reportOutput.setText(text);
                         reportOutputCard.setVisibility(View.VISIBLE);
@@ -2678,7 +2745,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             } catch (Exception e) {
                 if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; generateReport(); return; }
-                runOnUiThread(() -> reportStatus.setText("রিপোর্ট বানানো হয়নি: " + e.getMessage()));
+                runOnUiThread(() -> { hideLoading(); reportStatus.setText("রিপোর্ট বানানো হয়নি: " + e.getMessage()); });
             }
         }).start();
     }
@@ -3352,6 +3419,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override protected void onDestroy() {
+        try { if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss(); } catch (Exception ignored) {}
+        loadingDialog = null;
         try { if (updateReceiver != null) unregisterReceiver(updateReceiver); } catch (Exception ignored) {}
         updateReceiver = null;
         super.onDestroy();

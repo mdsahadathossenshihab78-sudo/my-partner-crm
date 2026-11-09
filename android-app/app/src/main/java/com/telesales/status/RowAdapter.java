@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -118,13 +119,17 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         boolean conn = "call connected".equals(status);
         boolean notConn = "not connected".equals(status);
         h.statusChipConn.setBackgroundResource(conn ? R.drawable.chip_green : R.drawable.glass_field);
+        h.statusChipConn.setTextColor(conn ? Color.WHITE : Color.parseColor("#1F2937"));
         h.statusChipNotConn.setBackgroundResource(notConn ? R.drawable.chip_rose : R.drawable.glass_field);
+        h.statusChipNotConn.setTextColor(notConn ? Color.WHITE : Color.parseColor("#1F2937"));
     }
     private void refreshValidChips(Holder h, String valid) {
         boolean yes = "Yes".equals(valid);
         boolean no = "No".equals(valid);
         h.validChipYes.setBackgroundResource(yes ? R.drawable.chip_blue : R.drawable.glass_field);
+        h.validChipYes.setTextColor(yes ? Color.WHITE : Color.parseColor("#1F2937"));
         h.validChipNo.setBackgroundResource(no ? R.drawable.chip_grey : R.drawable.glass_field);
+        h.validChipNo.setTextColor(no ? Color.WHITE : Color.parseColor("#1F2937"));
     }
 
     @NonNull @Override public Holder onCreateViewHolder(@NonNull ViewGroup p, int t) {
