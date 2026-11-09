@@ -139,7 +139,8 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, VerifiedSheet> verifiedSheets = new HashMap<>();
     private TextView loginError, avatarView, statusText, weekSummary, queuedCountText;
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
-    private TextView autoRegDay, autoFtdDay, autoFtdAmtDay, autoSyncTime;
+    private TextView autoSyncTime;
+    private volatile boolean commissionStatsShown = false;
     /** Batch feature #10: ajker target card-er obostha (duitar source-i load hole tobei dekhabe). */
     private View targetCard; private TextView targetCardText;
     private int lastTotalCallDay = 0, lastRemaining = 0;
@@ -259,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
         statRegDay = findViewById(R.id.statRegDay);
         statFtdDay = findViewById(R.id.statFtdDay);
         statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); statTotalRemainDay = findViewById(R.id.statTotalRemainDay);
-        autoRegDay = findViewById(R.id.autoRegDay); autoFtdDay = findViewById(R.id.autoFtdDay); autoFtdAmtDay = findViewById(R.id.autoFtdAmtDay); autoSyncTime = findViewById(R.id.autoSyncTime);
+        autoSyncTime = findViewById(R.id.autoSyncTime);
         // Batch feature #1: dashboard tile tap -> oi din-er oi type-er list (FTD/Registration-er
         // entry Report screen-e thake, tai ogulo Report-e khulbe).
         statConnDay.setOnClickListener(v -> openFilteredList("connected"));
@@ -2003,9 +2004,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Nirbachito diner + oi diner 7-diner block-er hisab (log + report file theke). */
-    /** v6.0: Dashboard auto card — Telesales Commission Stats sheet-er sorboshesh
-     *  row (panel theke ghontay-ghontay sync hoy). Manual hisab theke alada.
-     *  Sheet na thakle / read na hole card-e "সিঙ্ক হয়নি" dekhay, crash kore na. */
+    /** v6.1: auto hisab boro tile-e boshe (FTD / FTD taka / Registration) —
+     *  Telesales Commission Stats sheet-er sorboshesh row (panel theke
+     *  ghontay-ghontay sync hoy). Sudhu ajker row ajker diner jonno; na hole
+     *  manual hisab-i thake. Sheet na thakle / read na hole "সিঙ্ক হয়নি"
+     *  dekhay, crash kore na. */
     private void loadCommissionStats() {
         if (token == null) return;
         new Thread(() -> {
@@ -2025,10 +2028,15 @@ public class MainActivity extends AppCompatActivity {
                 if (last == null) { postCommissionEmpty(); return; }
                 String reg = cell(last, 3).trim(), ftd = cell(last, 1).trim(), amt = cell(last, 2).trim(), when = cell(last, 16).trim(), date = cell(last, 0).trim();
                 runOnUiThread(() -> {
-                    if (autoRegDay != null) autoRegDay.setText(reg.isEmpty() ? "—" : reg);
-                    if (autoFtdDay != null) autoFtdDay.setText(ftd.isEmpty() ? "—" : ftd);
-                    if (autoFtdAmtDay != null) autoFtdAmtDay.setText(amt.isEmpty() ? "—" : "৳" + amt);
                     if (autoSyncTime != null) autoSyncTime.setText("সর্বশেষ সিঙ্ক: " + (when.isEmpty() ? date : when));
+                    // v6.1: auto hisab boro tile-e boshe — sudhu ajker diner jonno, ar
+                    // sync-er row ajker hole. Na hole manual hisab-i thake.
+                    if (!reg.isEmpty() && !ftd.isEmpty() && date.equals(dhakaDate()) && selectedDate != null && selectedDate.equals(dhakaDate())) {
+                        commissionStatsShown = true;
+                        if (statRegDay != null) statRegDay.setText(reg);
+                        if (statFtdDay != null) statFtdDay.setText(ftd);
+                        if (statFtdAmtDay != null) statFtdAmtDay.setText("৳" + (amt.isEmpty() ? "0" : amt));
+                    }
                 });
             } catch (Exception e) { postCommissionEmpty(); }
         }).start();
@@ -2040,6 +2048,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadDayStats() {
         if (token == null || agentId == null) return;
+        commissionStatsShown = false;
         String day = selectedDate;
         final int seq = ++statsSeq;
         new Thread(() -> {
@@ -2108,9 +2117,11 @@ public class MainActivity extends AppCompatActivity {
                     statNotConnDay.setText(String.valueOf(finalNotConn));
                     statValidDay.setText(String.valueOf(finalValid));
                     statInvDay.setText(String.valueOf(finalInv));
-                    statRegDay.setText(String.valueOf(finalReg));
-                    statFtdDay.setText(String.valueOf(finalFtdN));
-                    statFtdAmtDay.setText("৳" + fmtAmount(finalFtdSum));
+                    if (!commissionStatsShown) {
+                        statRegDay.setText(String.valueOf(finalReg));
+                        statFtdDay.setText(String.valueOf(finalFtdN));
+                        statFtdAmtDay.setText("৳" + fmtAmount(finalFtdSum));
+                    }
                     weekSummary.setText("এই ৭ দিন (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • এফটিডি " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • Valid " + finalValidW + " • Invalid " + finalInvW + " • রেজিস্ট্রেশন " + finalRegW + (finalUsedLegacy ? " • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)" : "") + (finalPartialFail ? " • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)" : ""));
                     buildCalledRows(logs, day);
                     reportStatsFallbackUsed = false;
