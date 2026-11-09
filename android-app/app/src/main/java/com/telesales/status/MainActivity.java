@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
     private View reportView, reportOutputCard;
     private View guideView;
     private TextView guideText;
-    private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay, statTotalRemainDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
+    private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay, statTotalRemainDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private String websiteUrl = "";
     private int currentSection = 0;
     private static final String DAILY_REPORTS_ID = "1BPaQrV6Znqcs45pNEUib8AOHnxzz93Z8Y8vEMAAHOzg";
     // v4.19 cache/guards: shared log ID + tab ekbar confirm hole protibar Drive search noy;
@@ -239,7 +239,9 @@ public class MainActivity extends AppCompatActivity {
         "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। রিপোর্ট বানান চাপলে নির্বাচিত তারিখ, সময়, এজেন্ট আইডি, মোট কল, Connected, রেজিস্ট্রেশন, এফটিডি, মোট টাকা, Invalid আর সমস্যা দিয়ে রিপোর্ট তৈরি হবে। কপি চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
         "৫. ওয়েবসাইট বাটন\n" +
         "নিচের মেনু থেকে ওয়েবসাইট চাপলে আপনার সাইটটা অ্যাপের ভিতরেই খুলবে, আর নিচে মেনু দেখা যাবে। প্রথমবার ইউজারনেম-পাসওয়ার্ড দিয়ে লগইন করতে হবে; তারপর থেকে লগইন মনে থাকবে, আপডেট দিলেও ভুলবে না। মেনু থেকে যেকোনো অপশনে যেতে পারবেন।\n\n" +
-        "৬. দিনের হিসাব (ড্যাশবোর্ড)\n" +
+        "৬. কমিশন বাটন\n" +
+        "নিচের মেনু থেকে কমিশন চাপলে কমিশন (সম্প্রেষণ) পেজটা অ্যাপের ভিতরেই খুলবে — ওখানে আজকের, গতকালের, ৭ দিনের প্রথম জমা (এফটিডি), জমা, উত্তোলনসহ সব হিসাব দেখা যাবে।\n\n" +
+        "৭. দিনের হিসাব (ড্যাশবোর্ড)\n" +
         "ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, এফটিডি, এফটিডি টাকা আর রেজিস্ট্রেশন দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।" + "উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।";
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -279,10 +281,10 @@ public class MainActivity extends AppCompatActivity {
         // Batch fix #16: site/net down hole khali page noy — toast + retry flag reset.
         websiteWeb.setWebViewClient(new WebViewClient() {
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                if (request != null && request.isForMainFrame()) { websiteLoaded = false; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার ওয়েবসাইট চাপুন", Toast.LENGTH_LONG).show(); }
+                if (request != null && request.isForMainFrame()) { websiteUrl = ""; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার চাপুন", Toast.LENGTH_LONG).show(); }
             }
             @Override public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                websiteLoaded = false; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার ওয়েবসাইট চাপুন", Toast.LENGTH_LONG).show();
+                websiteUrl = ""; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার চাপুন", Toast.LENGTH_LONG).show();
             }
         });
         guideText = findViewById(R.id.guideText);
@@ -385,6 +387,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.menuHomeBtn).setOnClickListener(v -> { applySection(1); maybeAutoRefreshList(); });
         findViewById(R.id.menuReportBtn).setOnClickListener(v -> showReport());
         findViewById(R.id.menuWebsiteBtn).setOnClickListener(v -> showWebsite());
+        findViewById(R.id.menuCommissionBtn).setOnClickListener(v -> showCommission());
         findViewById(R.id.menuGuideBtn).setOnClickListener(v -> showGuide());
          
          
@@ -787,7 +790,7 @@ public class MainActivity extends AppCompatActivity {
      *  (append "tab missing" hole ekhan theke daka hoy). */
     private void invalidateSharedLogCache() { sharedLogCacheAgent = null; sharedLogCacheId = null; }
 
-    private void updateMenuState(int active) { MaterialButton[] btns = new MaterialButton[]{(MaterialButton) findViewById(R.id.menuDashboardBtn), (MaterialButton) findViewById(R.id.menuHomeBtn), (MaterialButton) findViewById(R.id.menuReportBtn), (MaterialButton) findViewById(R.id.menuWebsiteBtn), (MaterialButton) findViewById(R.id.menuGuideBtn)}; int dim = Color.parseColor("#9AA3C7"); for (int i = 0; i < btns.length; i++) { MaterialButton b = btns[i]; if (b == null) continue; boolean on = (i == active); b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field); b.setTextColor(on ? Color.WHITE : dim); b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL); b.setIconTint(ColorStateList.valueOf(on ? Color.WHITE : dim)); } } private void applySection(int sec) {
+    private void updateMenuState(int active) { MaterialButton[] btns = new MaterialButton[]{(MaterialButton) findViewById(R.id.menuDashboardBtn), (MaterialButton) findViewById(R.id.menuHomeBtn), (MaterialButton) findViewById(R.id.menuReportBtn), (MaterialButton) findViewById(R.id.menuWebsiteBtn), (MaterialButton) findViewById(R.id.menuCommissionBtn), (MaterialButton) findViewById(R.id.menuGuideBtn)}; int dim = Color.parseColor("#9AA3C7"); for (int i = 0; i < btns.length; i++) { MaterialButton b = btns[i]; if (b == null) continue; boolean on = (i == active); b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field); b.setTextColor(on ? Color.WHITE : dim); b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL); b.setIconTint(ColorStateList.valueOf(on ? Color.WHITE : dim)); } } private void applySection(int sec) {
         currentSection = sec;
         dashboardView.setVisibility(sec == 0 ? View.VISIBLE : View.GONE);
         listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); mainView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE);
@@ -1785,7 +1788,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        updateMenuState(4); guideView.setVisibility(View.VISIBLE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
+        updateMenuState(5); guideView.setVisibility(View.VISIBLE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
     }
 
     private void fetchToken(GoogleSignInAccount acct) {
@@ -2086,7 +2089,9 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
+    private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!"https://www.12bajeevip.com/m/member/home".equals(websiteUrl)) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteUrl = "https://www.12bajeevip.com/m/member/home"; } }
+
+    private void showCommission() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(4); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!"https://www.12bajeevip.com/m/agent/team/overview".equals(websiteUrl)) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/agent/team/overview"); websiteUrl = "https://www.12bajeevip.com/m/agent/team/overview"; } }
 
     /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
     private JSONObject fetchVersionJson() throws Exception { String cb = "?t=" + (System.currentTimeMillis() / 60000); String[] urls = { "https://raw.githubusercontent.com/mdsahadathossenshihab1-lgtm/telesales-status-app/main/version.json" + cb, "https://telesales-status-app.vercel.app/version.json" + cb }; Exception lastError = null; for (String urlString : urls) { try { java.net.URL url = new java.net.URL(urlString); java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection(); c.setConnectTimeout(15000); c.setReadTimeout(15000); java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream())); StringBuilder sb = new StringBuilder(); String line; while ((line = br.readLine()) != null) sb.append(line); br.close(); return new JSONObject(sb.toString()); } catch (Exception e) { lastError = e; } } if (lastError != null) throw lastError; throw new Exception("version fetch failed"); } private void checkForUpdate() {
