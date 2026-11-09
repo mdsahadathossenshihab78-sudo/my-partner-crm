@@ -141,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
     private TextView autoSyncTime;
     private TextView reportAutoReg, reportAutoFtd, reportAutoFtdAmt, reportAutoSyncTime;
+    private TextView ftdUsersCount, ftdUsersSyncTime, ftdUsersEmpty;
+    private LinearLayout ftdUsersList;
     private volatile boolean commissionStatsShown = false;
     /** Batch feature #10: ajker target card-er obostha (duitar source-i load hole tobei dekhabe). */
     private View targetCard; private TextView targetCardText;
@@ -172,6 +174,9 @@ public class MainActivity extends AppCompatActivity {
     private String reportSheetId;
     /** Report sheet-er ekta row: cells + sheet-er row number (delete korar jonno) + v4.28 source sheet/order (switch diner row kon sheet-e, seta chenar jonno). */
     static class REntry { final String[] cells; final int sheetRow; final String[] rawCells; final String sourceSheet; final int sourceOrder; REntry(String[] c, int r) { this(c, r, null, null, 0); } REntry(String[] c, int r, String[] raw) { this(c, r, raw, null, 0); } REntry(String[] c, int r, String[] raw, String src, int ord) { cells = c; sheetRow = r; rawCells = raw; sourceSheet = src; sourceOrder = ord; } }
+    /** v6.3: FTD Users sheet-er ekta row — Username | First Deposit Amount |
+     *  Account Created | Last Login | Deposit Date | Synced At. */
+    private static class FtdUserRow { final String user, amt, created, login, depDate; FtdUserRow(String u, String a, String c, String l, String d) { user = u; amt = a; created = c; login = l; depDate = d; } }
     // v4.28 SHEET SWITCHER: config file kokhono switch hoy na — ORIGINAL shared Status Log
     // file-ei "SheetConfig" tab-e 4 store-er ID chain thake. Chain-er prottek entry:
     // (sheetId, fromDate) — fromDate khali mane "age theke". Hardcoded ID-gulo sudhu
@@ -194,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
     private List<String> reportReadIds(String date) { return readSheetsFor(currentConfig(), "REPORTS", date); }
     /** v4.28: config tab theke chain pora — kokhono throw kore na, na pele ager map/default cholbe. */
     private void tryRefreshConfig() { try { if (token == null) return; List<String[]> rows = SheetsClient.getConfigRows(token, CONFIG_FILE_ID); Map<String, List<ConfigEntry>> m = parseConfigRows(rows); if (m != null) { sheetConfigCache = m; reportSheetId = null; } } catch (Exception ignored) { /* config na pele ager map/default cholbe */ } }
-    private static Map<String, List<ConfigEntry>> parseConfigRows(List<String[]> rows) { if (rows == null) return null; Map<String, List<ConfigEntry>> m = defaultConfigMap(); java.util.Set<String> seenStores = new java.util.HashSet<>(); for (String[] r : rows) { if (r == null || r.length < 2) continue; String store = r[0] == null ? "" : r[0].trim(); String id = r[1] == null ? "" : r[1].trim(); if (id.isEmpty()) continue; if (!("NUMBERS".equals(store) || "STATUS_LOG".equals(store) || "REPORTS".equals(store) || "DAILY".equals(store) || "COMMISSION".equals(store))) continue; if (!seenStores.contains(store)) { m.put(store, new ArrayList<>()); seenStores.add(store); } m.get(store).add(new ConfigEntry(id, r.length > 2 && r[2] != null ? r[2].trim() : "")); } for (List<ConfigEntry> chain : m.values()) java.util.Collections.sort(chain, (a, b) -> a.fromDate.compareTo(b.fromDate)); return m; }
+    private static Map<String, List<ConfigEntry>> parseConfigRows(List<String[]> rows) { if (rows == null) return null; Map<String, List<ConfigEntry>> m = defaultConfigMap(); java.util.Set<String> seenStores = new java.util.HashSet<>(); for (String[] r : rows) { if (r == null || r.length < 2) continue; String store = r[0] == null ? "" : r[0].trim(); String id = r[1] == null ? "" : r[1].trim(); if (id.isEmpty()) continue; if (!("NUMBERS".equals(store) || "STATUS_LOG".equals(store) || "REPORTS".equals(store) || "DAILY".equals(store) || "COMMISSION".equals(store) || "FTD_USERS".equals(store))) continue; if (!seenStores.contains(store)) { m.put(store, new ArrayList<>()); seenStores.add(store); } m.get(store).add(new ConfigEntry(id, r.length > 2 && r[2] != null ? r[2].trim() : "")); } for (List<ConfigEntry> chain : m.values()) java.util.Collections.sort(chain, (a, b) -> a.fromDate.compareTo(b.fromDate)); return m; }
     private boolean lastLogReadUsedLegacy = false;
     // v4.28 parent fix: read-er somoy write sheet-er tab ekbar ensure (notun agent / switch-er por
     // khali report na dekhiye ager motoi tab banano); chain-er kono sheet fail hole partial note.
@@ -263,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
         statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); statTotalRemainDay = findViewById(R.id.statTotalRemainDay);
         autoSyncTime = findViewById(R.id.autoSyncTime);
         reportAutoReg = findViewById(R.id.reportAutoReg); reportAutoFtd = findViewById(R.id.reportAutoFtd); reportAutoFtdAmt = findViewById(R.id.reportAutoFtdAmt); reportAutoSyncTime = findViewById(R.id.reportAutoSyncTime);
+        ftdUsersCount = findViewById(R.id.ftdUsersCount); ftdUsersSyncTime = findViewById(R.id.ftdUsersSyncTime); ftdUsersEmpty = findViewById(R.id.ftdUsersEmpty); ftdUsersList = findViewById(R.id.ftdUsersList);
         // Batch feature #1: dashboard tile tap -> oi din-er oi type-er list (FTD/Registration-er
         // entry Report screen-e thake, tai ogulo Report-e khulbe).
         statConnDay.setOnClickListener(v -> openFilteredList("connected"));
@@ -2091,6 +2097,93 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /** v6.3: Report screen-e FTD ইউজার লিস্ট — Telesales FTD Users sheet-er
+     *  sob row (notun + purono), notun jomar tarikh age. Sheet na thakle /
+     *  read na hole "সিঙ্ক হয়নি" dekhay, crash kore na. Khali field "—". */
+    private void loadFtdUsers() {
+        if (token == null) return;
+        new Thread(() -> {
+            try {
+                String id = writeSheetFor(currentConfig(), "FTD_USERS", dhakaDate());
+                if (id == null) { postFtdUsersEmpty(); return; }
+                List<String[]> rows = null;
+                try { rows = SheetsClient.getReportRows(token, id, "Users"); }
+                catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
+                List<FtdUserRow> users = new ArrayList<>();
+                String latestSync = "";
+                for (String[] r : rows) {
+                    if (r == null || r.length < 2) continue;
+                    String user = cell(r, 0).trim();
+                    if (user.isEmpty() || "Username".equals(user)) continue;
+                    String when = cell(r, 5).trim();
+                    if (!when.isEmpty() && when.compareTo(latestSync) > 0) latestSync = when;
+                    users.add(new FtdUserRow(user, cell(r, 1).trim(), cell(r, 2).trim(), cell(r, 3).trim(), cell(r, 4).trim()));
+                }
+                java.util.Collections.sort(users, (a, b) -> b.depDate.compareTo(a.depDate));
+                final List<FtdUserRow> shown = users;
+                final String syncText = latestSync;
+                runOnUiThread(() -> fillFtdUsers(shown, syncText));
+            } catch (Exception e) { postFtdUsersEmpty(); }
+        }).start();
+    }
+
+    private void postFtdUsersEmpty() {
+        runOnUiThread(() -> {
+            if (ftdUsersCount != null) ftdUsersCount.setText("—");
+            if (ftdUsersSyncTime != null) ftdUsersSyncTime.setText("সিঙ্ক হয়নি");
+            if (ftdUsersEmpty != null) ftdUsersEmpty.setVisibility(View.VISIBLE);
+            if (ftdUsersList != null) ftdUsersList.removeAllViews();
+        });
+    }
+
+    private void fillFtdUsers(List<FtdUserRow> users, String syncText) {
+        if (ftdUsersList == null) return;
+        ftdUsersList.removeAllViews();
+        if (ftdUsersCount != null) ftdUsersCount.setText("মোট: " + users.size() + " জন");
+        if (ftdUsersSyncTime != null) ftdUsersSyncTime.setText(syncText.isEmpty() ? "সিঙ্ক হয়নি" : "সর্বশেষ সিঙ্ক: " + syncText);
+        if (ftdUsersEmpty != null) ftdUsersEmpty.setVisibility(users.isEmpty() ? View.VISIBLE : View.GONE);
+        float dens = getResources().getDisplayMetrics().density;
+        int shown = 0;
+        for (FtdUserRow u : users) {
+            if (shown >= 100) break;
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.VERTICAL);
+            row.setPadding(0, (int) (6 * dens), 0, (int) (6 * dens));
+            LinearLayout top = new LinearLayout(this);
+            top.setOrientation(LinearLayout.HORIZONTAL);
+            top.setGravity(Gravity.CENTER_VERTICAL);
+            TextView name = new TextView(this);
+            name.setText(u.user);
+            name.setTextSize(14);
+            name.setTypeface(null, Typeface.BOLD);
+            name.setTextColor(Color.WHITE);
+            name.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            TextView amt = new TextView(this);
+            amt.setText(u.amt.isEmpty() ? "—" : "৳" + u.amt);
+            amt.setTextSize(14);
+            amt.setTypeface(null, Typeface.BOLD);
+            amt.setTextColor(Color.WHITE);
+            top.addView(name);
+            top.addView(amt);
+            TextView detail = new TextView(this);
+            detail.setText("জমা: " + (u.depDate.isEmpty() ? "—" : u.depDate) + " • অ্যাকাউন্ট: " + (u.created.isEmpty() ? "—" : u.created) + " • লগইন: " + (u.login.isEmpty() ? "—" : u.login));
+            detail.setTextSize(13);
+            detail.setTextColor(Color.parseColor("#94A3B8"));
+            row.addView(top);
+            row.addView(detail);
+            ftdUsersList.addView(row);
+            shown++;
+        }
+        if (users.size() > 100) {
+            TextView more = new TextView(this);
+            more.setText("আরো " + (users.size() - 100) + " জন আছে");
+            more.setTextSize(13);
+            more.setTextColor(Color.parseColor("#94A3B8"));
+            more.setPadding(0, (int) (6 * dens), 0, (int) (6 * dens));
+            ftdUsersList.addView(more);
+        }
+    }
+
     private void loadDayStats() {
         if (token == null || agentId == null) return;
         commissionStatsShown = false;
@@ -2394,6 +2487,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regPlusBtn, R.id.regMinusBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
         if (token == null) { showLogin(); return; }
         loadReportCommissionStats();
+        loadFtdUsers();
         reportStatus.setText("রিপোর্ট লোড হচ্ছে...");
         new Thread(() -> {
             try {
