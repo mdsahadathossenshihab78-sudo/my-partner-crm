@@ -140,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView loginError, avatarView, statusText, weekSummary, queuedCountText;
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
     private TextView autoSyncTime;
+    private TextView reportAutoReg, reportAutoFtd, reportAutoFtdAmt, reportAutoSyncTime;
     private volatile boolean commissionStatsShown = false;
     /** Batch feature #10: ajker target card-er obostha (duitar source-i load hole tobei dekhabe). */
     private View targetCard; private TextView targetCardText;
@@ -261,6 +262,7 @@ public class MainActivity extends AppCompatActivity {
         statFtdDay = findViewById(R.id.statFtdDay);
         statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); statTotalRemainDay = findViewById(R.id.statTotalRemainDay);
         autoSyncTime = findViewById(R.id.autoSyncTime);
+        reportAutoReg = findViewById(R.id.reportAutoReg); reportAutoFtd = findViewById(R.id.reportAutoFtd); reportAutoFtdAmt = findViewById(R.id.reportAutoFtdAmt); reportAutoSyncTime = findViewById(R.id.reportAutoSyncTime);
         // Batch feature #1: dashboard tile tap -> oi din-er oi type-er list (FTD/Registration-er
         // entry Report screen-e thake, tai ogulo Report-e khulbe).
         statConnDay.setOnClickListener(v -> openFilteredList("connected"));
@@ -2046,6 +2048,49 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(() -> { if (autoSyncTime != null) autoSyncTime.setText("সিঙ্ক হয়নি"); });
     }
 
+    /** v6.2: Report screen-eo auto hisab dekhay — Commission Stats sheet-er
+     *  row jeta reportDate-er sathe mile. Row na thakle / read na hole
+     *  "—" ar "সিঙ্ক হয়নি" dekhay; generate kora report text-e kono
+     *  poriborton hoy na (manual report jemon chilo temoni thake). */
+    private void loadReportCommissionStats() {
+        if (token == null) return;
+        final String day = reportDate;
+        if (day == null) return;
+        new Thread(() -> {
+            try {
+                String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
+                if (id == null) { postReportCommissionEmpty(); return; }
+                List<String[]> rows = null;
+                try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
+                catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
+                String[] found = null;
+                for (String[] r : rows) {
+                    if (r == null || r.length < 4) continue;
+                    String d = cell(r, 0).trim();
+                    if (d.isEmpty() || "Date".equals(d)) continue;
+                    if (d.equals(day)) { found = r; break; }
+                }
+                if (found == null) { postReportCommissionEmpty(); return; }
+                String reg = cell(found, 3).trim(), ftd = cell(found, 1).trim(), amt = cell(found, 2).trim(), when = cell(found, 16).trim();
+                runOnUiThread(() -> {
+                    if (reportAutoReg != null) reportAutoReg.setText(reg.isEmpty() ? "—" : reg);
+                    if (reportAutoFtd != null) reportAutoFtd.setText(ftd.isEmpty() ? "—" : ftd);
+                    if (reportAutoFtdAmt != null) reportAutoFtdAmt.setText(amt.isEmpty() ? "—" : "৳" + amt);
+                    if (reportAutoSyncTime != null) reportAutoSyncTime.setText("সর্বশেষ সিঙ্ক: " + (when.isEmpty() ? day : when));
+                });
+            } catch (Exception e) { postReportCommissionEmpty(); }
+        }).start();
+    }
+
+    private void postReportCommissionEmpty() {
+        runOnUiThread(() -> {
+            if (reportAutoReg != null) reportAutoReg.setText("—");
+            if (reportAutoFtd != null) reportAutoFtd.setText("—");
+            if (reportAutoFtdAmt != null) reportAutoFtdAmt.setText("—");
+            if (reportAutoSyncTime != null) reportAutoSyncTime.setText("সিঙ্ক হয়নি");
+        });
+    }
+
     private void loadDayStats() {
         if (token == null || agentId == null) return;
         commissionStatsShown = false;
@@ -2348,6 +2393,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regPlusBtn, R.id.regMinusBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
         if (token == null) { showLogin(); return; }
+        loadReportCommissionStats();
         reportStatus.setText("রিপোর্ট লোড হচ্ছে...");
         new Thread(() -> {
             try {
