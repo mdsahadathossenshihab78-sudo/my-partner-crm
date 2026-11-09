@@ -139,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, VerifiedSheet> verifiedSheets = new HashMap<>();
     private TextView loginError, avatarView, statusText, weekSummary, queuedCountText;
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
+    private TextView autoRegDay, autoFtdDay, autoFtdAmtDay, autoSyncTime;
     /** Batch feature #10: ajker target card-er obostha (duitar source-i load hole tobei dekhabe). */
     private View targetCard; private TextView targetCardText;
     private int lastTotalCallDay = 0, lastRemaining = 0;
@@ -148,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
     private View reportView, reportOutputCard;
     private View guideView;
     private TextView guideText;
-    private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay, statTotalRemainDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private String websiteUrl = "";
+    private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay, statTotalRemainDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
     private int currentSection = 0;
     private static final String DAILY_REPORTS_ID = "1BPaQrV6Znqcs45pNEUib8AOHnxzz93Z8Y8vEMAAHOzg";
     // v4.19 cache/guards: shared log ID + tab ekbar confirm hole protibar Drive search noy;
@@ -191,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
     private List<String> reportReadIds(String date) { return readSheetsFor(currentConfig(), "REPORTS", date); }
     /** v4.28: config tab theke chain pora — kokhono throw kore na, na pele ager map/default cholbe. */
     private void tryRefreshConfig() { try { if (token == null) return; List<String[]> rows = SheetsClient.getConfigRows(token, CONFIG_FILE_ID); Map<String, List<ConfigEntry>> m = parseConfigRows(rows); if (m != null) { sheetConfigCache = m; reportSheetId = null; } } catch (Exception ignored) { /* config na pele ager map/default cholbe */ } }
-    private static Map<String, List<ConfigEntry>> parseConfigRows(List<String[]> rows) { if (rows == null) return null; Map<String, List<ConfigEntry>> m = defaultConfigMap(); java.util.Set<String> seenStores = new java.util.HashSet<>(); for (String[] r : rows) { if (r == null || r.length < 2) continue; String store = r[0] == null ? "" : r[0].trim(); String id = r[1] == null ? "" : r[1].trim(); if (id.isEmpty()) continue; if (!("NUMBERS".equals(store) || "STATUS_LOG".equals(store) || "REPORTS".equals(store) || "DAILY".equals(store))) continue; if (!seenStores.contains(store)) { m.put(store, new ArrayList<>()); seenStores.add(store); } m.get(store).add(new ConfigEntry(id, r.length > 2 && r[2] != null ? r[2].trim() : "")); } for (List<ConfigEntry> chain : m.values()) java.util.Collections.sort(chain, (a, b) -> a.fromDate.compareTo(b.fromDate)); return m; }
+    private static Map<String, List<ConfigEntry>> parseConfigRows(List<String[]> rows) { if (rows == null) return null; Map<String, List<ConfigEntry>> m = defaultConfigMap(); java.util.Set<String> seenStores = new java.util.HashSet<>(); for (String[] r : rows) { if (r == null || r.length < 2) continue; String store = r[0] == null ? "" : r[0].trim(); String id = r[1] == null ? "" : r[1].trim(); if (id.isEmpty()) continue; if (!("NUMBERS".equals(store) || "STATUS_LOG".equals(store) || "REPORTS".equals(store) || "DAILY".equals(store) || "COMMISSION".equals(store))) continue; if (!seenStores.contains(store)) { m.put(store, new ArrayList<>()); seenStores.add(store); } m.get(store).add(new ConfigEntry(id, r.length > 2 && r[2] != null ? r[2].trim() : "")); } for (List<ConfigEntry> chain : m.values()) java.util.Collections.sort(chain, (a, b) -> a.fromDate.compareTo(b.fromDate)); return m; }
     private boolean lastLogReadUsedLegacy = false;
     // v4.28 parent fix: read-er somoy write sheet-er tab ekbar ensure (notun agent / switch-er por
     // khali report na dekhiye ager motoi tab banano); chain-er kono sheet fail hole partial note.
@@ -239,9 +240,7 @@ public class MainActivity extends AppCompatActivity {
         "কোনো এন্ট্রি ভুল হলে পাশের ✕ চাপলে সেটা বাদ যাবে। রিপোর্ট বানান চাপলে নির্বাচিত তারিখ, সময়, এজেন্ট আইডি, মোট কল, Connected, রেজিস্ট্রেশন, এফটিডি, মোট টাকা, Invalid আর সমস্যা দিয়ে রিপোর্ট তৈরি হবে। কপি চাপলে পুরো রিপোর্ট কপি হবে — তারপর যেখানে পাঠাতে চান, পেস্ট করে দিতে পারবেন।\n\n" +
         "৫. ওয়েবসাইট বাটন\n" +
         "নিচের মেনু থেকে ওয়েবসাইট চাপলে আপনার সাইটটা অ্যাপের ভিতরেই খুলবে, আর নিচে মেনু দেখা যাবে। প্রথমবার ইউজারনেম-পাসওয়ার্ড দিয়ে লগইন করতে হবে; তারপর থেকে লগইন মনে থাকবে, আপডেট দিলেও ভুলবে না। মেনু থেকে যেকোনো অপশনে যেতে পারবেন।\n\n" +
-        "৬. কমিশন বাটন\n" +
-        "নিচের মেনু থেকে কমিশন চাপলে কমিশন (সম্প্রেষণ) পেজটা অ্যাপের ভিতরেই খুলবে — ওখানে আজকের, গতকালের, ৭ দিনের প্রথম জমা (এফটিডি), জমা, উত্তোলনসহ সব হিসাব দেখা যাবে।\n\n" +
-        "৭. দিনের হিসাব (ড্যাশবোর্ড)\n" +
+        "৬. দিনের হিসাব (ড্যাশবোর্ড)\n" +
         "ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, এফটিডি, এফটিডি টাকা আর রেজিস্ট্রেশন দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে।" + "উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।";
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -260,6 +259,7 @@ public class MainActivity extends AppCompatActivity {
         statRegDay = findViewById(R.id.statRegDay);
         statFtdDay = findViewById(R.id.statFtdDay);
         statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); statTotalRemainDay = findViewById(R.id.statTotalRemainDay);
+        autoRegDay = findViewById(R.id.autoRegDay); autoFtdDay = findViewById(R.id.autoFtdDay); autoFtdAmtDay = findViewById(R.id.autoFtdAmtDay); autoSyncTime = findViewById(R.id.autoSyncTime);
         // Batch feature #1: dashboard tile tap -> oi din-er oi type-er list (FTD/Registration-er
         // entry Report screen-e thake, tai ogulo Report-e khulbe).
         statConnDay.setOnClickListener(v -> openFilteredList("connected"));
@@ -281,10 +281,10 @@ public class MainActivity extends AppCompatActivity {
         // Batch fix #16: site/net down hole khali page noy — toast + retry flag reset.
         websiteWeb.setWebViewClient(new WebViewClient() {
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                if (request != null && request.isForMainFrame()) { websiteUrl = ""; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার চাপুন", Toast.LENGTH_LONG).show(); }
+                if (request != null && request.isForMainFrame()) { websiteLoaded = false; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার ওয়েবসাইট চাপুন", Toast.LENGTH_LONG).show(); }
             }
             @Override public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                websiteUrl = ""; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার চাপুন", Toast.LENGTH_LONG).show();
+                websiteLoaded = false; Toast.makeText(MainActivity.this, "সাইট খুলছে না — নেট চেক করে আবার ওয়েবসাইট চাপুন", Toast.LENGTH_LONG).show();
             }
         });
         guideText = findViewById(R.id.guideText);
@@ -387,7 +387,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.menuHomeBtn).setOnClickListener(v -> { applySection(1); maybeAutoRefreshList(); });
         findViewById(R.id.menuReportBtn).setOnClickListener(v -> showReport());
         findViewById(R.id.menuWebsiteBtn).setOnClickListener(v -> showWebsite());
-        findViewById(R.id.menuCommissionBtn).setOnClickListener(v -> showCommission());
         findViewById(R.id.menuGuideBtn).setOnClickListener(v -> showGuide());
          
          
@@ -790,7 +789,7 @@ public class MainActivity extends AppCompatActivity {
      *  (append "tab missing" hole ekhan theke daka hoy). */
     private void invalidateSharedLogCache() { sharedLogCacheAgent = null; sharedLogCacheId = null; }
 
-    private void updateMenuState(int active) { MaterialButton[] btns = new MaterialButton[]{(MaterialButton) findViewById(R.id.menuDashboardBtn), (MaterialButton) findViewById(R.id.menuHomeBtn), (MaterialButton) findViewById(R.id.menuReportBtn), (MaterialButton) findViewById(R.id.menuWebsiteBtn), (MaterialButton) findViewById(R.id.menuCommissionBtn), (MaterialButton) findViewById(R.id.menuGuideBtn)}; int dim = Color.parseColor("#9AA3C7"); for (int i = 0; i < btns.length; i++) { MaterialButton b = btns[i]; if (b == null) continue; boolean on = (i == active); b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field); b.setTextColor(on ? Color.WHITE : dim); b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL); b.setIconTint(ColorStateList.valueOf(on ? Color.WHITE : dim)); } } private void applySection(int sec) {
+    private void updateMenuState(int active) { MaterialButton[] btns = new MaterialButton[]{(MaterialButton) findViewById(R.id.menuDashboardBtn), (MaterialButton) findViewById(R.id.menuHomeBtn), (MaterialButton) findViewById(R.id.menuReportBtn), (MaterialButton) findViewById(R.id.menuWebsiteBtn), (MaterialButton) findViewById(R.id.menuGuideBtn)}; int dim = Color.parseColor("#9AA3C7"); for (int i = 0; i < btns.length; i++) { MaterialButton b = btns[i]; if (b == null) continue; boolean on = (i == active); b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field); b.setTextColor(on ? Color.WHITE : dim); b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL); b.setIconTint(ColorStateList.valueOf(on ? Color.WHITE : dim)); } } private void applySection(int sec) {
         currentSection = sec;
         dashboardView.setVisibility(sec == 0 ? View.VISIBLE : View.GONE);
         listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); mainView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE);
@@ -1788,7 +1787,7 @@ public class MainActivity extends AppCompatActivity {
         reportView.setVisibility(View.GONE);
         agentView.setVisibility(View.GONE);
         adminView.setVisibility(View.GONE);
-        updateMenuState(5); guideView.setVisibility(View.VISIBLE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
+        updateMenuState(4); guideView.setVisibility(View.VISIBLE); websiteView.setVisibility(View.GONE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field);
     }
 
     private void fetchToken(GoogleSignInAccount acct) {
@@ -2004,6 +2003,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Nirbachito diner + oi diner 7-diner block-er hisab (log + report file theke). */
+    /** v6.0: Dashboard auto card — Telesales Commission Stats sheet-er sorboshesh
+     *  row (panel theke ghontay-ghontay sync hoy). Manual hisab theke alada.
+     *  Sheet na thakle / read na hole card-e "সিঙ্ক হয়নি" dekhay, crash kore na. */
+    private void loadCommissionStats() {
+        if (token == null) return;
+        new Thread(() -> {
+            try {
+                String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
+                if (id == null) { postCommissionEmpty(); return; }
+                List<String[]> rows = null;
+                try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
+                catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
+                String[] last = null;
+                for (String[] r : rows) {
+                    if (r == null || r.length < 4) continue;
+                    String d = cell(r, 0).trim();
+                    if (d.isEmpty() || "Date".equals(d)) continue;
+                    if (last == null || d.compareTo(cell(last, 0).trim()) >= 0) last = r;
+                }
+                if (last == null) { postCommissionEmpty(); return; }
+                String reg = cell(last, 3).trim(), ftd = cell(last, 1).trim(), amt = cell(last, 2).trim(), when = cell(last, 16).trim(), date = cell(last, 0).trim();
+                runOnUiThread(() -> {
+                    if (autoRegDay != null) autoRegDay.setText(reg.isEmpty() ? "—" : reg);
+                    if (autoFtdDay != null) autoFtdDay.setText(ftd.isEmpty() ? "—" : ftd);
+                    if (autoFtdAmtDay != null) autoFtdAmtDay.setText(amt.isEmpty() ? "—" : "৳" + amt);
+                    if (autoSyncTime != null) autoSyncTime.setText("সর্বশেষ সিঙ্ক: " + (when.isEmpty() ? date : when));
+                });
+            } catch (Exception e) { postCommissionEmpty(); }
+        }).start();
+    }
+
+    private void postCommissionEmpty() {
+        runOnUiThread(() -> { if (autoSyncTime != null) autoSyncTime.setText("সিঙ্ক হয়নি"); });
+    }
+
     private void loadDayStats() {
         if (token == null || agentId == null) return;
         String day = selectedDate;
@@ -2012,6 +2046,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
                 tryRefreshConfig();
+                loadCommissionStats();
                 List<REntry> logs;
                 try { logs = readLogRowsForDate(day); }
                 catch (Exception le) {
@@ -2089,9 +2124,7 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!"https://www.12bajeevip.com/m/member/home".equals(websiteUrl)) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteUrl = "https://www.12bajeevip.com/m/member/home"; } }
-
-    private void showCommission() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(4); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!"https://www.12bajeevip.com/m/agent/team/overview".equals(websiteUrl)) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/agent/team/overview"); websiteUrl = "https://www.12bajeevip.com/m/agent/team/overview"; } }
+    private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); guideView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
 
     /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
     private JSONObject fetchVersionJson() throws Exception { String cb = "?t=" + (System.currentTimeMillis() / 60000); String[] urls = { "https://raw.githubusercontent.com/mdsahadathossenshihab1-lgtm/telesales-status-app/main/version.json" + cb, "https://telesales-status-app.vercel.app/version.json" + cb }; Exception lastError = null; for (String urlString : urls) { try { java.net.URL url = new java.net.URL(urlString); java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection(); c.setConnectTimeout(15000); c.setReadTimeout(15000); java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream())); StringBuilder sb = new StringBuilder(); String line; while ((line = br.readLine()) != null) sb.append(line); br.close(); return new JSONObject(sb.toString()); } catch (Exception e) { lastError = e; } } if (lastError != null) throw lastError; throw new Exception("version fetch failed"); } private void checkForUpdate() {
