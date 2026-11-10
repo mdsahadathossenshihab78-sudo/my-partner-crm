@@ -12,8 +12,9 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-/** v4.31: reminder alarm fire + dismiss. Alarm-er somoy hole notification dekhabe,
- *  fired reminder storage theke muchbe (abar fire hobe na). */
+/** v4.31: reminder alarm fire + dismiss. Alarm-er somoy hole notification dekhabe;
+ *  v6.8 theke fired reminder storage-e thakbe — app open-e popup dekhabe,
+ *  action na nile harabe na. */
 public class ReminderReceiver extends BroadcastReceiver {
     public static final String ACTION_REMIND = "com.telesales.status.REMIND";
     public static final String ACTION_DISMISS = "com.telesales.status.REMIND_DISMISS";
@@ -101,15 +102,6 @@ public class ReminderReceiver extends BroadcastReceiver {
         }
     }
 
-    /** Batch feature #9: fired/dismissed reminder-er sheet row-o badano (best-effort). */
-    private static void removeSheetReminder(Context ctx, String number) {
-        if (number == null || number.isEmpty()) return;
-        new Thread(() -> {
-            String token = ReminderSheetSync.getToken(ctx);
-            String agentId = ctx.getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).getString("agent_id", null);
-            ReminderSheetSync.remove(token, agentId, number);
-        }).start();
-    }
 
     @Override public void onReceive(Context ctx, Intent intent) {
         if (intent == null) return;
@@ -117,7 +109,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         String number = intent.getStringExtra(EXTRA_NUMBER);
         if (ACTION_DISMISS.equals(action)) {
             if (number != null) NotificationManagerCompat.from(ctx).cancel(requestCodeFor(number));
-            removeSheetReminder(ctx, number);
+            // v6.8: dismiss sudhu notification bondho korbe — reminder thakbe, app open-e popup asbe.
             return;
         }
         if (ACTION_SNOOZE.equals(action)) {
@@ -126,12 +118,19 @@ public class ReminderReceiver extends BroadcastReceiver {
             long t = System.currentTimeMillis() + 3600_000L;
             ReminderStore.save(ctx, number, t);
             schedule(ctx, number, t);
+            // v6.8: sheet backup-eo notun somoy likhe rakha (fire-er somoy ar mocha hoy na).
+            final long snoozeTime = t;
+            final String snoozeNum = number;
+            new Thread(() -> {
+                String token = ReminderSheetSync.getToken(ctx);
+                String agentId = ctx.getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).getString("agent_id", null);
+                ReminderSheetSync.save(token, agentId, snoozeNum, snoozeTime);
+            }).start();
             return;
         }
         if (!ACTION_REMIND.equals(action)) return;
         if (number == null || number.isEmpty()) return;
-        ReminderStore.remove(ctx, number);
-        removeSheetReminder(ctx, number);
+        // v6.8: fire-er somoy storage theke muchbo na — due reminder app open-e popup-e dekhabe (notification dismiss korleo harabe na).
         notifyNow(ctx, number);
     }
 }

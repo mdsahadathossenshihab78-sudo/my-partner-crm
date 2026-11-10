@@ -129,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView reminderEmptyText;
     private String pendingReminderNumber = null;
     private long pendingReminderTime = 0;
+    private boolean duePopupShowing = false; // v6.8: due reminder popup ekbar-e dekhabe
     private static final int REQ_NOTIFY_REMINDER = 9101;
     private volatile java.util.Set<String> adminEmailsCache = null;
     private TeamRow selectedTeam = null;
@@ -694,7 +695,7 @@ public class MainActivity extends AppCompatActivity {
     }
     // Batch fix #7: login/Agent ID screen-e atke thakleo update check cholbe (age sudhu
     // main view-e cholto); fetch-e token lage na, tai login/agent branch-e token shorto nei.
-    @Override protected void onResume() { super.onResume(); if (mainView != null && mainView.getVisibility() == View.VISIBLE && token != null) { checkForUpdate(); refreshReminderList(); refreshQueuedCounter(); if (currentSection == 1) maybeAutoRefreshList(); } else if ((loginView != null && loginView.getVisibility() == View.VISIBLE) || (agentView != null && agentView.getVisibility() == View.VISIBLE)) { checkForUpdate(); } } private void showMain() {
+    @Override protected void onResume() { super.onResume(); if (mainView != null && mainView.getVisibility() == View.VISIBLE && token != null) { checkForUpdate(); refreshReminderList(); maybeShowDueReminderPopup(); refreshQueuedCounter(); if (currentSection == 1) maybeAutoRefreshList(); } else if ((loginView != null && loginView.getVisibility() == View.VISIBLE) || (agentView != null && agentView.getVisibility() == View.VISIBLE)) { checkForUpdate(); } } private void showMain() {
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.VISIBLE);
         applySection(currentSection);
@@ -713,6 +714,7 @@ public class MainActivity extends AppCompatActivity {
         setAgentSubtitle();
         loadDayStats();
         refreshReminderList();
+        maybeShowDueReminderPopup();
         checkForUpdate();
     }
     /** Niche menu: 0 = Dashboard (date + sob hisab), 1 = Home (number list). */
@@ -1361,7 +1363,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Dashboard-er "Mone koriye deoa" section — bhabishyoter reminder + prottek-tar cancel (X).
-     *  Somoy par hoye gele alarm cancel + storage theke bad (fired/stale kichui jhulbe na). */
+     *  v6.8: somoy par hoye gele ar muchbo na — due reminder storage-e thakbe, app open-e popup dekhabe. */
     private void refreshReminderList() {
         if (reminderListContainer == null) return;
         long now = System.currentTimeMillis();
@@ -1369,7 +1371,7 @@ public class MainActivity extends AppCompatActivity {
         List<ReminderStore.Item> future = new ArrayList<>();
         for (ReminderStore.Item it : items) {
             if (it.time > now) future.add(it);
-            else { ReminderReceiver.cancel(this, it.number); ReminderStore.remove(this, it.number); final String staleNum = it.number; new Thread(() -> ReminderSheetSync.remove(token, agentId, staleNum)).start(); }
+            // v6.8: due item ekhane muchbo na — maybeShowDueReminderPopup() dekhabe (notification dismiss korleo thakbe).
         }
         future.sort((a, b) -> Long.compare(a.time, b.time));
         reminderListContainer.removeAllViews();
@@ -1461,6 +1463,68 @@ public class MainActivity extends AppCompatActivity {
         pendingReminderNumber = null;
         if (getIntent() != null) getIntent().removeExtra(ReminderReceiver.EXTRA_NUMBER);
         openReminderNumber(n);
+    }
+
+    /** v6.8: due reminder popup — notification ashar por app khulle, somoy par hoye jawa
+     *  reminder-gulo niye jiggesh: ekhoni call korbe naki 5 minute pore abar mone korabe.
+     *  Notification dismiss korleo reminder haray na — action na nile popup abar asbe. */
+    private void maybeShowDueReminderPopup() {
+        if (duePopupShowing) return;
+        if (mainView == null || mainView.getVisibility() != View.VISIBLE || token == null) return;
+        long now = System.currentTimeMillis();
+        final List<ReminderStore.Item> due = new ArrayList<>();
+        for (ReminderStore.Item it : ReminderStore.list(this)) {
+            if (it.time <= now) due.add(it);
+        }
+        if (due.isEmpty()) return;
+        final String firstNumber = due.get(0).number;
+        final String tok = token;
+        final String ag = agentId;
+        StringBuilder msg = new StringBuilder();
+        for (ReminderStore.Item it : due) msg.append(it.number).append("\n");
+        msg.append("\nএই নাম্বারগুলো এখনই কল করবেন নাকি আরো কয়েক মিনিট অপেক্ষা করবেন?");
+        duePopupShowing = true;
+        new AlertDialog.Builder(this)
+                .setTitle("কল করার সময় হয়েছে")
+                .setMessage(msg.toString())
+                .setPositiveButton("এখনই কল করুন", (d, w) -> {
+                    for (ReminderStore.Item it : due) {
+                        ReminderReceiver.cancel(MainActivity.this, it.number);
+                        ReminderStore.remove(MainActivity.this, it.number);
+                        final String num = it.number;
+                        new Thread(() -> ReminderSheetSync.remove(tok, ag, num)).start();
+                    }
+                    refreshReminderList();
+                    if (due.size() == 1) {
+                        dialDueNumber(firstNumber);
+                    } else {
+                        pendingReminderNumber = firstNumber;
+                        maybeOpenPendingReminder();
+                    }
+                })
+                .setNegativeButton("অপেক্ষা করুন", (d, w) -> {
+                    long snoozeTo = System.currentTimeMillis() + 5 * 60 * 1000L;
+                    for (ReminderStore.Item it : due) {
+                        ReminderReceiver.cancel(MainActivity.this, it.number);
+                        ReminderStore.save(MainActivity.this, it.number, snoozeTo);
+                        ReminderReceiver.schedule(MainActivity.this, it.number, snoozeTo);
+                        final String num = it.number;
+                        new Thread(() -> ReminderSheetSync.save(tok, ag, num, snoozeTo)).start();
+                    }
+                    refreshReminderList();
+                    Toast.makeText(MainActivity.this, "৫ মিনিট পরে আবার মনে করিয়ে দেওয়া হবে", Toast.LENGTH_SHORT).show();
+                })
+                .setOnDismissListener(d -> duePopupShowing = false)
+                .show();
+    }
+
+    /** v6.8: due popup theke ekta number-e sorasori dial — row-er Call button-er motoi (chooser). */
+    private void dialDueNumber(String number) {
+        String main = RowAdapter.dialNumber(number);
+        if (main.isEmpty()) return;
+        Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + main));
+        Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+        startActivity(chooser);
     }
     private void showReminderDialog(Row row) {
         if (row == null) return;
