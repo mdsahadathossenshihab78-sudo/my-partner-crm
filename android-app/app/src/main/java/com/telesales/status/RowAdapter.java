@@ -21,7 +21,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
+public class RowAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public interface OnSave {
         void onSave(Row row, MaterialButton btn);
         /** Batch fix #3: clear-save hole Save-er age confirm dialog dekhabe kina. Default: na. */
@@ -31,11 +31,50 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
     public interface OnRemind { void onRemind(Row row); }
     private OnRemind onRemind;
     public void setOnRemind(OnRemind r) { onRemind = r; }
+    /** v6.13: focus card + strip are header items of this RecyclerView
+     *  (the RecyclerView is the only scroller now). MainActivity drives
+     *  the focus card through these callbacks — the focused row is the
+     *  single source of truth for which number is called. */
+    public interface FocusActions {
+        void onFocusSave(Row row, MaterialButton btn);
+        boolean focusNeedsClearConfirm(Row row);
+        void onFocusRemind(Row row);
+        void onFocusProblem(Row row);
+        void onStripTap(Row row);
+    }
+    private FocusActions focusActions;
+    public void setFocusActions(FocusActions a) { focusActions = a; }
+    /** v6.13 header state: focusRow = focused pending row (null = no focus
+     *  header); stripRows = the next-10 rows for the strip. */
+    private Row focusRow = null;
+    private List<Row> stripRows = new ArrayList<>();
+    private String focusHeaderSub = "";
+    public void setFocusHeader(Row focus, List<Row> strip, String headerSub) {
+        focusRow = focus;
+        stripRows = strip == null ? new ArrayList<>() : new ArrayList<>(strip);
+        focusHeaderSub = headerSub == null ? "" : headerSub;
+        notifyDataSetChanged();
+    }
+    public void clearFocusHeader() {
+        if (focusRow == null && stripRows.isEmpty()) return;
+        focusRow = null; stripRows.clear(); focusHeaderSub = "";
+        notifyDataSetChanged();
+    }
+    public Row getFocusRow() { return focusRow; }
+    private int headerCount() {
+        int n = 0;
+        if (focusRow != null) n++;
+        if (focusRow != null && !stripRows.isEmpty()) n++;
+        return n;
+    }
+    public static final int TYPE_FOCUS = 0;
+    public static final int TYPE_STRIP = 1;
+    public static final int TYPE_ROW = 2;
     private List<Row> all = new ArrayList<>();
     private List<Row> shown = new ArrayList<>();
     private final OnSave onSave;
 
-    public RowAdapter(OnSave onSave) { this.onSave = onSave; }
+    public RowAdapter(OnSave onSave) { this.onSave = onSave; setHasStableIds(true); }
     /** Date-filtered called tab: log theke asa row-gulo (null = ekhono load hoyni, tokhon purono niyom). */
     private List<Row> calledRows = null;
     private String calledDate = null;
@@ -138,12 +177,19 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         h.validChipNo.setTextColor(no ? Color.WHITE : Color.parseColor("#1F2937"));
     }
 
-    @NonNull @Override public Holder onCreateViewHolder(@NonNull ViewGroup p, int t) {
-        View v = LayoutInflater.from(p.getContext()).inflate(R.layout.item_row, p, false);
-        return new Holder(v);
+    @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup p, int t) {
+        LayoutInflater inf = LayoutInflater.from(p.getContext());
+        if (t == TYPE_FOCUS) return new FocusHolder(inf.inflate(R.layout.layout_focus_card, p, false));
+        if (t == TYPE_STRIP) return new StripHolder(inf.inflate(R.layout.item_strip_header, p, false));
+        return new Holder(inf.inflate(R.layout.item_row, p, false));
     }
-    @Override public void onBindViewHolder(@NonNull Holder h, int pos) {
-        Row r = shown.get(pos);
+    @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder vh, int pos) {
+        int type = getItemViewType(pos);
+        if (type == TYPE_FOCUS) { bindFocus((FocusHolder) vh, focusRow); return; }
+        if (type == TYPE_STRIP) { bindStrip((StripHolder) vh); return; }
+        bindRow((Holder) vh, shown.get(pos - headerCount()));
+    }
+    private void bindRow(@NonNull Holder h, Row r) {
         h.tvNumber.setText(dialNumber(r.number));
         String timeTxt = (r.statusTime != null && !r.statusTime.isEmpty()) ? " • " + MainActivity.formatTimeBn(r.statusTime) : "";
         h.tvRow.setText((r.viewOnly ? "লগ থেকে" : "রো " + r.row) + timeTxt + (r.prevDay ? " • আগের দিনের কল" : ""));
@@ -186,8 +232,11 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         h.wRemark1 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark1 = s.toString(); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
         h.wRemark2 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark2 = s.toString(); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
         h.wOthers = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.others = s.toString(); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
-        h.etRemark1.addTextChangedListener(h.wRemark1); h.etRemark2.addTextChangedListener(h.wRemark2); h.etOthers.addTextChangedListener(h.wOthers);
+        // v6.13: text AGE bosano, watcher PORE — na hole bind-er somoy
+        // setText() watcher chaliye DraftStore-e ojotha lekhe (scroll-e
+        // hajar bar). Age remove (upore hoyeche), tarpor setText, tarpor add.
         h.etRemark1.setText(r.remark1); h.etRemark2.setText(r.remark2); h.etOthers.setText(r.others);
+        h.etRemark1.addTextChangedListener(h.wRemark1); h.etRemark2.addTextChangedListener(h.wRemark2); h.etOthers.addTextChangedListener(h.wOthers);
         h.btnCall.setOnClickListener(v -> {
             String main = dialNumber(r.number);
             String other = h.etOthers.getText() == null ? "" : dialNumber(h.etOthers.getText().toString());
@@ -269,7 +318,20 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         h.phraseBtn1.setTag("বিকেলে করবে"); h.phraseBtn2.setTag("ফোন বন্ধ"); h.phraseBtn3.setTag("পরে কল করতে বলেছে");
         h.phraseBtn1.setOnClickListener(phraseTap); h.phraseBtn2.setOnClickListener(phraseTap); h.phraseBtn3.setOnClickListener(phraseTap);
     }
-    @Override public int getItemCount() { return shown.size(); }
+    @Override public int getItemCount() { return headerCount() + shown.size(); }
+    @Override public int getItemViewType(int position) {
+        if (focusRow != null && position == 0) return TYPE_FOCUS;
+        if (focusRow != null && !stripRows.isEmpty() && position == 1) return TYPE_STRIP;
+        return TYPE_ROW;
+    }
+    @Override public long getItemId(int position) {
+        int type = getItemViewType(position);
+        if (type == TYPE_FOCUS) return -1L;
+        if (type == TYPE_STRIP) return -2L;
+        Row r = shown.get(position - headerCount());
+        long numHash = r == null || r.number == null ? 0L : (dialNumber(r.number).hashCode() & 0xffffffffL);
+        return ((long) (r == null ? 0 : r.row) << 32) | numHash;
+    }
 
     static class Holder extends RecyclerView.ViewHolder {
         TextView tvNumber, tvRow, tvHistory, statusChipConn, statusChipNotConn, validChipYes, validChipNo;
@@ -290,5 +352,186 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
             phraseBtn3 = v.findViewById(R.id.phraseBtn3);
             btnSave = v.findViewById(R.id.btnSave);
         }
+    }
+
+    static class FocusHolder extends RecyclerView.ViewHolder {
+        TextView headerSub, tvNumber, tvRow, tvHistory, statusChipConn, statusChipNotConn, validChipYes, validChipNo;
+        TextInputEditText etRemark1, etRemark2, etOthers;
+        TextWatcher wRemark1, wRemark2, wOthers;
+        MaterialButton btnCall, btnCopy, btnSave, btnRemind, btnProblem;
+        android.widget.Button phraseBtn1, phraseBtn2, phraseBtn3;
+        FocusHolder(View v) {
+            super(v);
+            headerSub = v.findViewById(R.id.focusHeaderSub);
+            tvNumber = v.findViewById(R.id.focusTvNumber); tvRow = v.findViewById(R.id.focusTvRow);
+            tvHistory = v.findViewById(R.id.focusTvHistory);
+            statusChipConn = v.findViewById(R.id.focusStatusChipConn); statusChipNotConn = v.findViewById(R.id.focusStatusChipNotConn);
+            validChipYes = v.findViewById(R.id.focusValidChipYes); validChipNo = v.findViewById(R.id.focusValidChipNo);
+            etRemark1 = v.findViewById(R.id.focusEtRemark1); etRemark2 = v.findViewById(R.id.focusEtRemark2);
+            etOthers = v.findViewById(R.id.focusEtOthers); btnCall = v.findViewById(R.id.focusBtnCall);
+            btnCopy = v.findViewById(R.id.focusBtnCopy); btnRemind = v.findViewById(R.id.focusBtnRemind);
+            btnProblem = v.findViewById(R.id.focusBtnProblem);
+            phraseBtn1 = v.findViewById(R.id.focusPhraseBtn1); phraseBtn2 = v.findViewById(R.id.focusPhraseBtn2);
+            phraseBtn3 = v.findViewById(R.id.focusPhraseBtn3);
+            btnSave = v.findViewById(R.id.focusBtnSave);
+        }
+    }
+
+    static class StripHolder extends RecyclerView.ViewHolder {
+        RecyclerView inner;
+        NextStripAdapter innerAdapter;
+        StripHolder(View v) {
+            super(v);
+            inner = v.findViewById(R.id.stripInner);
+            inner.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(v.getContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false));
+        }
+    }
+
+    private void bindStrip(StripHolder h) {
+        if (h.innerAdapter == null) {
+            h.innerAdapter = new NextStripAdapter(row -> { if (focusActions != null) focusActions.onStripTap(row); });
+            h.inner.setAdapter(h.innerAdapter);
+        }
+        h.innerAdapter.setRows(stripRows);
+    }
+
+    private void refreshFocusStatusChips(FocusHolder h, String status) {
+        boolean conn = "call connected".equals(status);
+        boolean notConn = "not connected".equals(status);
+        h.statusChipConn.setBackgroundResource(conn ? R.drawable.chip_green : R.drawable.glass_field);
+        h.statusChipConn.setTextColor(conn ? Color.WHITE : Color.parseColor("#1F2937"));
+        h.statusChipNotConn.setBackgroundResource(notConn ? R.drawable.chip_rose : R.drawable.glass_field);
+        h.statusChipNotConn.setTextColor(notConn ? Color.WHITE : Color.parseColor("#1F2937"));
+    }
+    private void refreshFocusValidChips(FocusHolder h, String valid) {
+        boolean yes = "Yes".equals(valid);
+        boolean no = "No".equals(valid);
+        h.validChipYes.setBackgroundResource(yes ? R.drawable.chip_blue : R.drawable.glass_field);
+        h.validChipYes.setTextColor(yes ? Color.WHITE : Color.parseColor("#1F2937"));
+        h.validChipNo.setBackgroundResource(no ? R.drawable.chip_grey : R.drawable.glass_field);
+        h.validChipNo.setTextColor(no ? Color.WHITE : Color.parseColor("#1F2937"));
+    }
+
+    /** v6.13: focus card bind — MainActivity.bindFocusCard-er mirror
+     *  (v6.9-er motoi duplicate; shared binder-e hat dewa jhukipurno).
+     *  Ekhanei thake, karon focus card ekhon ei adapter-er header item. */
+    private void bindFocus(FocusHolder h, Row r) {
+        if (r == null) return;
+        if (h.headerSub != null) h.headerSub.setText(focusHeaderSub);
+        h.tvNumber.setText(dialNumber(r.number));
+        String timeTxt = (r.statusTime != null && !r.statusTime.isEmpty()) ? " • " + MainActivity.formatTimeBn(r.statusTime) : "";
+        h.tvRow.setText((r.viewOnly ? "লগ থেকে" : "রো " + r.row) + timeTxt + (r.prevDay ? " • আগের দিনের কল" : ""));
+        java.util.List<Hist> hist = history.get(dialNumber(r.number));
+        StringBuilder hb = new StringBuilder();
+        int histShown = 0, histMore = 0;
+        if (hist != null) {
+            for (int i = hist.size() - 1; i >= 0; i--) {
+                Hist he = hist.get(i);
+                if (histShown < 3) { if (hb.length() > 0) hb.append(" • "); hb.append(he.label); histShown++; }
+                else histMore++;
+            }
+        }
+        if (histShown == 0) h.tvHistory.setVisibility(View.GONE);
+        else { h.tvHistory.setText("আগের কল: " + hb.toString() + (histMore > 0 ? " +" + histMore + "টা" : "")); h.tvHistory.setVisibility(View.VISIBLE); }
+        boolean ro = r.viewOnly;
+        h.statusChipConn.setEnabled(!ro); h.statusChipNotConn.setEnabled(!ro);
+        h.validChipYes.setEnabled(!ro); h.validChipNo.setEnabled(!ro);
+        float chipAlpha = ro ? 0.55f : 1f;
+        h.statusChipConn.setAlpha(chipAlpha); h.statusChipNotConn.setAlpha(chipAlpha);
+        h.validChipYes.setAlpha(chipAlpha); h.validChipNo.setAlpha(chipAlpha);
+        h.etRemark1.setEnabled(!ro); h.etRemark2.setEnabled(!ro); h.etOthers.setEnabled(!ro);
+        h.phraseBtn1.setEnabled(!ro); h.phraseBtn2.setEnabled(!ro); h.phraseBtn3.setEnabled(!ro);
+        h.btnSave.setEnabled(!ro);
+        h.btnSave.setText(ro ? "শুধু দেখা যাবে" : "সেভ করুন");
+        refreshFocusStatusChips(h, r.status);
+        refreshFocusValidChips(h, r.valid);
+        h.statusChipConn.setOnClickListener(v -> { if (r.viewOnly) return; r.status = "call connected".equals(r.status) ? "" : "call connected"; refreshFocusStatusChips(h, r.status); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        h.statusChipNotConn.setOnClickListener(v -> { if (r.viewOnly) return; r.status = "not connected".equals(r.status) ? "" : "not connected"; refreshFocusStatusChips(h, r.status); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        h.validChipYes.setOnClickListener(v -> { if (r.viewOnly) return; r.valid = "Yes".equals(r.valid) ? "" : "Yes"; refreshFocusValidChips(h, r.valid); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        h.validChipNo.setOnClickListener(v -> { if (r.viewOnly) return; r.valid = "No".equals(r.valid) ? "" : "No"; refreshFocusValidChips(h, r.valid); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        if (h.wRemark1 != null) h.etRemark1.removeTextChangedListener(h.wRemark1);
+        if (h.wRemark2 != null) h.etRemark2.removeTextChangedListener(h.wRemark2);
+        if (h.wOthers != null) h.etOthers.removeTextChangedListener(h.wOthers);
+        h.wRemark1 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark1 = s.toString(); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
+        h.wRemark2 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark2 = s.toString(); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
+        h.wOthers = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.others = s.toString(); DraftStore.save(h.itemView.getContext(), r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
+        h.etRemark1.setText(r.remark1); h.etRemark2.setText(r.remark2); h.etOthers.setText(r.others);
+        h.etRemark1.addTextChangedListener(h.wRemark1); h.etRemark2.addTextChangedListener(h.wRemark2); h.etOthers.addTextChangedListener(h.wOthers);
+        h.btnCall.setOnClickListener(v -> {
+            String main = dialNumber(r.number);
+            String other = h.etOthers.getText() == null ? "" : dialNumber(h.etOthers.getText().toString());
+            if (!other.isEmpty() && !other.equals(main)) {
+                final String[] nums = {main, other};
+                new AlertDialog.Builder(h.itemView.getContext())
+                    .setTitle("কোন নাম্বারে কল করবেন?")
+                    .setItems(nums, (d, w) -> {
+                        Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + nums[w]));
+                        Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+                        h.itemView.getContext().startActivity(chooser);
+                    })
+                    .setNegativeButton("বাতিল", null)
+                    .show();
+            } else {
+                Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + main));
+                Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+                h.itemView.getContext().startActivity(chooser);
+            }
+        });
+        h.btnCopy.setOnClickListener(v -> {
+            Context ctx = h.itemView.getContext();
+            String main = dialNumber(r.number);
+            String other = h.etOthers.getText() == null ? "" : dialNumber(h.etOthers.getText().toString());
+            if (!other.isEmpty() && !other.equals(main)) {
+                final String[] nums = {main, other};
+                new AlertDialog.Builder(ctx)
+                    .setTitle("কোনটা কপি করবেন?")
+                    .setItems(nums, (d, w) -> {
+                        try {
+                            ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+                            cm.setPrimaryClip(ClipData.newPlainText("Number", nums[w]));
+                            Toast.makeText(ctx, "কপি হয়েছে: " + nums[w], Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            Toast.makeText(ctx, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("বাতিল", null)
+                    .show();
+            } else {
+                try {
+                    ClipboardManager cm = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+                    cm.setPrimaryClip(ClipData.newPlainText("Number", main));
+                    Toast.makeText(ctx, "কপি হয়েছে: " + main, Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(ctx, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        h.btnSave.setOnClickListener(v -> {
+            r.remark1 = h.etRemark1.getText() == null ? "" : h.etRemark1.getText().toString().trim();
+            r.remark2 = h.etRemark2.getText() == null ? "" : h.etRemark2.getText().toString().trim();
+            r.others = h.etOthers.getText() == null ? "" : h.etOthers.getText().toString().trim();
+            if (focusActions == null) return;
+            if (focusActions.focusNeedsClearConfirm(r)) {
+                new AlertDialog.Builder(h.itemView.getContext())
+                    .setTitle("নিশ্চিত করুন")
+                    .setMessage("এই রো-র আজকের হিসাব (লগ রো) মুছে যাবে। ঠিক আছে?")
+                    .setPositiveButton("হ্যাঁ, মুছুন", (d, w) -> focusActions.onFocusSave(r, h.btnSave))
+                    .setNegativeButton("না", null)
+                    .show();
+            } else {
+                focusActions.onFocusSave(r, h.btnSave);
+            }
+        });
+        h.btnRemind.setOnClickListener(v -> { if (focusActions != null) focusActions.onFocusRemind(r); });
+        h.btnProblem.setOnClickListener(v -> { if (focusActions != null) focusActions.onFocusProblem(r); });
+        android.view.View.OnClickListener phraseTap = v -> {
+            String phrase = (String) v.getTag();
+            if (phrase == null) return;
+            String cur = h.etRemark1.getText() == null ? "" : h.etRemark1.getText().toString();
+            h.etRemark1.setText(cur.isEmpty() ? phrase : cur + " " + phrase);
+            if (h.etRemark1.getText() != null) h.etRemark1.setSelection(h.etRemark1.getText().length());
+        };
+        h.phraseBtn1.setTag("বিকেলে করবে"); h.phraseBtn2.setTag("ফোন বন্ধ"); h.phraseBtn3.setTag("পরে কল করতে বলেছে");
+        h.phraseBtn1.setOnClickListener(phraseTap); h.phraseBtn2.setOnClickListener(phraseTap); h.phraseBtn3.setOnClickListener(phraseTap);
     }
 }
