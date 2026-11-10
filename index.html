@@ -192,6 +192,14 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 @keyframes heroShimmer{from{background-position:200% 0}to{background-position:-200% 0}}
 .hero-weekdays{display:flex;justify-content:space-between;font-size:11px;color:#64748B;margin-top:6px}
 .hero-weekdays span{flex:1;text-align:center}
+/* --- dashboard quick links (2026-11-10): 4 small tiles below the 7-day chart --- */
+.quick-links{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.quick-link{background:#fff;border:1px solid #BAE6FD;border-radius:16px;padding:12px 10px;text-align:center;cursor:pointer}
+.quick-link:active{transform:scale(.97)}
+.quick-link .ql-label{display:block;font-size:13px;font-weight:800;color:#075985}
+.quick-link .ql-count{display:block;font-size:20px;font-weight:800;color:#0284C7;margin-top:2px}
+.quick-link .ql-sub{display:block;font-size:11px;color:#64748B}
+@media(max-width:480px){.quick-links{grid-template-columns:repeat(2,1fr)}}
 /* --- sunrise loader (entry only, CSS-only, never blocks clicks) --- */
 #sunriseLoader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 60%,#FEF9C3 100%);pointer-events:none;animation:sunriseOut .5s ease 1.6s forwards}
 .sunrise-sun{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FEF3C7,#FCD34D 45%,#F59E0B 75%);box-shadow:0 0 40px 10px rgba(245,158,11,.45);animation:sunriseRise 1.2s ease-out both}
@@ -231,6 +239,8 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
    floor lives in a tall-viewport media query so the desktop chart is untouched.) */
 #reportView>.card,#ftdView>.card,#guideView>.card{min-height:calc(100vh - 180px)}
 @media (min-height:1200px){.hero-week{min-height:calc(100vh - 700px)}}
+/* --- login vertical centering, tall screens only (2026-11-10) --- */
+@media (min-height:1200px){.wrap{justify-content:center}#loginCard{flex:0 0 auto}}
 @media (max-width:600px){.vt-txt{display:none}.brand p{display:none}}
 </style></head><body>
 <div id="sunriseLoader"><div class="sunrise-sun"></div><div class="sunrise-title">Telesales Status</div><div class="sunrise-sub">নতুন দিনের হিসাব উঠছে…</div><div class="sunrise-bar"><i></i></div></div>
@@ -282,6 +292,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 <p class="muted" id="weekSummary"></p>
 <div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
 <p class="muted" id="syncLine" style="margin-top:8px"></p>
+<div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">বাকি আছে</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div></div>
 <p class="muted" id="targetLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px"></p>
 <div class="card" id="remindCard" style="display:none;margin-top:12px;padding:14px 16px"><b>মনে করিয়ে দেওয়া</b><div id="remindList" style="margin-top:8px"></div></div>
 </div>
@@ -1006,6 +1017,7 @@ async function loadDayStats(){
   try{
     await tryRefreshConfig();
     loadCommissionWeek();
+    loadFtdUsers(); // dashboard quick tile-er total (qlFtdUsers) agei dekhabe
     let logs=[];
     try{ logs=await readLogRowsForDate(day); }catch(e){ $('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।'; calledRows=[]; if(tab==='done'&&!dirty) render(); return; }
     let regs=[], ftds=[];
@@ -1024,6 +1036,7 @@ async function loadDayStats(){
     ftdWeek.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSumW+=v;});
     $('stConn').textContent=conn; $('stNotConn').textContent=notConn; $('stValid').textContent=valid; $('stInv').textContent=inv; $('stReg').textContent=reg;
     $('heroCalls').textContent=logs.filter(e=>cellE(e,0)===day).length; $('heroNums').textContent=rows.length; $('heroRemain').textContent=rows.filter(r=>!r.status).length;
+    const _qr=$('qlRemain'); if(_qr)_qr.textContent=$('heroRemain').textContent;
     const _blk=filterRangeE(logs,blockStart,blockEnd);
     const validW=_blk.filter(e=>cellE(e,3)==='Yes').length;
     const _invSet=new Set(); _blk.forEach(e=>{if(cellE(e,2)==='not connected'&&cellE(e,3)==='No'){const _n=normLogNum(cellE(e,1));if(_n)_invSet.add(_n);}});
@@ -1037,6 +1050,7 @@ async function loadDayStats(){
       } else { _tLine.style.display='none'; }
     }
     $('stFtd').textContent=ftdTotalCount(ftdToday); $('stFtdAmt').textContent='৳'+fmtAmt(ftdSum);
+    const _qf=$('qlFtd'); if(_qf)_qf.textContent=$('stFtd').textContent;
     $('weekSummary').textContent='এই ৭ দিন ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • Valid '+validW+' • Invalid '+invW+' • এফটিডি '+ftdTotalCount(ftdWeek)+' (৳'+fmtAmt(ftdSumW)+') • রেজিস্ট্রেশন '+regW+(lastLogReadUsedLegacy?' • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)':'')+((lastLogPartialFail||lastReportPartialFail)?' • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)':'');
     historyMap={};
     (logs||[]).forEach(e=>{
@@ -1181,6 +1195,7 @@ async function loadFtdUsers(){
     const todayCount=users.filter(u=>u.depDate===today).length;
     let lastSync='';users.forEach(u=>{if(u.syncedAt&&(!lastSync||u.syncedAt>lastSync))lastSync=u.syncedAt;});
     $('ftdUsersSummary').textContent='মোট '+users.length+' জন • আজ '+todayCount+' জন'+(lastSync?' • সর্বশেষ আপডেট: '+lastSync:'');
+    const _qu=$('qlFtdUsers'); if(_qu)_qu.textContent=users.length;
     $('ftdUsersList').innerHTML=users.length?users.map(u=>'<div class="entry"><span><b>'+esc(u.username)+'</b> — ৳'+fmtAmt(parseFloat(u.amount)||0)+'<br><small class="muted">জমা: '+(esc(u.depDate)||'—')+' • অ্যাকাউন্ট: '+(esc(u.created)||'—')+' • শেষ লগইন: '+(esc(u.lastLogin)||'—')+'</small></span></div>').join(''):'<p class="muted">কোনো এফটিডি ইউজার নেই।</p>';
   }catch(e){$('ftdUsersSummary').textContent='লোড হয়নি, আবার চেষ্টা করুন';}
 }
