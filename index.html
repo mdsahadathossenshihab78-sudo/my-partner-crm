@@ -201,16 +201,54 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 .quick-link .ql-count{display:block;font-size:20px;font-weight:800;color:#0284C7;margin-top:2px}
 .quick-link .ql-sub{display:block;font-size:11px;color:#64748B}
 @media(max-width:480px){.quick-links{grid-template-columns:repeat(2,1fr)}}
-/* --- sunrise loader (entry only, CSS-only, never blocks clicks) --- */
-#sunriseLoader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 60%,#FEF9C3 100%);pointer-events:none;animation:sunriseOut .5s ease 1.6s forwards}
-.sunrise-sun{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FEF3C7,#FCD34D 45%,#F59E0B 75%);box-shadow:0 0 40px 10px rgba(245,158,11,.45);animation:sunriseRise 1.2s ease-out both}
-.sunrise-title{font-weight:800;font-size:20px;color:#075985;margin-top:16px}
-.sunrise-sub{color:#0369A1;font-size:13px;margin-top:4px}
-.sunrise-bar{width:180px;height:6px;border-radius:999px;background:rgba(3,105,161,.18);margin-top:16px;overflow:hidden}
-.sunrise-bar i{display:block;height:100%;width:40%;border-radius:999px;background:#0284C7;animation:sunriseFill 1.6s ease forwards}
-@keyframes sunriseRise{from{transform:translateY(26px) scale(.85);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
-@keyframes sunriseFill{from{width:8%}to{width:100%}}
-@keyframes sunriseOut{to{opacity:0;visibility:hidden}}
+/* --- digital loader (2026-11-10): the rising-sun loader is replaced by a
+   digital loader — a big % counter + a segmented progress bar that lights
+   up in sequence. Entry only, never blocks clicks. --- */
+#digiLoader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 60%,#FEF9C3 100%);pointer-events:none;animation:digiOut .5s ease 1.6s forwards}
+.digi-count{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:44px;font-weight:800;color:#075985;letter-spacing:.04em;line-height:1}
+.digi-count::after{content:"%";font-size:20px}
+.digi-title{font-weight:800;font-size:20px;color:#075985;margin-top:12px}
+.digi-sub{color:#0369A1;font-size:13px;margin-top:4px}
+.digi-bar{display:flex;gap:3px;width:180px;height:8px;margin-top:16px}
+.digi-bar i{flex:1;height:100%;border-radius:2px;background:#0284C7;opacity:.18;animation:digiSeg 1.6s ease-in-out infinite}
+.digi-bar i:nth-child(1){animation-delay:0s}
+.digi-bar i:nth-child(2){animation-delay:.13s}
+.digi-bar i:nth-child(3){animation-delay:.26s}
+.digi-bar i:nth-child(4){animation-delay:.39s}
+.digi-bar i:nth-child(5){animation-delay:.52s}
+.digi-bar i:nth-child(6){animation-delay:.65s}
+.digi-bar i:nth-child(7){animation-delay:.78s}
+.digi-bar i:nth-child(8){animation-delay:.91s}
+.digi-bar i:nth-child(9){animation-delay:1.04s}
+.digi-bar i:nth-child(10){animation-delay:1.17s}
+.digi-bar i:nth-child(11){animation-delay:1.3s}
+.digi-bar i:nth-child(12){animation-delay:1.43s}
+@keyframes digiSeg{0%,100%{opacity:.18}50%{opacity:1}}
+@keyframes digiOut{to{opacity:0;visibility:hidden}}
+/* --- digital dashboard animation (2026-11-10): stat numbers count up
+   (JS setStatNum, ~800ms), tiles glow-pulse softly, and a segmented
+   digital meter bar under the stat section lights up in sequence.
+   Subtle; no layout change, mobile fit untouched. --- */
+.stat{animation:digiGlow 2.6s ease-in-out infinite}
+@keyframes digiGlow{0%,100%{box-shadow:0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 16px rgba(56,189,248,.30)}}
+.digi-meter{display:flex;gap:3px;margin-top:12px}
+.digi-meter i{flex:1;height:6px;border-radius:2px;background:#0284C7;opacity:.18;animation:digiSeg 2.4s ease-in-out infinite}
+.digi-meter i:nth-child(1){animation-delay:0s}
+.digi-meter i:nth-child(2){animation-delay:.2s}
+.digi-meter i:nth-child(3){animation-delay:.4s}
+.digi-meter i:nth-child(4){animation-delay:.6s}
+.digi-meter i:nth-child(5){animation-delay:.8s}
+.digi-meter i:nth-child(6){animation-delay:1s}
+.digi-meter i:nth-child(7){animation-delay:1.2s}
+.digi-meter i:nth-child(8){animation-delay:1.4s}
+.digi-meter i:nth-child(9){animation-delay:1.6s}
+.digi-meter i:nth-child(10){animation-delay:1.8s}
+.digi-meter i:nth-child(11){animation-delay:2s}
+.digi-meter i:nth-child(12){animation-delay:2.2s}
+.tod-noon .digi-meter i{background:#0284C7}
+.tod-afternoon .digi-meter i{background:#EA580C}
+.tod-evening .digi-meter i{background:#9333EA}
+.tod-night .digi-meter i{background:#38BDF8}
 @media(max-width:480px){
 #loginHero{padding:20px 16px 56px}
 #loginHero .hero-title{font-size:18px}
@@ -243,41 +281,29 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 /* --- login vertical centering, tall screens only (2026-11-10) --- */
 @media (min-height:1200px){.wrap{justify-content:center}#loginCard{flex:0 0 auto}}
 @media (max-width:600px){.vt-txt{display:none}.brand p{display:none}}
-/* --- call-list focus card (2026-11-10): big number + big Call on top, full list scrolls below --- */
-.focus-card{border:2px solid #F97316;box-shadow:0 6px 24px rgba(249,115,22,.22)}
-.focus-num{font-size:40px;line-height:1.15;overflow-wrap:anywhere}
-.focus-call{width:100%;min-height:56px;font-size:18px;background:linear-gradient(135deg,#F97316,#EA580C)}
-.focus-save{width:100%;min-height:56px;font-size:17px;background:linear-gradient(135deg,#F97316,#EA580C)}
-.next-strip{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
-.next-strip .btn{white-space:nowrap;flex:none}
+/* --- call-list per-number cards (2026-11-10): each number is its own
+   separate card; no number is fixed/pinned at the top (focus card removed). --- */
 /* ===== CALL-LIST ENERGY SALES SKIN (2026-11-10) =====
    The user did not like the website call list's plain/Apple-like sky-blue
    look — it now matches the APP's Design 3 Energy Sales language (cream +
-   orange, bold focus card, big number + big Call beside it, clean rows).
+   orange). Per-number cards (2026-11-10): one separate card per number,
+   each with its own Call, chips, remarks and Save — no number pinned
+   at the top (focus card removed).
    VISUAL ONLY: no IDs, handlers or data logic change. PR #58 behavior
    (savedStatus counts, save verification + red fail box, Report auto
    headline, tiles auto, chips stay in Pending until Save, suggestions
    deleted) is untouched. Chip colors stay the user's spec (Connected green,
    Not Connected red, Yes blue, No grey). */
 #listView #list .report{background:#fff;border:1px solid #FED7AA;border-radius:16px;box-shadow:0 4px 16px rgba(249,115,22,.10)}
-#listView #list .report b{color:#1F2937}
+#listView #list .report b{color:#1F2937;font-size:20px}
 #listView #list .report label{color:#9A3412}
 #listView #list .report input{background:#FFFBEB;border:1px solid #FED7AA;color:#1F2937}
 #listView #list .report input::placeholder{color:#A8A29E}
 #listView #list .report input:focus{outline:2px solid #F97316;outline-offset:1px;border-color:#F97316}
 #listView #list .report input:disabled{background:#FFF7ED;color:#78716C}
 #listView .tab-on{background:linear-gradient(135deg,#F97316,#EA580C)!important}
-#listView .focus-card{background:#FFFBEB;border:2px solid #F97316;box-shadow:0 8px 28px rgba(249,115,22,.25)}
-#listView .focus-num{color:#1F2937}
-#listView .focus-card label{color:#9A3412}
-#listView .focus-card input{background:#fff;border:1px solid #FED7AA;color:#1F2937}
-#listView .focus-card input:focus{outline:2px solid #F97316;outline-offset:1px;border-color:#F97316}
-#listView #focusHeader{color:#9A3412;font-weight:700}
-#listView #nextStripLabel{color:#9A3412;font-weight:700}
 #listView .call-btn{background:#FFF7ED;border:2px solid #F97316;color:#C2410C;font-weight:800}
 #listView #list .report .btn-primary{background:linear-gradient(135deg,#F97316,#EA580C)}
-#listView .next-strip .btn{background:#FFF7ED;border:1px solid #FED7AA;color:#C2410C}
-#listView .next-strip .btn:active{background:#FFEDD5}
 #listView #search{background:#FFFBEB;border:1px solid #FED7AA;color:#1F2937}
 #listView #search:focus{outline:2px solid #F97316;outline-offset:1px;border-color:#F97316}
 #listView #refreshBtn{background:#FFF7ED;border:1px solid #FED7AA;color:#C2410C}
@@ -298,7 +324,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
    5 minutes so a page left open follows the time without a reload).
    The call list keeps its Energy Sales (cream + orange) look in every band:
    its rules are scoped to #listView (ID specificity) and none of the rules
-   below touch #listView, .chip, .btn-light, .focus-card/.focus-num or the
+   below touch #listView, .chip, .btn-light or the
    row buttons. */
 /* --- noon (11:00–15:00): brightest sky, high sun --- */
 html.tod-noon body,body.tod-noon{background:linear-gradient(180deg,#F0F9FF 0%,#E0F2FE 40%,#FEF9C3 100%)}
@@ -306,8 +332,8 @@ html.tod-noon body,body.tod-noon{background:linear-gradient(180deg,#F0F9FF 0%,#E
 .tod-noon #loginHero{background:linear-gradient(135deg,#7DD3FC 0%,#0284C7 55%,#075985 100%)}
 .tod-noon #loginHero::after{right:-10px;top:-70px;width:170px;height:170px;background:radial-gradient(circle,#FEF9C3 0%,#FDE047 45%,#FACC15 65%,rgba(250,204,21,0) 75%);opacity:1;box-shadow:0 0 60px 20px rgba(253,224,71,.5)}
 .tod-noon .hero-greet{background:linear-gradient(135deg,#0369A1,#0C4A6E);border-bottom:3px solid #FBBF24}
-.tod-noon #sunriseLoader{background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 55%,#FEF9C3 100%)}
-.tod-noon .sunrise-sun{background:radial-gradient(circle at 35% 35%,#FEF9C3,#FDE047 45%,#FACC15 75%);box-shadow:0 0 44px 12px rgba(250,204,21,.55)}
+.tod-noon #digiLoader{background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 55%,#FEF9C3 100%)}
+.tod-noon .digi-count{color:#075985}
 .tod-noon .btn-primary{background:linear-gradient(135deg,#0284C7,#0C4A6E)}
 .tod-noon .btn-grad{background:linear-gradient(135deg,#FBBF24,#EA580C)}
 .tod-noon .bottom-menu button.on{background:linear-gradient(135deg,#0284C7,#0C4A6E)}
@@ -326,11 +352,11 @@ html.tod-afternoon body,body.tod-afternoon{background:linear-gradient(180deg,#FF
 .tod-afternoon #loginHero{background:linear-gradient(135deg,#FDBA74 0%,#F97316 55%,#9A3412 100%)}
 .tod-afternoon #loginHero::after{right:-20px;top:10px;width:150px;height:150px;background:radial-gradient(circle,#FEF3C7 0%,#FDBA74 45%,#F97316 65%,rgba(249,115,22,0) 75%);opacity:1}
 .tod-afternoon .hero-greet{background:linear-gradient(135deg,#EA580C,#9A3412);border-bottom:3px solid #FDBA74}
-.tod-afternoon #sunriseLoader{background:linear-gradient(180deg,#FFEDD5 0%,#FEF3C7 60%,#FDE68A 100%)}
-.tod-afternoon .sunrise-sun{background:radial-gradient(circle at 35% 35%,#FEF3C7,#FDBA74 45%,#F97316 75%);box-shadow:0 0 40px 10px rgba(249,115,22,.45)}
-.tod-afternoon .sunrise-title{color:#9A3412}
-.tod-afternoon .sunrise-sub{color:#9A3412}
-.tod-afternoon .sunrise-bar i{background:#EA580C}
+.tod-afternoon #digiLoader{background:linear-gradient(180deg,#FFEDD5 0%,#FEF3C7 60%,#FDE68A 100%)}
+.tod-afternoon .digi-count{color:#9A3412}
+.tod-afternoon .digi-title{color:#9A3412}
+.tod-afternoon .digi-sub{color:#9A3412}
+.tod-afternoon .digi-bar i{background:#EA580C}
 .tod-afternoon .btn-primary{background:linear-gradient(135deg,#EA580C,#9A3412)}
 .tod-afternoon .btn-grad{background:linear-gradient(135deg,#F97316,#DC2626)}
 .tod-afternoon .bottom-menu button.on{background:linear-gradient(135deg,#EA580C,#9A3412)}
@@ -350,11 +376,11 @@ html.tod-evening body,body.tod-evening{background:linear-gradient(180deg,#F5F3FF
 .tod-evening #loginHero{background:linear-gradient(135deg,#C084FC 0%,#9333EA 55%,#4C1D95 100%)}
 .tod-evening #loginHero::after{right:10px;top:70px;width:140px;height:140px;background:radial-gradient(circle,#FDE68A 0%,#FB923C 40%,#DC2626 65%,rgba(220,38,38,0) 75%);opacity:1}
 .tod-evening .hero-greet{background:linear-gradient(135deg,#9333EA,#4C1D95);border-bottom:3px solid #FB7185}
-.tod-evening #sunriseLoader{background:linear-gradient(180deg,#EDE9FE 0%,#FCE7F3 55%,#FED7AA 100%)}
-.tod-evening .sunrise-sun{background:radial-gradient(circle at 35% 35%,#FDE68A,#FB923C 45%,#DC2626 75%);box-shadow:0 0 40px 10px rgba(220,38,38,.4)}
-.tod-evening .sunrise-title{color:#6B21A8}
-.tod-evening .sunrise-sub{color:#7E22CE}
-.tod-evening .sunrise-bar i{background:#9333EA}
+.tod-evening #digiLoader{background:linear-gradient(180deg,#EDE9FE 0%,#FCE7F3 55%,#FED7AA 100%)}
+.tod-evening .digi-count{color:#6B21A8}
+.tod-evening .digi-title{color:#6B21A8}
+.tod-evening .digi-sub{color:#7E22CE}
+.tod-evening .digi-bar i{background:#9333EA}
 .tod-evening .btn-primary{background:linear-gradient(135deg,#7C3AED,#4C1D95)}
 .tod-evening .btn-grad{background:linear-gradient(135deg,#EC4899,#7C3AED)}
 .tod-evening .bottom-menu button.on{background:linear-gradient(135deg,#7C3AED,#4C1D95)}
@@ -376,12 +402,12 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 .tod-night #loginHero::after{right:-20px;top:-30px;width:120px;height:120px;background:radial-gradient(circle at 35% 35%,#FFFFFF 0%,#E2E8F0 50%,#94A3B8 80%);box-shadow:0 0 40px 10px rgba(226,232,240,.35);opacity:1}
 .tod-night .hero-greet{background:linear-gradient(135deg,#1E3A5F,#0F172A);border-bottom:3px solid #38BDF8}
 .tod-night .hero-greet-sub{color:#BAE6FD}
-.tod-night #sunriseLoader{background:linear-gradient(180deg,#0F172A 0%,#1E293B 60%,#334155 100%)}
-.tod-night .sunrise-sun{background:radial-gradient(circle at 35% 35%,#FFFFFF,#E2E8F0 45%,#94A3B8 75%);box-shadow:0 0 40px 10px rgba(226,232,240,.35)}
-.tod-night .sunrise-title{color:#E0F2FE}
-.tod-night .sunrise-sub{color:#94A3B8}
-.tod-night .sunrise-bar{background:rgba(56,189,248,.25)}
-.tod-night .sunrise-bar i{background:#38BDF8}
+.tod-night #digiLoader{background:linear-gradient(180deg,#0F172A 0%,#1E293B 60%,#334155 100%)}
+.tod-night .digi-count{color:#E0F2FE}
+.tod-night .digi-title{color:#E0F2FE}
+.tod-night .digi-sub{color:#94A3B8}
+.tod-night .digi-bar{background:rgba(56,189,248,.25)}
+.tod-night .digi-bar i{background:#38BDF8}
 .tod-night .btn-primary{background:linear-gradient(135deg,#0EA5E9,#0369A1)}
 .tod-night .btn-grad{background:linear-gradient(135deg,#38BDF8,#0284C7)}
 .tod-night .bottom-menu button.on{background:linear-gradient(135deg,#0EA5E9,#0369A1)}
@@ -423,7 +449,7 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 .tod-night .footer-card{border-color:#38BDF8}
 .tod-night .toast{background:#0F172A}
 </style></head><body>
-<div id="sunriseLoader"><div class="sunrise-sun"></div><div class="sunrise-title">Telesales Status</div><div class="sunrise-sub" id="loaderSub">নতুন দিনের হিসাব উঠছে…</div><div class="sunrise-bar"><i></i></div></div>
+<div id="digiLoader"><div class="digi-count" id="digiCount">0</div><div class="digi-title">Telesales Status</div><div class="digi-sub" id="loaderSub">নতুন দিনের হিসাব উঠছে…</div><div class="digi-bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
 <div class="top"><div class="top-inner"><div class="brand"><span class="logo-badge"><svg width="40" height="40" viewBox="0 0 84 84"><rect width="84" height="84" rx="20" fill="#0b1026" stroke="#8b5cf6" stroke-width="2"/><text x="42" y="58" font-size="44" font-weight="bold" text-anchor="middle" fill="#fff">T</text><path d="M58 26c4 2 4 8 0 10M64 20c7 4 7 14 0 18" fill="none" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/></svg></span><div><h1>Telesales Agent CRM</h1><p>Telesales (Team-03) • নিজের Agent ID দিয়ে শুধু নিজের লিস্ট</p></div><button type="button" class="btn btn-light btn-sm" id="viewToggleBtn" onclick="toggleViewMode()" style="margin-left:auto;white-space:nowrap" title="ভার্সন বদলান">📱 <span class="vt-txt">মোবাইল ভার্সন</span></button></div></div></div>
 <div class="wrap">
@@ -468,6 +494,7 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 <div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><div><b id="stFtdAmt">৳0</b><span>এফটিডি টাকা</span><small id="stFtdAmtMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
 <div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg><div><b id="stReg">0</b><span>রেজিস্ট্রেশন</span><small id="stRegMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
 </div>
+<div class="digi-meter" id="digiMeter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">বাকি আছে</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div></div>
 <p class="muted" id="weekSummary"></p>
 <div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
@@ -481,12 +508,6 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 <p class="muted" id="syncStatus">লোড হচ্ছে...</p>
 <p class="muted" id="outboxLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px"></p>
 <div id="saveFailBox" style="display:none;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:10px 12px;margin-top:8px"></div>
-<div id="focusWrap" style="display:none">
-<p class="muted" id="focusHeader" style="margin:12px 0 0"></p>
-<div id="focusCard" class="report focus-card" style="margin-top:8px"></div>
-<p class="muted" id="nextStripLabel" style="margin:12px 0 0">পরের:</p>
-<div id="nextStrip" class="row next-strip" style="margin-top:6px"></div>
-</div>
 <div id="list"></div>
 <p class="muted"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg> CALLING STATUS, Valid Conversation, 1st Call Remark, 2nd Call Remark, Others number — সব বদলানো যাবে। “সেভ করুন” চাপলেই শিটে লেখা হবে। নম্বর বদলানো যাবে না।</p>
 </div>
@@ -546,8 +567,6 @@ const firebaseConfig={apiKey:"AIzaSyB03sx0s65ycG3MYcSbB2HfGMigs9DI-r4",authDomai
 let auth=null, token=null, agentId=null, userEmail=null, rows=[], tab='pending', lastStatusMap={};
 let manFtd=0, manFtdAmt=0, manReg=0;
 let typeFilter='';
-let focusRowNum=null; // user-selected focus (sheet row number); null = auto first pending
-let focusBoundRow=null; // sheet row number the rendered focus card is bound to
 let historyMap={};
 let calledRows=[]; let sheetConfigCache=null; let ensuredLogSheets={}; let ensuredReportSheets={}; let verifiedSheets={}; let logMigratedThisSession=false; let lastLogPartialFail=false; let lastReportPartialFail=false; let lastLogReadUsedLegacy=false;
 let selectedDate=dhakaToday();
@@ -1052,7 +1071,6 @@ function renderReminders(){
 window.cancelReminder=(ts)=>{ setReminders(getReminders().filter(e=>e.ts!==ts)); };
 window.openReminderNumber=(num)=>{
   $('search').value=dialNumber(num)||num;
-  const _fr=rows.find(x=>normLogNum(x.number||'')===normLogNum(num)); if(_fr) focusRowNum=_fr.row;
   tab='pending'; typeFilter=''; updateFilterNote(); setTabUI(); showList(); render();
 };
 window.setReminderFor=(num)=>{
@@ -1123,90 +1141,6 @@ function filteredRows(){
   }
   return list;
 }
-/* ---- Call-list focus card (2026-11-10): big number + big Call on top, full list scrolls below ---- */
-function focusModeActive(){
-  return tab==='pending' && !$('search').value.trim() && !typeFilter;
-}
-function pendingList(){ return rows.filter(r=>!r.savedStatus); }
-function getFocusRow(){
-  const pend=pendingList();
-  if(!pend.length) return null;
-  if(focusRowNum!=null){
-    const f=pend.find(r=>r.row===focusRowNum);
-    if(f) return f;
-  }
-  return pend[0];
-}
-function syncFocusInputsToRow(){
-  if(focusBoundRow==null) return;
-  const pr=rows.find(x=>x.row===focusBoundRow);
-  const e1=$('fc-r1'), e2=$('fc-r2'), e3=$('fc-ot');
-  if(!pr||!e1||!e2||!e3) return;
-  pr.remark1=e1.value; pr.remark2=e2.value; pr.others=e3.value;
-  const a=$('r1-'+pr.row), b=$('r2-'+pr.row), c=$('ot-'+pr.row);
-  if(a) a.value=e1.value; if(b) b.value=e2.value; if(c) c.value=e3.value;
-}
-function focusCardHtml(f){
-  const badge=f.status==='call connected'?'badge-ok':f.status==='not connected'?'badge-no':'badge-blank';
-  const _hist=historyMap[normLogNum(f.number||'')]||[];
-  const _histTxt=_hist.length?('আগের কল: '+_hist.slice(0,3).map(d=>displayDay(d)).join(' • ')+(_hist.length>3?' +'+(_hist.length-3)+'টা':'')):'';
-  return `<div class="row"><b class="focus-num" style="flex:1 1 auto">${esc(dialNumber(f.number))}</b><button type="button" class="btn focus-call" style="width:auto;flex:0 0 auto;min-width:150px" onclick="callChooser(${f.row})">📞 Call করুন</button>${f.logTime?`<span class="badge"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fmtTimeBn(f.logTime)}</span>`:''}<span class="badge ${badge}">${f.status==='call connected'?'● call connected':f.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${f.row}</span>${f.prevDay?`<span class="badge">আগের দিনের কল</span>`:''}${f.valid?`<span class="badge">Valid: ${esc(f.valid)}</span>`:''}</div>${_histTxt?`<p class="muted" style="margin:6px 0 0;font-size:12px">${esc(_histTxt)}</p>`:''}
-    <div style="margin-top:10px"><label>CALLING STATUS</label><div class="row" style="margin-top:6px"><button type="button" id="fc-stc-conn" class="chip ${f.status==='call connected'?'chip-on-green':'chip-off'}" onclick="setFocusChip('status','call connected')">Connected</button><button type="button" id="fc-stc-notconn" class="chip ${f.status==='not connected'?'chip-on-rose':'chip-off'}" onclick="setFocusChip('status','not connected')">Not Connected</button></div></div>
-    <div style="margin-top:8px"><label>Valid Conversation</label><div class="row" style="margin-top:6px"><button type="button" id="fc-vcc-yes" class="chip ${f.valid==='Yes'?'chip-on-blue':'chip-off'}" onclick="setFocusChip('valid','Yes')">Yes</button><button type="button" id="fc-vcc-no" class="chip ${f.valid==='No'?'chip-on-grey':'chip-off'}" onclick="setFocusChip('valid','No')">No</button></div></div>
-    <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="fc-r1" value="${esc(f.remark1)}" placeholder="1st call remark লিখুন"></div>
-    <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="fc-r2" value="${esc(f.remark2)}" placeholder="2nd call remark লিখুন"></div>
-    <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="fc-ot" value="${esc(f.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
-    <div class="row" style="margin-top:8px"><button type="button" class="btn btn-light" style="flex:1" onclick="copyChooser(${f.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 📋 নাম্বার Copy করুন</button><button type="button" class="btn btn-light" style="flex:1" onclick="setReminderFor('${esc(dialNumber(f.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> মনে করিয়ে দাও</button></div>
-    <div class="row" style="margin-top:10px"><button type="button" class="btn focus-save" onclick="saveFocusRow()"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> 💾 Save — শিটে জমা দিন</button></div>`;
-}
-function renderFocusCard(){
-  const wrap=$('focusWrap'); if(!wrap) return;
-  syncFocusInputsToRow();
-  if(!focusModeActive()){ wrap.style.display='none'; focusBoundRow=null; return; }
-  const f=getFocusRow();
-  if(!f){ wrap.style.display='none'; focusBoundRow=null; return; }
-  focusRowNum=f.row; focusBoundRow=f.row;
-  const pend=pendingList();
-  $('focusHeader').textContent='কল করুন — একটা করে / '+pend.length+' নম্বর নাম্বার · বাকি আছে '+(pend.length-1)+'টা';
-  $('focusCard').innerHTML=focusCardHtml(f);
-  const idx=pend.findIndex(r=>r.row===f.row);
-  const next=pend.slice(idx+1,idx+11);
-  $('nextStripLabel').style.display=next.length?'block':'none';
-  $('nextStrip').innerHTML=next.map(r=>'<button type="button" class="btn btn-light btn-sm" onclick="setFocusRow('+r.row+')">📞 '+esc(dialNumber(r.number))+'</button>').join('');
-  wrap.style.display='block';
-}
-function refreshFocusChips(){
-  const r=getFocusRow(); if(!r) return;
-  const sc=$('fc-stc-conn'), sn=$('fc-stc-notconn');
-  if(sc)sc.className='chip '+(r.status==='call connected'?'chip-on-green':'chip-off');
-  if(sn)sn.className='chip '+(r.status==='not connected'?'chip-on-rose':'chip-off');
-  const vy=$('fc-vcc-yes'), vn=$('fc-vcc-no');
-  if(vy)vy.className='chip '+(r.valid==='Yes'?'chip-on-blue':'chip-off');
-  if(vn)vn.className='chip '+(r.valid==='No'?'chip-on-grey':'chip-off');
-}
-window.setFocusChip=(kind,value)=>{
-  const r=getFocusRow(); if(!r) return;
-  syncFocusInputsToRow();
-  if(kind==='status'){r.status=(r.status===value)?'':value;}
-  else{r.valid=(r.valid===value)?'':value;}
-  dirty=true; refreshFocusChips(); refreshChips(r.row); saveDraftForRow(r);
-};
-window.setFocusRow=(rowNum)=>{
-  focusRowNum=rowNum;
-  renderFocusCard();
-  const w=$('focusWrap'); if(w) w.scrollIntoView();
-};
-window.saveFocusRow=async ()=>{
-  const r=getFocusRow(); if(!r) return;
-  syncFocusInputsToRow();
-  const pend=pendingList();
-  const idx=pend.findIndex(x=>x.row===r.row);
-  const nxt=pend[idx+1]||pend[0];
-  const ok=await saveRow(r.row);
-  if(!ok) return;
-  focusRowNum=(nxt&&nxt.row!==r.row)?nxt.row:null;
-  renderFocusCard();
-};
 function render(){
   const list=filteredRows();
   $('list').innerHTML=list.length?list.map((r,idx)=>{
@@ -1228,9 +1162,8 @@ function render(){
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-${r.row}" value="${esc(r.remark1)}" placeholder="1st call remark লিখুন"></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-${r.row}" value="${esc(r.remark2)}" placeholder="2nd call remark লিখুন"></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-${r.row}" value="${esc(r.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
-    <div class="row" style="margin-top:10px"><button type="button" class="btn btn-light btn-sm call-btn" onclick="callChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</button><button class="btn btn-light btn-sm" onclick="copyChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button><button type="button" class="btn btn-light btn-sm" onclick="setReminderFor('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> মনে করিয়ে দাও</button><button type="button" class="btn btn-light btn-sm" onclick="setFocusRow(${r.row})">🎯 ফোকাস</button><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> সেভ করুন</button></div></div>`;
+    <div class="row" style="margin-top:10px"><button type="button" class="btn btn-light btn-sm call-btn" onclick="callChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</button><button class="btn btn-light btn-sm" onclick="copyChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button><button type="button" class="btn btn-light btn-sm" onclick="setReminderFor('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> মনে করিয়ে দাও</button><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> সেভ করুন</button></div></div>`;
   }).join(''):'<p class="muted">কোনো রো পাওয়া যায়নি।</p>';
-  renderFocusCard();
 }
 async function copyNum(n){
   try{await navigator.clipboard.writeText(n);toast('Copy হয়েছে');return;}catch(e){}
@@ -1422,9 +1355,10 @@ async function loadDayStats(){
     let connW=0, notConnW=0; filterRangeE(logs,blockStart,blockEnd).forEach(e=>{if(cellE(e,2)==='call connected')connW++;if(cellE(e,2)==='not connected')notConnW++;});
     const ftdWeek=filterRangeE(ftds,blockStart,blockEnd); let ftdSumW=0;
     ftdWeek.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSumW+=v;});
-    $('stConn').textContent=conn; $('stNotConn').textContent=notConn; $('stValid').textContent=valid; $('stInv').textContent=inv; manReg=reg;
-    $('heroCalls').textContent=logs.filter(e=>cellE(e,0)===day).length; $('heroNums').textContent=rows.length; $('heroRemain').textContent=rows.filter(r=>!r.savedStatus).length;
-    const _qr=$('qlRemain'); if(_qr)_qr.textContent=$('heroRemain').textContent;
+    setStatNum($('stConn'),conn); setStatNum($('stNotConn'),notConn); setStatNum($('stValid'),valid); setStatNum($('stInv'),inv); manReg=reg;
+    var _rem=rows.filter(r=>!r.savedStatus).length;
+    setStatNum($('heroCalls'),logs.filter(e=>cellE(e,0)===day).length); setStatNum($('heroNums'),rows.length); setStatNum($('heroRemain'),_rem);
+    const _qr=$('qlRemain'); if(_qr) setStatNum(_qr,_rem);
     const _blk=filterRangeE(logs,blockStart,blockEnd);
     const validW=_blk.filter(e=>cellE(e,3)==='Yes').length;
     const _invSet=new Set(); _blk.forEach(e=>{if(cellE(e,2)==='not connected'&&cellE(e,3)==='No'){const _n=normLogNum(cellE(e,1));if(_n)_invSet.add(_n);}});
@@ -1552,13 +1486,13 @@ function applyStatTiles(){
   const headFtd=auto?auto.ftd:manFtd;
   const headAmt=auto?auto.amt:manFtdAmt;
   const headReg=auto?auto.reg:manReg;
-  $('stFtd').textContent=headFtd;
-  $('stFtdAmt').textContent='৳'+fmtAmt(headAmt);
-  $('stReg').textContent=headReg;
+  setStatNum($('stFtd'),headFtd);
+  setStatNum($('stFtdAmt'),headAmt,{prefix:'৳',fmt:fmtAmt});
+  setStatNum($('stReg'),headReg);
   setTileSub('stFtdMan',auto?('ম্যানুয়াল: '+manFtd+'টা'):null);
   setTileSub('stFtdAmtMan',auto?('ম্যানুয়াল: ৳'+fmtAmt(manFtdAmt)):null);
   setTileSub('stRegMan',auto?('ম্যানুয়াল: '+manReg+'টা'):null);
-  const _qf=$('qlFtd'); if(_qf)_qf.textContent=headFtd;
+  const _qf=$('qlFtd'); if(_qf) setStatNum(_qf,headFtd);
 }
 async function loadCommissionWeek(){
   if(!token) return;
@@ -1605,7 +1539,7 @@ async function loadFtdUsers(){
     const todayCount=users.filter(u=>u.depDate===today).length;
     let lastSync='';users.forEach(u=>{if(u.syncedAt&&(!lastSync||u.syncedAt>lastSync))lastSync=u.syncedAt;});
     $('ftdUsersSummary').textContent='মোট '+users.length+' জন • আজ '+todayCount+' জন'+(lastSync?' • সর্বশেষ আপডেট: '+lastSync:'');
-    const _qu=$('qlFtdUsers'); if(_qu)_qu.textContent=users.length;
+    const _qu=$('qlFtdUsers'); if(_qu) setStatNum(_qu,users.length);
     $('ftdUsersList').innerHTML=users.length?users.map(u=>'<div class="entry"><span><b>'+esc(u.username)+'</b> — ৳'+fmtAmt(parseFloat(u.amount)||0)+'<br><small class="muted">জমা: '+(esc(u.depDate)||'—')+' • অ্যাকাউন্ট: '+(esc(u.created)||'—')+' • শেষ লগইন: '+(esc(u.lastLogin)||'—')+'</small></span></div>').join(''):'<p class="muted">কোনো এফটিডি ইউজার নেই।</p>';
   }catch(e){$('ftdUsersSummary').textContent='লোড হয়নি, আবার চেষ্টা করুন';}
 }
@@ -1676,5 +1610,40 @@ $('repNextDayBtn').onclick=()=>shiftRepDay(1);
 $('repTodayBtn').onclick=()=>{reportDate=dhakaToday();updateRepDateBtn();$('reportOut').style.display='none';loadReportData();};
 $('repDateBtn').onclick=()=>{const inp=document.createElement('input');inp.type='date';inp.value=reportDate;inp.max=dhakaToday();inp.style.position='fixed';inp.style.opacity='0';document.body.appendChild(inp);inp.onchange=()=>{if(inp.value){reportDate=inp.value;updateRepDateBtn();$('reportOut').style.display='none';loadReportData();}inp.remove();};if(inp.showPicker)inp.showPicker();else inp.click();};
 setTabUI(); updateDateBtn();
-setTimeout(function(){var _sl=document.getElementById('sunriseLoader');if(_sl)_sl.style.display='none';},2600);
+/* ---- Digital dashboard animation (2026-11-10): stat numbers count up
+   0 -> value in ~800ms (setStatNum); tiles glow-pulse and the segmented
+   meter lights in sequence (CSS). Loader % counter 0 -> 100. ---- */
+function setStatNum(el,target,opts){
+  if(!el) return;
+  var prefix=(opts&&opts.prefix)||'';
+  var fmt=(opts&&opts.fmt)||function(n){return String(n);};
+  var tgt=Number(target)||0;
+  var cur=(typeof el._numVal==='number')?el._numVal:0;
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches){ el.textContent=prefix+fmt(tgt); el._numVal=tgt; return; }
+  if(cur===tgt){ el.textContent=prefix+fmt(tgt); el._numVal=tgt; return; }
+  if(el._numRaf) cancelAnimationFrame(el._numRaf);
+  var start=cur, t0=null, dur=800;
+  function step(ts){
+    if(t0===null) t0=ts;
+    var p=Math.min(1,(ts-t0)/dur);
+    if(p>=1){ el.textContent=prefix+fmt(tgt); el._numVal=tgt; el._numRaf=null; return; }
+    var v=Math.round(start+(tgt-start)*(1-Math.pow(1-p,3)));
+    el.textContent=prefix+fmt(v);
+    el._numRaf=requestAnimationFrame(step);
+  }
+  el._numRaf=requestAnimationFrame(step);
+}
+/* Loader % counter: 0 -> 100 over ~1.5s (the loader fades at 1.6s). */
+(function(){
+  var c=document.getElementById('digiCount'); if(!c) return;
+  var t0=null, dur=1500;
+  function step(ts){
+    if(t0===null) t0=ts;
+    var p=Math.min(1,(ts-t0)/dur);
+    c.textContent=Math.round(p*100);
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+setTimeout(function(){var _sl=document.getElementById('digiLoader');if(_sl)_sl.style.display='none';},2600);
 </script></body></html>
