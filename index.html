@@ -84,7 +84,7 @@ pre.out{white-space:pre-wrap;background:rgba(0,0,0,.3);border-radius:12px;paddin
 #agentLabel{background:rgba(124,58,237,.45);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700}
 .date-nav .btn{font-weight:700}
 #dateBtn,#repDateBtn{font-size:15px}
-#googleBtn{width:100%;font-size:16px}
+#loginBtn{width:100%;font-size:16px}
 .stats-grid.hero .stat b{font-size:26px}
 #syncStatus{background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px}
 #weekSummary{margin-top:14px}
@@ -103,84 +103,99 @@ button:focus-visible,a:focus-visible{outline:2px solid #c7d2fe;outline-offset:2p
 #list .report .btn{min-height:40px}
 #list .report input,#list .report select{padding:11px 12px}
 
-/* ===== NEON ORBIT skin (user pick: deep space-blue + cyan + coral) ===== */
-body{background:radial-gradient(1200px 600px at 80% -10%,rgba(34,211,238,.14),transparent 60%),radial-gradient(900px 500px at 0% 110%,rgba(251,113,133,.12),transparent 60%),linear-gradient(180deg,#04061A,#070D2B 55%,#04061A);color:#F1F5F9}
-.aurora::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.16) 1px,transparent 1.4px);background-size:110px 110px;opacity:.5}
-.aurora .b1{background:#0EA5E9}
-.aurora .b2{background:#22D3EE}
-.aurora .b3{background:#FB7185}
-.aurora .b4{background:#6366F1}
-.top{background:rgba(7,13,43,.92);border-bottom:1px solid rgba(34,211,238,.25)}
-.logo-badge rect{fill:#070D2B;stroke:#22D3EE}
-.logo-badge path{stroke:#FB7185}
-.card{background:linear-gradient(160deg,rgba(34,211,238,.07),rgba(10,18,48,.72));border:1px solid rgba(34,211,238,.22);box-shadow:0 12px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)}
-#loginCard{background:linear-gradient(160deg,rgba(34,211,238,.16),rgba(7,13,43,.85) 55%,rgba(251,113,133,.10));border:1px solid rgba(34,211,238,.4);box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 48px rgba(34,211,238,.18);animation:cardFloat 6s ease-in-out infinite}
-@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-#googleBtn{background:#fff;color:#1F2937}
-#googleBtn:hover{box-shadow:0 0 0 3px rgba(34,211,238,.5)}
-.btn-primary{background:linear-gradient(135deg,#22D3EE,#0EA5E9);color:#03202B}
-.btn-grad{background:linear-gradient(135deg,#FB7185,#F43F5E)}
-.btn-light{background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.25)}
-.tab-on{background:linear-gradient(135deg,#22D3EE,#0EA5E9)!important;color:#03202B!important}
-input,select,textarea{background:rgba(10,18,48,.6);border-color:rgba(34,211,238,.3)}
-input::placeholder,textarea::placeholder{color:#7C8DB5}
-input:focus,select:focus,textarea:focus{outline:2px solid #22D3EE;outline-offset:1px;border-color:#22D3EE}
-button:focus-visible,a:focus-visible{outline:2px solid #67E8F9;outline-offset:2px}
-::selection{background:rgba(34,211,238,.35)}
-.muted{color:#A5B4D4}
-.s-blue{background:rgba(34,211,238,.16);border:1px solid rgba(34,211,238,.45)}
-.s-green{background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.4)}
-.s-rose{background:rgba(251,113,133,.14);border:1px solid rgba(251,113,133,.42)}
-.s-violet{background:rgba(139,92,246,.16);border:1px solid rgba(167,139,250,.45)}
-.stats-grid.tiles .stat:nth-child(5){grid-column:span 2;background:linear-gradient(135deg,rgba(251,113,133,.28),rgba(34,211,238,.18));border:1px solid rgba(251,113,133,.55)}
-.bottom-menu{background:rgba(7,13,43,.95);border-top:1px solid rgba(34,211,238,.25)}
-.bottom-menu button{color:#8FA3C8}
-.bottom-menu button.on{background:linear-gradient(135deg,#22D3EE,#0EA5E9);color:#03202B}
-#agentLabel{background:rgba(34,211,238,.25)}
-.toast{background:#0A1230;border:1px solid rgba(34,211,238,.4)}
-#syncStatus{background:rgba(34,211,238,.08)}
-#targetLine{background:rgba(34,211,238,.08)!important}
-#outboxLine{background:rgba(251,191,36,.08)!important}
-.chip{border-color:rgba(34,211,238,.3);background:rgba(10,18,48,.5)}
-.chip-on-green{background:rgba(52,211,153,.85);border:2px solid #34D399}
-.chip-on-rose{background:rgba(251,113,133,.85);border:2px solid #FB7185}
-.chip-on-blue{background:rgba(34,211,238,.85);border:2px solid #22D3EE;color:#03202B}
-.chip-on-grey{background:rgba(148,163,184,.8);border:2px solid #94A3B8}
-.report{background:rgba(10,18,48,.55);border-color:rgba(34,211,238,.2)}
-.entry{border-bottom:1px solid rgba(34,211,238,.14)}
-pre.out{background:rgba(4,6,26,.6)}
-.badge-ok{background:#065F46}.badge-no{background:#7F1D2D}.badge-blank{background:#713F12}
-.guide-sec p{color:#C7D2EE}
-.user-bar{background:rgba(34,211,238,.07);border-color:rgba(34,211,238,.2)}
-/* hero progress rings (decorative orbit rings around the 3 hero numbers) */
-.stats-grid.hero .stat b{position:relative;width:88px;height:88px;margin:0 auto 8px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:transparent;z-index:0}
-.stats-grid.hero .stat b::before{content:"";position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(from 0deg,#22D3EE,#0EA5E9 35%,#FB7185 62%,rgba(34,211,238,.14) 62%,rgba(34,211,238,.14));animation:orbitSpin 14s linear infinite;z-index:-1}
-.stats-grid.hero .stat b::after{content:"";position:absolute;inset:0;border-radius:50%;background:#0A1230;z-index:-1}
-@keyframes orbitSpin{to{transform:rotate(360deg)}}
-/* orbit loading overlay (entry animation, fades out by CSS only, never blocks clicks) */
-#orbitLoader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(800px 500px at 50% 40%,rgba(34,211,238,.16),transparent 65%),linear-gradient(180deg,#04061A,#070D2B);pointer-events:none;animation:loaderOut .6s ease 1.6s forwards}
-@keyframes loaderOut{to{opacity:0;visibility:hidden}}
-.orbit-wrap{position:relative;width:140px;height:140px}
-.orbit-core{position:absolute;inset:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:#fff;background:linear-gradient(135deg,#22D3EE,#0EA5E9);box-shadow:0 0 40px rgba(34,211,238,.6)}
-.orbit-ring{position:absolute;border-radius:50%;border:1px solid rgba(34,211,238,.35)}
-.orbit-ring.r1{inset:14px;animation:orbitSpin 3s linear infinite}
-.orbit-ring.r2{inset:0;border-color:rgba(251,113,133,.35);animation:orbitSpin 5s linear infinite reverse}
-.orbit-dot{position:absolute;width:10px;height:10px;border-radius:50%;background:#22D3EE;box-shadow:0 0 12px #22D3EE;top:-5px;left:50%;margin-left:-5px}
-.orbit-dot.d2{background:#FB7185;box-shadow:0 0 12px #FB7185}
-.orbit-title{font-size:20px;font-weight:800;letter-spacing:.5px}
-.orbit-bar{width:180px;height:6px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
-.orbit-bar span{display:block;height:100%;width:40%;border-radius:999px;background:linear-gradient(90deg,#22D3EE,#FB7185);animation:orbitShimmer 1.2s ease-in-out infinite alternate}
-@keyframes orbitShimmer{from{transform:translateX(-10%)}to{transform:translateX(160%)}}
-.orbit-sub{color:#A5B4D4;font-size:14px}
-
+/* ===== HERO COVER SKIN (design 3) — style override, appended 2026-11-10 ===== */
+body{background:linear-gradient(180deg,#F0F9FF 0%,#E0F2FE 45%,#F0F9FF 100%);color:#0F2A43}
+.aurora{display:none}
+.top{background:linear-gradient(135deg,#0284C7,#075985);border-bottom:3px solid #F59E0B}
+.top h1{color:#fff}
+.top p{color:#E0F2FE}
+.top .logo-badge rect{fill:#0C4A6E}
+.top .logo-badge path{stroke:#FCD34D}
+.card{background:#fff;border:1px solid #BAE6FD;border-radius:20px;box-shadow:0 8px 24px rgba(2,132,199,.12)}
+.card h2{color:#075985}
+.card h3{color:#075985}
+.muted{color:#64748B}
+.btn-primary{background:linear-gradient(135deg,#0284C7,#075985)}
+.btn-grad{background:linear-gradient(135deg,#F59E0B,#F97316)}
+.btn-light{background:#E0F2FE;color:#075985}
+input,select,textarea{background:#fff;border:1px solid #BAE6FD;color:#0F2A43}
+input::placeholder,textarea::placeholder{color:#94A3B8}
+label{color:#075985}
+.chip{background:#fff;border:1px solid #BAE6FD;color:#075985}
+.chip-off{background:#fff;border-color:#BAE6FD;color:#075985}
+.report{border:1px solid #BAE6FD;background:#F0F9FF}
+.entry{border-bottom:1px solid #E0F2FE}
+pre.out{background:#F0F9FF;border:1px solid #BAE6FD;color:#0F2A43}
+.guide-sec p{color:#334155}
+.tab-on{background:linear-gradient(135deg,#0284C7,#075985)!important}
+.bottom-menu{background:rgba(255,255,255,.97);border-top:1px solid #BAE6FD}
+.bottom-menu button{color:#64748B}
+.bottom-menu button.on{background:linear-gradient(135deg,#0284C7,#075985);color:#fff}
+.toast{background:#0C4A6E}
+.user-bar{background:#fff;border:1px solid #BAE6FD}
+#agentLabel{background:#FEF3C7;color:#92400E}
+#weekSummary{background:#fff;border:1px solid #BAE6FD;border-radius:12px;padding:10px 12px;color:#475569}
+#syncStatus{background:#E0F2FE;color:#075985}
+#targetLine{background:#FEF9C3!important;color:#92400E}
+#outboxLine{background:#FEF9C3!important;color:#92400E}
+.stat b{color:#075985}
+.stat span{color:#475569}
+.stats-grid.hero .stat{background:#fff;border:1px solid #BAE6FD;border-top:4px solid #0284C7}
+.stats-grid.hero .stat svg{stroke:#0284C7}
+.stats-grid.tiles .stat{background:#fff;border:1px solid #BAE6FD}
+.stats-grid.tiles .stat svg{stroke:#0284C7}
+.s-blue{background:#E0F2FE!important;border:1px solid #7DD3FC!important}
+.s-green{background:#DCFCE7!important;border:1px solid #86EFAC!important}
+.s-rose{background:#FFE4E6!important;border:1px solid #FDA4AF!important}
+.s-violet{background:#FEF9C3!important;border:1px solid #FDE68A!important}
+input:focus,select:focus,textarea:focus{outline:2px solid #0284C7;outline-offset:1px;border-color:#0284C7}
+button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2px}
+.xbtn{background:#E0F2FE;color:#075985}
+.footer-card{border-color:#F59E0B}
+/* --- login hero banner + overlapping card --- */
+#loginHero{display:block;background:linear-gradient(135deg,#38BDF8 0%,#0284C7 55%,#075985 100%);border-radius:20px 20px 0 0;padding:26px 22px 66px;color:#fff;position:relative;overflow:hidden;margin-top:16px}
+#loginHero::after{content:"";position:absolute;right:-30px;top:-34px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,#FDE68A 0%,#F59E0B 55%,rgba(245,158,11,0) 72%);opacity:.9}
+#loginHero .hero-eyebrow{position:relative;z-index:1;font-size:11px;font-weight:800;letter-spacing:.08em;color:#FEF9C3}
+#loginHero .hero-title{position:relative;z-index:1;font-size:21px;font-weight:800;line-height:1.3;margin-top:4px}
+#loginCard[style*="display: none"] ~ #loginHero{display:none}
+#loginCard{margin-top:-46px;position:relative;z-index:2}
+/* --- dashboard greeting banner --- */
+.hero-greet{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#0284C7,#075985);color:#fff;border-radius:16px;padding:14px 16px;margin-top:12px;border-bottom:3px solid #F59E0B}
+.hero-greet-text{font-weight:800;font-size:17px}
+.hero-greet-sub{font-size:12px;color:#E0F2FE}
+/* --- 7-day FTD bar chart --- */
+.hero-week{background:#fff;border:1px solid #BAE6FD;border-radius:16px;padding:14px 16px;margin-top:14px}
+.hero-week-title{font-size:13px;font-weight:800;color:#075985;margin-bottom:10px}
+.hero-weekbars{display:flex;align-items:flex-end;gap:8px;height:92px}
+.hero-bar{flex:1;height:var(--h);background:#38BDF8;border-radius:6px 6px 0 0;min-height:6px}
+.hero-bar-today{background:#F59E0B}
+.hero-weekdays{display:flex;justify-content:space-between;font-size:11px;color:#64748B;margin-top:6px}
+.hero-weekdays span{flex:1;text-align:center}
+/* --- sunrise loader (entry only, CSS-only, never blocks clicks) --- */
+#sunriseLoader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 60%,#FEF9C3 100%);pointer-events:none;animation:sunriseOut .5s ease 1.6s forwards}
+.sunrise-sun{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FEF3C7,#FCD34D 45%,#F59E0B 75%);box-shadow:0 0 40px 10px rgba(245,158,11,.45);animation:sunriseRise 1.2s ease-out both}
+.sunrise-title{font-weight:800;font-size:20px;color:#075985;margin-top:16px}
+.sunrise-sub{color:#0369A1;font-size:13px;margin-top:4px}
+.sunrise-bar{width:180px;height:6px;border-radius:999px;background:rgba(3,105,161,.18);margin-top:16px;overflow:hidden}
+.sunrise-bar i{display:block;height:100%;width:40%;border-radius:999px;background:#0284C7;animation:sunriseFill 1.6s ease forwards}
+@keyframes sunriseRise{from{transform:translateY(26px) scale(.85);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes sunriseFill{from{width:8%}to{width:100%}}
+@keyframes sunriseOut{to{opacity:0;visibility:hidden}}
+@media(max-width:480px){
+#loginHero{padding:20px 16px 56px}
+#loginHero .hero-title{font-size:18px}
+#loginCard{margin-top:-40px}
+.stats-grid.tiles{grid-template-columns:1fr}
+.hero-greet-text{font-size:15px}
+}
 </style></head><body>
-<div id="orbitLoader" aria-hidden="true"><div class="orbit-wrap"><div class="orbit-ring r1"><span class="orbit-dot d1"></span></div><div class="orbit-ring r2"><span class="orbit-dot d2"></span></div><div class="orbit-core">T</div></div><div class="orbit-title">Telesales Agent CRM</div><div class="orbit-bar"><span></span></div><div class="orbit-sub">লোড হচ্ছে...</div></div>
+<div id="sunriseLoader"><div class="sunrise-sun"></div><div class="sunrise-title">Telesales Status</div><div class="sunrise-sub">নতুন দিনের হিসাব উঠছে…</div><div class="sunrise-bar"><i></i></div></div>
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
 <div class="top"><div class="top-inner"><div class="brand"><span class="logo-badge"><svg width="40" height="40" viewBox="0 0 84 84"><rect width="84" height="84" rx="20" fill="#0b1026" stroke="#8b5cf6" stroke-width="2"/><text x="42" y="58" font-size="44" font-weight="bold" text-anchor="middle" fill="#fff">T</text><path d="M58 26c4 2 4 8 0 10M64 20c7 4 7 14 0 18" fill="none" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/></svg></span><div><h1>Telesales Agent CRM</h1><p>Telesales (Team-03) • নিজের Agent ID দিয়ে শুধু নিজের লিস্ট</p></div></div></div></div>
 <div class="wrap">
 
-<div class="card" id="loginCard"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> লগইন করুন</h2><p class="muted">Continue with Google দিয়ে লগইন করুন। শিটে লেখার জন্য Google Sheets অনুমতি চাওয়া হবে — এটা ছাড়া স্ট্যাটাস আপডেট হবে না।</p>
-<button class="btn btn-primary" id="googleBtn"><svg class="ic" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75z"/></svg> Continue with Google</button><p class="muted" id="loginMsg"></p></div>
+<div class="card" id="loginCard"><label for="loginEmail">📧 Gmail ঠিকানা</label><input id="loginEmail" type="email" placeholder="agent@gmail.com" autocomplete="email"><label for="loginAgentId" style="margin-top:12px">🪪 Agent ID</label><input id="loginAgentId" placeholder="Agent ID লিখুন (যেমন bdxsukuna03)"><div class="row" style="margin-top:14px"><button class="btn btn-primary" id="loginBtn" style="flex:1">লগইন করুন →</button></div><p class="muted">লগইন চাপলে Google আপনার Gmail-এর অনুমতির পাতা খুলবে — শিটে লেখার জন্য এই অনুমতি দরকার। পাসওয়ার্ড এই সাইটে কখনো চাওয়া হবে না।</p><p class="muted" id="loginMsg"></p></div>
+<div class="hero-cover" id="loginHero"><div class="hero-eyebrow">TELESALES STATUS</div><div class="hero-title">সুপ্রভাত! আজকের<br>হিসাব দেখে নিন ☀️</div></div>
 
 <div class="card" id="agentCard" style="display:none"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M5.8 16.5c.5-1.6 1.5-2.3 2.7-2.3s2.2.7 2.7 2.3"/><line x1="15" y1="9" x2="19" y2="9"/><line x1="15" y1="13" x2="19" y2="13"/></svg> Agent ID দিন</h2><p class="muted">আপনার Agent ID (আপনার ট্যাবের নাম, যেমন bdxsukuna30) লিখুন — শুধু আপনার লিস্ট দেখাবে।</p>
 <label for="agentInput">Agent ID</label><input id="agentInput" placeholder="Agent ID লিখুন">
@@ -203,6 +218,7 @@ pre.out{background:rgba(4,6,26,.6)}
 <div id="mainView" style="display:none">
 <div class="card"><div class="row user-bar" style="justify-content:space-between"><span><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <b id="userEmail"></b> • <span id="agentLabel"></span></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
 <div id="dashView">
+<div class="hero-greet" id="heroGreet"><span class="hero-greet-text">স্বাগতম 👋</span><span class="hero-greet-sub">আজকের হিসাব দেখে নিন</span></div>
 <div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>
 <div class="row stats-grid hero" style="margin-top:12px">
 <div class="stat s-blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><b id="heroCalls">0</b><span>মোট কল (এই দিন)</span></div>
@@ -219,6 +235,7 @@ pre.out{background:rgba(4,6,26,.6)}
 <div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg><div><b id="stReg">0</b><span>রেজিস্ট্রেশন</span></div></div>
 </div>
 <p class="muted" id="weekSummary"></p>
+<div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars"><div class="hero-bar" style="--h:38%"></div><div class="hero-bar" style="--h:55%"></div><div class="hero-bar" style="--h:44%"></div><div class="hero-bar" style="--h:70%"></div><div class="hero-bar" style="--h:60%"></div><div class="hero-bar" style="--h:88%"></div><div class="hero-bar hero-bar-today" style="--h:100%"></div></div><div class="hero-weekdays"><span>শনি</span><span>রবি</span><span>সোম</span><span>মঙ্গল</span><span>বুধ</span><span>বৃহঃ</span><span>আজ</span></div></div>
 <p class="muted" id="targetLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px"></p>
 <div class="card" id="remindCard" style="display:none;margin-top:12px;padding:14px 16px"><b>মনে করিয়ে দেওয়া</b><div id="remindList" style="margin-top:8px"></div></div>
 </div>
@@ -246,7 +263,7 @@ pre.out{background:rgba(4,6,26,.6)}
 </div></div>
 <div id="guideView" style="display:none"><div class="card">
 <h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> ইউজার গাইড</h2>
-<div class="guide-sec"><h3>১. লগইন</h3><p>গুগল দিয়ে চালিয়ে যান চাপুন, আপনার জিমেইল দিয়ে লগইন করুন। প্রথমবার এজেন্ট আইডি চাইবে — আপনার ট্যাবের নাম (যেমন bdxsukuna03) লিখুন। এরপর থেকে ওই জিমেইলে লগইন করলেই সরাসরি আপনার লিস্ট খুলবে। উপরে আপনার জিমেইলের পাশে লগআউট বোতাম আছে।</p></div>
+<div class="guide-sec"><h3>১. লগইন</h3><p>Gmail ঠিকানা আর Agent ID (আপনার ট্যাবের নাম, যেমন bdxsukuna03) লিখে লগইন করুন চাপুন। Google আপনার ওই Gmail-এর অনুমতির পাতা খুলবে — সেখানে অনুমতি দিলেই আপনার লিস্ট খুলবে। এরপর থেকে ওই জিমেইলে লগইন করলেই সরাসরি আপনার লিস্ট খুলবে। উপরে আপনার জিমেইলের পাশে লগআউট বোতাম আছে।</p></div>
 <div class="guide-sec"><h3>২. কল লিস্ট</h3><p>কল লিস্টে নাম্বারগুলো থাকে। কল বাকি ট্যাবে যেসব নাম্বারে এখনো কল করা হয়নি, সেগুলো থাকে। কল করে স্ট্যাটাস দিলে সেটা কল করা হয়েছে ট্যাবে চলে যাবে। ড্যাশবোর্ডে তারিখ বদলে ওই দিনের হিসাব দেখতে পারবেন। সার্চ বক্সে নাম্বার লিখে খুঁজতে পারবেন। রিফ্রেশ চাপলে শিট থেকে নতুন লিস্ট আসবে।</p></div>
 <div class="guide-sec"><h3>৩. কল করা ও স্ট্যাটাস দেওয়া</h3><p>কল চাপলে কল যাবে। কপি চাপলে নাম্বার কপি হবে। কল করার পর স্ট্যাটাস দিন, তারপর সেভ চাপুন। সেভ না চাপলে শিটে কিছু বদলাবে না। স্ট্যাটাস দেওয়ার সময়টা (কয়টা বাজে দিয়েছেন) নাম্বারের উপরে দেখা যাবে।</p>
 <p><b>কল Connected কখন দিবেন:</b> যখন কলটা ধরেছে — অর্থাৎ কেউ ফোন রিসিভ করেছে — তখন Connected দিবেন।</p>
@@ -257,8 +274,7 @@ pre.out{background:rgba(4,6,26,.6)}
 <p><b>২য় কল রিমার্ক:</b> দ্বিতীয়বার কল করে যা জানলেন, সেটা এখানে লিখবেন।</p>
 <p><b>অন্যান্য নাম্বার:</b> কাস্টমারের যদি আরেকটা এক্সট্রা নাম্বার থাকে, সেটা এখানে অ্যাড করতে পারবেন।</p></div>
 <div class="guide-sec"><h3>৪. রিপোর্ট</h3><p>নিচের মেনু থেকে রিপোর্ট-এ গেলে দিনের হিসাব দেওয়া যায়: রেজিস্ট্রেশন (সংখ্যা লিখে + যোগ করুন চাপুন; প্রতিটা এন্ট্রির পাশের ✕ চাপলে সেটা বাদ যাবে; কোনো টাকা চাওয়া হবে না), এফটিডি (+ চাপলে একটা করে বাড়বে; প্রতিবার নিচে ওই এফটিডি-র টাকাটা লিখতে হবে), Invalid নাম্বার (আলাদা করে লিখতে হবে না — নিজে থেকে হিসাব হয়), সমস্যা (কাজের সময় কোনো সমস্যা হলে এখানে লিখুন)। রিপোর্ট বানান চাপলে নির্বাচিত তারিখ, সময়, এজেন্ট আইডি, মোট কল, Connected, রেজিস্ট্রেশন, এফটিডি, মোট টাকা, Invalid আর সমস্যা দিয়ে রিপোর্ট তৈরি হবে। কপি চাপলে পুরো রিপোর্ট কপি হবে।</p></div>
-<div class="guide-sec"><h3>৫. ওয়েবসাইট বাটন</h3><p>নিচের মেনু থেকে ওয়েবসাইট চাপলে 12bajeevip ওয়েবসাইট নতুন ট্যাবে খুলবে।</p></div>
-<div class="guide-sec"><h3>৬. দিনের হিসাব (ড্যাশবোর্ড)</h3><p>ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, এফটিডি, এফটিডি টাকা আর রেজিস্ট্রেশন দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে। উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।</p></div>
+<div class="guide-sec"><h3>৫. দিনের হিসাব (ড্যাশবোর্ড)</h3><p>ড্যাশবোর্ডে ওই দিনের Connected, Not Connected, Valid, Invalid, এফটিডি, এফটিডি টাকা আর রেজিস্ট্রেশন দেখায়। নিচে ৭ দিনের মোট হিসাবের লাইনও থাকে। উপরে মোট কল ওই দিনের সব কল, আর মোট নাম্বার লিস্টের সব নাম্বার দেখায়।</p></div>
 <div class="card footer-card"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> অ্যাপ ডাউনলোড (APK)</h2><p class="muted">ফোনে অ্যাপ হিসেবে ব্যবহার করতে চাইলে APK ডাউনলোড করে ইনস্টল করুন। ইনস্টলের সময় “Install unknown apps” অনুমতি চাইলে Allow করবেন।</p><a class="btn btn-primary" href="telesales-status.apk" style="text-decoration:none;display:inline-block"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> APK ডাউনলোড করুন</a></div>
 </div></div>
 </div>
@@ -266,7 +282,6 @@ pre.out{background:rgba(4,6,26,.6)}
 <button type="button" id="bmDash"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>ড্যাশবোর্ড</button>
 <button type="button" id="bmList"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>কল লিস্ট</button>
 <button type="button" id="bmReport"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>রিপোর্ট</button>
-<button type="button" id="bmSite"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>ওয়েবসাইট</button>
 <button type="button" id="bmGuide"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>ইউজার গাইড</button>
 </nav>
 <div class="toast" id="toast"></div>
@@ -310,32 +325,60 @@ const ADMIN_EMAIL='shihabno.18@gmail.com';
 function showAdmin(){window.scrollTo(0,0);$('loginCard').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='block';$('guideView').style.display='none';$('bottomMenu').style.display='none';$('adminMsg').textContent='';refreshAdminSheetSection();}
 function showReport(){window.scrollTo(0,0);reportDate=dhakaToday();updateRepDateBtn();$('mainView').style.display='none';$('reportView').style.display='block';$('guideView').style.display='none';$('bottomMenu').style.display='flex';setBm('bmReport');loadReportData()}
 function showGuide(){window.scrollTo(0,0);$('loginCard').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='block';$('bottomMenu').style.display='flex';setBm('bmGuide');}
-function setBm(id){['bmDash','bmList','bmReport','bmSite','bmGuide'].forEach(x=>{const b=$(x);if(b)b.classList.toggle('on',x===id);});}
+function setBm(id){['bmDash','bmList','bmReport','bmGuide'].forEach(x=>{const b=$(x);if(b)b.classList.toggle('on',x===id);});}
 function updateDateBtn(){$('dateBtn').textContent=displayDay(selectedDate)+(selectedDate===dhakaToday()?' • আজ':'')}
 function shiftDay(d){const nd=addDays(selectedDate,d);if(nd>dhakaToday())return;selectedDate=nd;updateDateBtn();loadDayStats()}
 try{if(window.firebase){firebase.initializeApp(firebaseConfig);auth=firebase.auth();}}catch(e){}
 function authExpired(){try{localStorage.removeItem('g_token');localStorage.removeItem('g_token_exp');}catch(e){}token=null;showLogin();$('loginMsg').textContent='লগইনের মেয়াদ শেষ — আবার লগইন করুন।';}
-function afterLogin(res){
+async function afterLogin(res){
+  var email=(res.user.email||'').toLowerCase();
+  var pendingEmail='';var pendingAgent='';
+  try{pendingEmail=(localStorage.getItem('pending_login_email')||'').toLowerCase();pendingAgent=localStorage.getItem('pending_login_agent')||'';}catch(e){}
+  if(pendingEmail&&email!==pendingEmail){
+    $('loginMsg').textContent='এই Gmail-টি ফর্মে লেখা Gmail-এর সাথে মিলছে না — সঠিক Gmail দিয়ে আবার চেষ্টা করুন।';
+    try{localStorage.removeItem('pending_login_email');localStorage.removeItem('pending_login_agent');}catch(e){}
+    if(auth)auth.signOut();
+    return;
+  }
     token=res.credential && res.credential.accessToken;
     try{if(token){localStorage.setItem('g_token',token);localStorage.setItem('g_token_exp',String(Date.now()+3500000));}}catch(e){}
     if(!token){$('loginMsg').textContent='Sheets অনুমতি পাওয়া যায়নি, আবার লগইন করুন।';return;}
     $('userEmail').textContent=res.user.email; userEmail=res.user.email;
-    if(res.user.email.toLowerCase()===ADMIN_EMAIL){showAdmin();return;}
+    if(email===ADMIN_EMAIL){showAdmin();return;}
+    if(pendingAgent){
+      $('loginMsg').textContent='Agent ID যাচাই হচ্ছে...';
+      try{
+        await tryRefreshConfig();
+        const titles=await getTabsFor(currentNumbersId());
+        const match=titles.find(t=>t===pendingAgent)||titles.find(t=>t.toLowerCase()===pendingAgent.toLowerCase());
+        if(!match){$('loginMsg').textContent='এই Agent ID-তে কোনো লিস্ট পাইনি।';return;}
+        agentId=match; localStorage.setItem('agent_id',match); if(userEmail) localStorage.setItem('agent_email',userEmail);
+        try{localStorage.removeItem('pending_login_email');localStorage.removeItem('pending_login_agent');}catch(e){}
+        showMain(); loadRows(); return;
+      }catch(e){$('loginMsg').textContent='যাচাই হয়নি, আবার চেষ্টা করুন।';return;}
+    }
     const saved=localStorage.getItem('agent_id');
     const savedEmail=localStorage.getItem('agent_email');
-    if(saved && savedEmail && savedEmail.toLowerCase()===res.user.email.toLowerCase()){agentId=saved;showMain();loadRows();}
+    if(saved && savedEmail && savedEmail.toLowerCase()===email){agentId=saved;showMain();loadRows();}
     else showAgent();
 }
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 // auto-restore: ager login-er token thakle ar meyad thakle sorasori dashboard (abar login lagbe na)
 (function(){try{var t=localStorage.getItem('g_token'),ex=parseInt(localStorage.getItem('g_token_exp')||'0',10),sv=localStorage.getItem('agent_id'),se=localStorage.getItem('agent_email');if(t&&ex>Date.now()&&sv&&se){token=t;userEmail=se;agentId=sv;$('userEmail').textContent=se;showMain();loadRows();}}catch(e){}})();
 if(auth){auth.getRedirectResult().then(res=>{if(res&&res.user)afterLogin(res);}).catch(()=>{$('loginMsg').textContent='লগইন হয়নি, আবার চেষ্টা করুন।';});}
-$('googleBtn').onclick=async()=>{
+$('loginBtn').onclick=async()=>{
+  const em=$('loginEmail').value.trim();
+  const ag=$('loginAgentId').value.trim();
+  if(!em){$('loginMsg').textContent='Gmail ঠিকানা লিখুন।';return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){$('loginMsg').textContent='সঠিক Gmail ঠিকানা লিখুন।';return;}
+  if(!ag){$('loginMsg').textContent='Agent ID লিখুন।';return;}
+  try{localStorage.setItem('pending_login_email',em.toLowerCase());localStorage.setItem('pending_login_agent',ag);}catch(e){}
   $('loginMsg').textContent='লগইন হচ্ছে...';
   try{
     const provider=new firebase.auth.GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/spreadsheets');
     provider.addScope('https://www.googleapis.com/auth/drive.readonly');
+    provider.setCustomParameters({login_hint:em});
     if(isIOS){await auth.signInWithRedirect(provider);return;}
     const res=await auth.signInWithPopup(provider);
     afterLogin(res);
@@ -478,7 +521,6 @@ async function copyAgentTabs(prevId,newId,isLog){
 $('bmDash').onclick=()=>{showMain();};
 $('bmList').onclick=()=>{showList();};
 $('bmReport').onclick=()=>{showReport();};
-$('bmSite').onclick=()=>{window.open('https://www.12bajeevip.com/m/member/home','_blank');};
 $('bmGuide').onclick=()=>{showGuide();};
 $('prevDayBtn').onclick=()=>shiftDay(-1);
 $('nextDayBtn').onclick=()=>shiftDay(1);
