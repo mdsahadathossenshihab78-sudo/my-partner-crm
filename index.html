@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" id="viewportMeta" content="width=1120"><script>try{if(localStorage.getItem('viewMode')==='mobile'){document.getElementById('viewportMeta').setAttribute('content','width=device-width, initial-scale=1.0');}}catch(e){}</script>
+<html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" id="viewportMeta" content="width=1120"><script>try{var _vm=localStorage.getItem('viewMode');if(_vm==='mobile'||(!_vm&&window.screen&&window.screen.width<700)){document.getElementById('viewportMeta').setAttribute('content','width=device-width, initial-scale=1.0');}}catch(e){}</script>
 <title>Telesales Agent CRM</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -249,6 +249,43 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 .focus-save{width:100%;min-height:56px;font-size:17px;background:linear-gradient(135deg,#F97316,#EA580C)}
 .next-strip{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
 .next-strip .btn{white-space:nowrap;flex:none}
+/* ===== CALL-LIST ENERGY SALES SKIN (2026-11-10) =====
+   The user did not like the website call list's plain/Apple-like sky-blue
+   look — it now matches the APP's Design 3 Energy Sales language (cream +
+   orange, bold focus card, big number + big Call beside it, clean rows).
+   VISUAL ONLY: no IDs, handlers or data logic change. PR #58 behavior
+   (savedStatus counts, save verification + red fail box, Report auto
+   headline, tiles auto, chips stay in Pending until Save, suggestions
+   deleted) is untouched. Chip colors stay the user's spec (Connected green,
+   Not Connected red, Yes blue, No grey). */
+#listView #list .report{background:#fff;border:1px solid #FED7AA;border-radius:16px;box-shadow:0 4px 16px rgba(249,115,22,.10)}
+#listView #list .report b{color:#1F2937}
+#listView #list .report label{color:#9A3412}
+#listView #list .report input{background:#FFFBEB;border:1px solid #FED7AA;color:#1F2937}
+#listView #list .report input::placeholder{color:#A8A29E}
+#listView #list .report input:focus{outline:2px solid #F97316;outline-offset:1px;border-color:#F97316}
+#listView #list .report input:disabled{background:#FFF7ED;color:#78716C}
+#listView .tab-on{background:linear-gradient(135deg,#F97316,#EA580C)!important}
+#listView .focus-card{background:#FFFBEB;border:2px solid #F97316;box-shadow:0 8px 28px rgba(249,115,22,.25)}
+#listView .focus-num{color:#1F2937}
+#listView .focus-card label{color:#9A3412}
+#listView .focus-card input{background:#fff;border:1px solid #FED7AA;color:#1F2937}
+#listView .focus-card input:focus{outline:2px solid #F97316;outline-offset:1px;border-color:#F97316}
+#listView #focusHeader{color:#9A3412;font-weight:700}
+#listView #nextStripLabel{color:#9A3412;font-weight:700}
+#listView .call-btn{background:#FFF7ED;border:2px solid #F97316;color:#C2410C;font-weight:800}
+#listView #list .report .btn-primary{background:linear-gradient(135deg,#F97316,#EA580C)}
+#listView .next-strip .btn{background:#FFF7ED;border:1px solid #FED7AA;color:#C2410C}
+#listView .next-strip .btn:active{background:#FFEDD5}
+#listView #search{background:#FFFBEB;border:1px solid #FED7AA;color:#1F2937}
+#listView #search:focus{outline:2px solid #F97316;outline-offset:1px;border-color:#F97316}
+#listView #refreshBtn{background:#FFF7ED;border:1px solid #FED7AA;color:#C2410C}
+/* --- mobile dashboard fit (2026-11-10): at device-width the hero numbers
+   shrink slightly so the 3-across hero tiles fit a ~360px phone cleanly. --- */
+@media(max-width:480px){
+.stats-grid.hero .stat b{font-size:22px}
+.stats-grid.hero .stat span{font-size:11px}
+}
 </style></head><body>
 <div id="sunriseLoader"><div class="sunrise-sun"></div><div class="sunrise-title">Telesales Status</div><div class="sunrise-sub">নতুন দিনের হিসাব উঠছে…</div><div class="sunrise-bar"><i></i></div></div>
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
@@ -382,8 +419,8 @@ let reportDate=dhakaToday();
 function updateRepDateBtn(){$('repDateBtn').textContent=displayDay(reportDate)+(reportDate===dhakaToday()?' • আজ':'');const past=reportDate<dhakaToday();$('repDateNote').textContent=past?'শুধু দেখা যাবে — এই তারিখে যোগ/ডিলিট বন্ধ।':'';['regAddRow','probAddRow'].forEach(id=>{const el=$(id);if(el)el.style.display=past?'none':'';});const fs=$('ftdStepRow');if(fs)fs.style.display=past?'none':'';const fa=$('ftdStepAmountRow');if(fa)fa.style.display='none';}
 function shiftRepDay(d){const nd=addDays(reportDate,d);if(nd>dhakaToday())return;reportDate=nd;updateRepDateBtn();$('reportOut').style.display='none';loadReportData();}
 const $=id=>document.getElementById(id);
-// --- view mode (2026-11-10): mobile defaults to the PC layout (viewport width=1120); the header toggle switches to the mobile layout and back. Choice persists in localStorage; toggle reloads so the new viewport applies cleanly. ---
-function getViewMode(){try{return localStorage.getItem('viewMode')==='mobile'?'mobile':'pc';}catch(e){return 'pc';}}
+// --- view mode (2026-11-10, updated 2026-11-10): on a phone (screen <700px) the site now defaults to the MOBILE layout (width=device-width) so the Dashboard fits the phone screen fully; on desktop it defaults to the PC layout (viewport width=1120). A stored choice in localStorage always wins. The header toggle switches between them and back; toggle reloads so the new viewport applies cleanly. ---
+function getViewMode(){try{var s=localStorage.getItem('viewMode');if(s==='mobile')return 'mobile';if(s==='pc')return 'pc';return (window.screen&&window.screen.width<700)?'mobile':'pc';}catch(e){return 'pc';}}
 function applyViewMode(mode){
   const m=document.getElementById('viewportMeta');
   if(m)m.setAttribute('content',mode==='mobile'?'width=device-width, initial-scale=1.0':'width=1120');
@@ -1011,7 +1048,7 @@ function render(){
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-log-${idx}" value="${esc(r.remark1)}" disabled></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-log-${idx}" value="${esc(r.remark2)}" disabled></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-log-${idx}" value="${esc(r.others)}" disabled></div>
-    <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm" href="tel:${dialNumber(r.number)}" style="text-decoration:none"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button></div></div>`;
+    <div class="row" style="margin-top:10px"><a class="btn btn-light btn-sm call-btn" href="tel:${dialNumber(r.number)}" style="text-decoration:none"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a><button class="btn btn-light btn-sm" onclick="copyNum('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button></div></div>`;
     }
     return `<div class="report"><div class="row"><b>${esc(dialNumber(r.number))}</b>${r.logTime?`<span class="badge"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fmtTimeBn(r.logTime)}</span>`:''}<span class="badge ${badge}">${r.status==='call connected'?'● call connected':r.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${r.row}</span>${r.prevDay?`<span class="badge">আগের দিনের কল</span>`:''}${r.valid?`<span class="badge">Valid: ${esc(r.valid)}</span>`:''}</div>${_histTxt?`<p class="muted" style="margin:6px 0 0;font-size:12px">${esc(_histTxt)}</p>`:''}
     <div style="margin-top:10px"><label>CALLING STATUS</label><div class="row" style="margin-top:6px"><button type="button" id="stc-${r.row}-conn" class="chip ${r.status==='call connected'?'chip-on-green':'chip-off'}" onclick="setChip(${r.row},'status','call connected')">Connected</button><button type="button" id="stc-${r.row}-notconn" class="chip ${r.status==='not connected'?'chip-on-rose':'chip-off'}" onclick="setChip(${r.row},'status','not connected')">Not Connected</button></div></div>
@@ -1019,7 +1056,7 @@ function render(){
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-${r.row}" value="${esc(r.remark1)}" placeholder="1st call remark লিখুন"></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-${r.row}" value="${esc(r.remark2)}" placeholder="2nd call remark লিখুন"></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-${r.row}" value="${esc(r.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
-    <div class="row" style="margin-top:10px"><button type="button" class="btn btn-light btn-sm" onclick="callChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</button><button class="btn btn-light btn-sm" onclick="copyChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button><button type="button" class="btn btn-light btn-sm" onclick="setReminderFor('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> মনে করিয়ে দাও</button><button type="button" class="btn btn-light btn-sm" onclick="setFocusRow(${r.row})">🎯 ফোকাস</button><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> সেভ করুন</button></div></div>`;
+    <div class="row" style="margin-top:10px"><button type="button" class="btn btn-light btn-sm call-btn" onclick="callChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</button><button class="btn btn-light btn-sm" onclick="copyChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button><button type="button" class="btn btn-light btn-sm" onclick="setReminderFor('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> মনে করিয়ে দাও</button><button type="button" class="btn btn-light btn-sm" onclick="setFocusRow(${r.row})">🎯 ফোকাস</button><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> সেভ করুন</button></div></div>`;
   }).join(''):'<p class="muted">কোনো রো পাওয়া যায়নি।</p>';
   renderFocusCard();
 }
