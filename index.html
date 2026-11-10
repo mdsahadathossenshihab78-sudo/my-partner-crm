@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" id="viewportMeta" content="width=1120"><script>try{var _vm=localStorage.getItem('viewMode');if(_vm==='mobile'||(!_vm&&window.screen&&window.screen.width<700)){document.getElementById('viewportMeta').setAttribute('content','width=device-width, initial-scale=1.0');}}catch(e){}</script>
+<script>try{var _dp=new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Dhaka',hour:'2-digit',minute:'2-digit',hour12:false}).split(':');var _dm=(+_dp[0])*60+(+_dp[1]);if(_dp[0]==='24')_dm-=1440;var _db=_dm>=300&&_dm<660?'morning':_dm>=660&&_dm<900?'noon':_dm>=900&&_dm<1050?'afternoon':_dm>=1050&&_dm<1170?'evening':'night';document.documentElement.classList.add('tod-'+_db);}catch(e){}</script>
 <title>Telesales Agent CRM</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -286,13 +287,148 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 .stats-grid.hero .stat b{font-size:22px}
 .stats-grid.hero .stat span{font-size:11px}
 }
+
+/* ===== TIME-OF-DAY THEME (2026-11-10) =====
+   The site follows Dhaka time automatically: the sun/moon, greeting, loading
+   screen and colours change with the time of day. Bands (Asia/Dhaka):
+   morning 05:00–11:00 (the base sky-blue look IS morning — no overrides),
+   noon 11:00–15:00, afternoon 15:00–17:30, evening 17:30–19:30,
+   night 19:30–05:00. The tod-* class lives on <html> (set by a tiny head
+   script before first paint, and by applyTimeTheme(), which re-checks every
+   5 minutes so a page left open follows the time without a reload).
+   The call list keeps its Energy Sales (cream + orange) look in every band:
+   its rules are scoped to #listView (ID specificity) and none of the rules
+   below touch #listView, .chip, .btn-light, .focus-card/.focus-num or the
+   row buttons. */
+/* --- noon (11:00–15:00): brightest sky, high sun --- */
+html.tod-noon body,body.tod-noon{background:linear-gradient(180deg,#F0F9FF 0%,#E0F2FE 40%,#FEF9C3 100%)}
+.tod-noon .top{background:linear-gradient(135deg,#0369A1,#0C4A6E);border-bottom:3px solid #FBBF24}
+.tod-noon #loginHero{background:linear-gradient(135deg,#7DD3FC 0%,#0284C7 55%,#075985 100%)}
+.tod-noon #loginHero::after{right:-10px;top:-70px;width:170px;height:170px;background:radial-gradient(circle,#FEF9C3 0%,#FDE047 45%,#FACC15 65%,rgba(250,204,21,0) 75%);opacity:1;box-shadow:0 0 60px 20px rgba(253,224,71,.5)}
+.tod-noon .hero-greet{background:linear-gradient(135deg,#0369A1,#0C4A6E);border-bottom:3px solid #FBBF24}
+.tod-noon #sunriseLoader{background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 55%,#FEF9C3 100%)}
+.tod-noon .sunrise-sun{background:radial-gradient(circle at 35% 35%,#FEF9C3,#FDE047 45%,#FACC15 75%);box-shadow:0 0 44px 12px rgba(250,204,21,.55)}
+.tod-noon .btn-primary{background:linear-gradient(135deg,#0284C7,#0C4A6E)}
+.tod-noon .btn-grad{background:linear-gradient(135deg,#FBBF24,#EA580C)}
+.tod-noon .bottom-menu button.on{background:linear-gradient(135deg,#0284C7,#0C4A6E)}
+.tod-noon .card h2,.tod-noon .card h3{color:#0C4A6E}
+.tod-noon label{color:#0C4A6E}
+.tod-noon .stats-grid.hero .stat{border-top:4px solid #0284C7}
+.tod-noon .stats-grid.hero .stat svg,.tod-noon .stats-grid.tiles .stat svg{stroke:#0284C7}
+.tod-noon .hero-week-title{color:#0C4A6E}
+.tod-noon .quick-link .ql-label{color:#0C4A6E}
+.tod-noon .quick-link .ql-count{color:#0284C7}
+.tod-noon .footer-card{border-color:#FBBF24}
+.tod-noon input:focus,.tod-noon select:focus,.tod-noon textarea:focus{outline:2px solid #0284C7;border-color:#0284C7}
+/* --- afternoon (15:00–17:30): warm golden, sun lower --- */
+html.tod-afternoon body,body.tod-afternoon{background:linear-gradient(180deg,#FFFBEB 0%,#FEF3C7 45%,#FFEDD5 100%)}
+.tod-afternoon .top{background:linear-gradient(135deg,#C2410C,#7C2D12);border-bottom:3px solid #FDBA74}
+.tod-afternoon #loginHero{background:linear-gradient(135deg,#FDBA74 0%,#F97316 55%,#9A3412 100%)}
+.tod-afternoon #loginHero::after{right:-20px;top:10px;width:150px;height:150px;background:radial-gradient(circle,#FEF3C7 0%,#FDBA74 45%,#F97316 65%,rgba(249,115,22,0) 75%);opacity:1}
+.tod-afternoon .hero-greet{background:linear-gradient(135deg,#EA580C,#9A3412);border-bottom:3px solid #FDBA74}
+.tod-afternoon #sunriseLoader{background:linear-gradient(180deg,#FFEDD5 0%,#FEF3C7 60%,#FDE68A 100%)}
+.tod-afternoon .sunrise-sun{background:radial-gradient(circle at 35% 35%,#FEF3C7,#FDBA74 45%,#F97316 75%);box-shadow:0 0 40px 10px rgba(249,115,22,.45)}
+.tod-afternoon .sunrise-title{color:#9A3412}
+.tod-afternoon .sunrise-sub{color:#9A3412}
+.tod-afternoon .sunrise-bar i{background:#EA580C}
+.tod-afternoon .btn-primary{background:linear-gradient(135deg,#EA580C,#9A3412)}
+.tod-afternoon .btn-grad{background:linear-gradient(135deg,#F97316,#DC2626)}
+.tod-afternoon .bottom-menu button.on{background:linear-gradient(135deg,#EA580C,#9A3412)}
+.tod-afternoon .card h2,.tod-afternoon .card h3{color:#9A3412}
+.tod-afternoon label{color:#9A3412}
+.tod-afternoon .stats-grid.hero .stat{border-top:4px solid #F97316}
+.tod-afternoon .stats-grid.hero .stat svg,.tod-afternoon .stats-grid.tiles .stat svg{stroke:#EA580C}
+.tod-afternoon .hero-week-title{color:#9A3412}
+.tod-afternoon .quick-link .ql-label{color:#9A3412}
+.tod-afternoon .quick-link .ql-count{color:#EA580C}
+.tod-afternoon .hero-bar{background:#FB923C}
+.tod-afternoon .footer-card{border-color:#F97316}
+.tod-afternoon input:focus,.tod-afternoon select:focus,.tod-afternoon textarea:focus{outline:2px solid #EA580C;border-color:#EA580C}
+/* --- evening (17:30–19:30): dusk purple-orange, setting sun --- */
+html.tod-evening body,body.tod-evening{background:linear-gradient(180deg,#F5F3FF 0%,#FCE7F3 45%,#FDE68A 100%)}
+.tod-evening .top{background:linear-gradient(135deg,#7C3AED,#4C1D95);border-bottom:3px solid #FB7185}
+.tod-evening #loginHero{background:linear-gradient(135deg,#C084FC 0%,#9333EA 55%,#4C1D95 100%)}
+.tod-evening #loginHero::after{right:10px;top:70px;width:140px;height:140px;background:radial-gradient(circle,#FDE68A 0%,#FB923C 40%,#DC2626 65%,rgba(220,38,38,0) 75%);opacity:1}
+.tod-evening .hero-greet{background:linear-gradient(135deg,#9333EA,#4C1D95);border-bottom:3px solid #FB7185}
+.tod-evening #sunriseLoader{background:linear-gradient(180deg,#EDE9FE 0%,#FCE7F3 55%,#FED7AA 100%)}
+.tod-evening .sunrise-sun{background:radial-gradient(circle at 35% 35%,#FDE68A,#FB923C 45%,#DC2626 75%);box-shadow:0 0 40px 10px rgba(220,38,38,.4)}
+.tod-evening .sunrise-title{color:#6B21A8}
+.tod-evening .sunrise-sub{color:#7E22CE}
+.tod-evening .sunrise-bar i{background:#9333EA}
+.tod-evening .btn-primary{background:linear-gradient(135deg,#7C3AED,#4C1D95)}
+.tod-evening .btn-grad{background:linear-gradient(135deg,#EC4899,#7C3AED)}
+.tod-evening .bottom-menu button.on{background:linear-gradient(135deg,#7C3AED,#4C1D95)}
+.tod-evening .card h2,.tod-evening .card h3{color:#6B21A8}
+.tod-evening label{color:#6B21A8}
+.tod-evening .stats-grid.hero .stat{border-top:4px solid #9333EA}
+.tod-evening .stats-grid.hero .stat svg,.tod-evening .stats-grid.tiles .stat svg{stroke:#9333EA}
+.tod-evening .hero-week-title{color:#6B21A8}
+.tod-evening .quick-link .ql-label{color:#6B21A8}
+.tod-evening .quick-link .ql-count{color:#9333EA}
+.tod-evening .hero-bar{background:#C084FC}
+.tod-evening .footer-card{border-color:#9333EA}
+.tod-evening input:focus,.tod-evening select:focus,.tod-evening textarea:focus{outline:2px solid #9333EA;border-color:#9333EA}
+/* --- night (19:30–05:00): dark sky, moon + stars --- */
+html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,#1E293B 45%,#0F172A 100%);color:#E2E8F0}
+.tod-night .top{background:linear-gradient(135deg,#1E293B,#0F172A);border-bottom:3px solid #38BDF8}
+.tod-night #loginHero{background:linear-gradient(135deg,#1E3A5F 0%,#0F172A 70%,#020617 100%)}
+.tod-night #loginHero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 28% 68%,#fff,transparent),radial-gradient(1.5px 1.5px at 44% 30%,#fff,transparent),radial-gradient(1px 1px at 62% 55%,#fff,transparent),radial-gradient(1.5px 1.5px at 78% 20%,#fff,transparent),radial-gradient(1px 1px at 88% 60%,#fff,transparent),radial-gradient(1px 1px at 55% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 8% 55%,#fff,transparent);opacity:.9}
+.tod-night #loginHero::after{right:-20px;top:-30px;width:120px;height:120px;background:radial-gradient(circle at 35% 35%,#FFFFFF 0%,#E2E8F0 50%,#94A3B8 80%);box-shadow:0 0 40px 10px rgba(226,232,240,.35);opacity:1}
+.tod-night .hero-greet{background:linear-gradient(135deg,#1E3A5F,#0F172A);border-bottom:3px solid #38BDF8}
+.tod-night .hero-greet-sub{color:#BAE6FD}
+.tod-night #sunriseLoader{background:linear-gradient(180deg,#0F172A 0%,#1E293B 60%,#334155 100%)}
+.tod-night .sunrise-sun{background:radial-gradient(circle at 35% 35%,#FFFFFF,#E2E8F0 45%,#94A3B8 75%);box-shadow:0 0 40px 10px rgba(226,232,240,.35)}
+.tod-night .sunrise-title{color:#E0F2FE}
+.tod-night .sunrise-sub{color:#94A3B8}
+.tod-night .sunrise-bar{background:rgba(56,189,248,.25)}
+.tod-night .sunrise-bar i{background:#38BDF8}
+.tod-night .btn-primary{background:linear-gradient(135deg,#0EA5E9,#0369A1)}
+.tod-night .btn-grad{background:linear-gradient(135deg,#38BDF8,#0284C7)}
+.tod-night .bottom-menu button.on{background:linear-gradient(135deg,#0EA5E9,#0369A1)}
+.tod-night .bottom-menu{background:rgba(15,23,42,.97);border-top:1px solid #334155}
+.tod-night .bottom-menu button{color:#94A3B8}
+.tod-night .card{background:#1E293B;border:1px solid #334155;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.tod-night .card h2,.tod-night .card h3{color:#BAE6FD}
+.tod-night .muted{color:#94A3B8}
+.tod-night label{color:#BAE6FD}
+.tod-night input,.tod-night select,.tod-night textarea{background:#0F172A;border:1px solid #334155;color:#F1F5F9}
+.tod-night input::placeholder,.tod-night textarea::placeholder{color:#64748B}
+.tod-night input:focus,.tod-night select:focus,.tod-night textarea:focus{outline:2px solid #38BDF8;border-color:#38BDF8}
+.tod-night .report{border:1px solid #334155;background:#0F172A}
+.tod-night pre.out{background:#0F172A;border:1px solid #334155;color:#E2E8F0}
+.tod-night .entry{border-bottom:1px solid #334155}
+.tod-night .guide-sec p{color:#CBD5E1}
+.tod-night .user-bar{background:#0F172A;border:1px solid #334155}
+.tod-night #agentLabel{background:#334155;color:#FDE68A}
+.tod-night #weekSummary{background:#0F172A;border:1px solid #334155;color:#CBD5E1}
+.tod-night .hero-week{background:#0F172A;border:1px solid #334155}
+.tod-night .hero-week-title{color:#BAE6FD}
+.tod-night .hero-bar{background:#38BDF8}
+.tod-night .hero-bar-count{color:#CBD5E1}
+.tod-night .hero-weekdays{color:#94A3B8}
+.tod-night .quick-link{background:#0F172A;border:1px solid #334155}
+.tod-night .quick-link .ql-label{color:#BAE6FD}
+.tod-night .quick-link .ql-count{color:#38BDF8}
+.tod-night .quick-link .ql-sub{color:#94A3B8}
+.tod-night .stats-grid.hero .stat{background:#0F172A;border:1px solid #334155;border-top:4px solid #38BDF8}
+.tod-night .stats-grid.tiles .stat{background:#0F172A;border:1px solid #334155}
+.tod-night .stat b{color:#E0F2FE}
+.tod-night .stat span{color:#CBD5E1}
+.tod-night .stats-grid.hero .stat svg,.tod-night .stats-grid.tiles .stat svg{stroke:#38BDF8}
+.tod-night .s-blue{background:rgba(56,189,248,.16)!important;border:1px solid rgba(56,189,248,.35)!important}
+.tod-night .s-green{background:rgba(74,222,128,.14)!important;border:1px solid rgba(74,222,128,.35)!important}
+.tod-night .s-rose{background:rgba(251,113,133,.14)!important;border:1px solid rgba(251,113,133,.35)!important}
+.tod-night .s-violet{background:rgba(250,204,21,.14)!important;border:1px solid rgba(250,204,21,.35)!important}
+.tod-night .xbtn{background:#334155;color:#E0F2FE}
+.tod-night .footer-card{border-color:#38BDF8}
+.tod-night .toast{background:#0F172A}
 </style></head><body>
-<div id="sunriseLoader"><div class="sunrise-sun"></div><div class="sunrise-title">Telesales Status</div><div class="sunrise-sub">নতুন দিনের হিসাব উঠছে…</div><div class="sunrise-bar"><i></i></div></div>
+<div id="sunriseLoader"><div class="sunrise-sun"></div><div class="sunrise-title">Telesales Status</div><div class="sunrise-sub" id="loaderSub">নতুন দিনের হিসাব উঠছে…</div><div class="sunrise-bar"><i></i></div></div>
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
 <div class="top"><div class="top-inner"><div class="brand"><span class="logo-badge"><svg width="40" height="40" viewBox="0 0 84 84"><rect width="84" height="84" rx="20" fill="#0b1026" stroke="#8b5cf6" stroke-width="2"/><text x="42" y="58" font-size="44" font-weight="bold" text-anchor="middle" fill="#fff">T</text><path d="M58 26c4 2 4 8 0 10M64 20c7 4 7 14 0 18" fill="none" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/></svg></span><div><h1>Telesales Agent CRM</h1><p>Telesales (Team-03) • নিজের Agent ID দিয়ে শুধু নিজের লিস্ট</p></div><button type="button" class="btn btn-light btn-sm" id="viewToggleBtn" onclick="toggleViewMode()" style="margin-left:auto;white-space:nowrap" title="ভার্সন বদলান">📱 <span class="vt-txt">মোবাইল ভার্সন</span></button></div></div></div>
 <div class="wrap">
 
-<div class="hero-cover" id="loginHero"><div class="hero-eyebrow">TELESALES STATUS</div><div class="hero-title">সুপ্রভাত! আজকের<br>হিসাব দেখে নিন ☀️</div></div>
+<div class="hero-cover" id="loginHero"><div class="hero-eyebrow">TELESALES STATUS</div><div class="hero-title" id="heroTitle">সুপ্রভাত! আজকের<br>হিসাব দেখে নিন ☀️</div></div>
 <div class="card" id="loginCard"><label for="loginEmail">📧 Gmail ঠিকানা</label><input id="loginEmail" type="email" placeholder="agent@gmail.com" autocomplete="email"><label for="loginAgentId" style="margin-top:12px">🪪 Agent ID</label><input id="loginAgentId" placeholder="Agent ID লিখুন (যেমন bdxsukuna03)"><div class="row" style="margin-top:14px"><button class="btn btn-primary" id="loginBtn" style="flex:1">লগইন করুন →</button></div><p class="muted">লগইন চাপলে Google আপনার Gmail-এর অনুমতির পাতা খুলবে — শিটে লেখার জন্য এই অনুমতি দরকার। পাসওয়ার্ড এই সাইটে কখনো চাওয়া হবে না।</p><p class="muted" id="loginMsg"></p></div>
 
 <div class="card" id="agentCard" style="display:none"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M5.8 16.5c.5-1.6 1.5-2.3 2.7-2.3s2.2.7 2.7 2.3"/><line x1="15" y1="9" x2="19" y2="9"/><line x1="15" y1="13" x2="19" y2="13"/></svg> Agent ID দিন</h2><p class="muted">আপনার Agent ID (আপনার ট্যাবের নাম, যেমন bdxsukuna30) লিখুন — শুধু আপনার লিস্ট দেখাবে।</p>
@@ -316,7 +452,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 <div id="mainView" style="display:none">
 <div class="card"><div class="row user-bar" style="justify-content:space-between"><span><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <b id="userEmail"></b> • <span id="agentLabel"></span></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
 <div id="dashView">
-<div class="hero-greet" id="heroGreet"><span class="hero-greet-text">স্বাগতম 👋</span><span class="hero-greet-sub">আজকের হিসাব দেখে নিন</span></div>
+<div class="hero-greet" id="heroGreet"><span class="hero-greet-text" id="heroGreetText">স্বাগতম 👋</span><span class="hero-greet-sub">আজকের হিসাব দেখে নিন</span></div>
 <div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>
 <div class="row stats-grid hero" style="margin-top:12px">
 <div class="stat s-blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><b id="heroCalls">0</b><span>মোট কল (এই দিন)</span></div>
@@ -433,6 +569,42 @@ function toggleViewMode(){
   location.reload();
 }
 applyViewMode(getViewMode());
+// --- time-of-day theme (2026-11-10): the site follows Dhaka time automatically —
+// the sun/moon, greeting, loading screen and colours change with the time of day.
+// Bands (Asia/Dhaka): morning 05:00–11:00, noon 11:00–15:00, afternoon
+// 15:00–17:30, evening 17:30–19:30, night 19:30–05:00. Morning is the base
+// (sky-blue) look, so it needs no CSS override; the other four bands restyle
+// via the tod-* class on <html>. The call list keeps its Energy Sales
+// (cream + orange) look in every band.
+function dhakaMinutes(){var p=new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Dhaka',hour:'2-digit',minute:'2-digit',hour12:false}).split(':');var h=+p[0];if(h===24)h=0;return h*60+(+p[1]);}
+function timeBand(min){
+  if(min>=300&&min<660)return 'morning';    // 05:00–11:00
+  if(min>=660&&min<900)return 'noon';       // 11:00–15:00
+  if(min>=900&&min<1050)return 'afternoon'; // 15:00–17:30
+  if(min>=1050&&min<1170)return 'evening';  // 17:30–19:30
+  return 'night';                            // 19:30–05:00
+}
+var TIME_BANDS={
+  morning:{greet:'সুপ্রভাত',hero:'সুপ্রভাত! আজকের<br>হিসাব দেখে নিন ☀️',loader:'নতুন দিনের হিসাব উঠছে…'},
+  noon:{greet:'শুভ দুপুর',hero:'শুভ দুপুর! আজকের<br>হিসাব দেখে নিন ☀️',loader:'দুপুরের হিসাব উঠছে…'},
+  afternoon:{greet:'শুভ বিকাল',hero:'শুভ বিকাল! আজকের<br>হিসাব দেখে নিন 🌤️',loader:'বিকালের হিসাব উঠছে…'},
+  evening:{greet:'শুভ সন্ধ্যা',hero:'শুভ সন্ধ্যা! আজকের<br>হিসাব দেখে নিন 🌇',loader:'সন্ধ্যার হিসাব উঠছে…'},
+  night:{greet:'শুভ রাত্রি',hero:'শুভ রাত্রি! আজকের<br>হিসাব দেখে নিন 🌙',loader:'রাতের হিসাব উঠছে…'}
+};
+function applyTimeTheme(){
+  var band=timeBand(dhakaMinutes());
+  var cls=['morning','noon','afternoon','evening','night'];
+  for(var i=0;i<cls.length;i++){document.documentElement.classList.remove('tod-'+cls[i]);document.body.classList.remove('tod-'+cls[i]);}
+  document.documentElement.classList.add('tod-'+band);
+  var t=TIME_BANDS[band];
+  var ht=$('heroTitle');if(ht)ht.innerHTML=t.hero;
+  var gt=$('heroGreetText');if(gt)gt.textContent='স্বাগতম, '+t.greet+' 👋';
+  var ls=$('loaderSub');if(ls)ls.textContent=t.loader;
+  return band;
+}
+applyTimeTheme();
+setInterval(applyTimeTheme,300000);
+
 function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
 function esc(v){return (v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 function dhakaToday(){return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Dhaka'})}
