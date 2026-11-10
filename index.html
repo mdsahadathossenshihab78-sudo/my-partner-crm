@@ -102,7 +102,79 @@ button:focus-visible,a:focus-visible{outline:2px solid #c7d2fe;outline-offset:2p
 #list .report label{margin-bottom:4px}
 #list .report .btn{min-height:40px}
 #list .report input,#list .report select{padding:11px 12px}
+
+/* ===== NEON ORBIT skin (user pick: deep space-blue + cyan + coral) ===== */
+body{background:radial-gradient(1200px 600px at 80% -10%,rgba(34,211,238,.14),transparent 60%),radial-gradient(900px 500px at 0% 110%,rgba(251,113,133,.12),transparent 60%),linear-gradient(180deg,#04061A,#070D2B 55%,#04061A);color:#F1F5F9}
+.aurora::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.16) 1px,transparent 1.4px);background-size:110px 110px;opacity:.5}
+.aurora .b1{background:#0EA5E9}
+.aurora .b2{background:#22D3EE}
+.aurora .b3{background:#FB7185}
+.aurora .b4{background:#6366F1}
+.top{background:rgba(7,13,43,.92);border-bottom:1px solid rgba(34,211,238,.25)}
+.logo-badge rect{fill:#070D2B;stroke:#22D3EE}
+.logo-badge path{stroke:#FB7185}
+.card{background:linear-gradient(160deg,rgba(34,211,238,.07),rgba(10,18,48,.72));border:1px solid rgba(34,211,238,.22);box-shadow:0 12px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)}
+#loginCard{background:linear-gradient(160deg,rgba(34,211,238,.16),rgba(7,13,43,.85) 55%,rgba(251,113,133,.10));border:1px solid rgba(34,211,238,.4);box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 48px rgba(34,211,238,.18);animation:cardFloat 6s ease-in-out infinite}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+#googleBtn{background:#fff;color:#1F2937}
+#googleBtn:hover{box-shadow:0 0 0 3px rgba(34,211,238,.5)}
+.btn-primary{background:linear-gradient(135deg,#22D3EE,#0EA5E9);color:#03202B}
+.btn-grad{background:linear-gradient(135deg,#FB7185,#F43F5E)}
+.btn-light{background:rgba(34,211,238,.10);border:1px solid rgba(34,211,238,.25)}
+.tab-on{background:linear-gradient(135deg,#22D3EE,#0EA5E9)!important;color:#03202B!important}
+input,select,textarea{background:rgba(10,18,48,.6);border-color:rgba(34,211,238,.3)}
+input::placeholder,textarea::placeholder{color:#7C8DB5}
+input:focus,select:focus,textarea:focus{outline:2px solid #22D3EE;outline-offset:1px;border-color:#22D3EE}
+button:focus-visible,a:focus-visible{outline:2px solid #67E8F9;outline-offset:2px}
+::selection{background:rgba(34,211,238,.35)}
+.muted{color:#A5B4D4}
+.s-blue{background:rgba(34,211,238,.16);border:1px solid rgba(34,211,238,.45)}
+.s-green{background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.4)}
+.s-rose{background:rgba(251,113,133,.14);border:1px solid rgba(251,113,133,.42)}
+.s-violet{background:rgba(139,92,246,.16);border:1px solid rgba(167,139,250,.45)}
+.stats-grid.tiles .stat:nth-child(5){grid-column:span 2;background:linear-gradient(135deg,rgba(251,113,133,.28),rgba(34,211,238,.18));border:1px solid rgba(251,113,133,.55)}
+.bottom-menu{background:rgba(7,13,43,.95);border-top:1px solid rgba(34,211,238,.25)}
+.bottom-menu button{color:#8FA3C8}
+.bottom-menu button.on{background:linear-gradient(135deg,#22D3EE,#0EA5E9);color:#03202B}
+#agentLabel{background:rgba(34,211,238,.25)}
+.toast{background:#0A1230;border:1px solid rgba(34,211,238,.4)}
+#syncStatus{background:rgba(34,211,238,.08)}
+#targetLine{background:rgba(34,211,238,.08)!important}
+#outboxLine{background:rgba(251,191,36,.08)!important}
+.chip{border-color:rgba(34,211,238,.3);background:rgba(10,18,48,.5)}
+.chip-on-green{background:rgba(52,211,153,.85);border:2px solid #34D399}
+.chip-on-rose{background:rgba(251,113,133,.85);border:2px solid #FB7185}
+.chip-on-blue{background:rgba(34,211,238,.85);border:2px solid #22D3EE;color:#03202B}
+.chip-on-grey{background:rgba(148,163,184,.8);border:2px solid #94A3B8}
+.report{background:rgba(10,18,48,.55);border-color:rgba(34,211,238,.2)}
+.entry{border-bottom:1px solid rgba(34,211,238,.14)}
+pre.out{background:rgba(4,6,26,.6)}
+.badge-ok{background:#065F46}.badge-no{background:#7F1D2D}.badge-blank{background:#713F12}
+.guide-sec p{color:#C7D2EE}
+.user-bar{background:rgba(34,211,238,.07);border-color:rgba(34,211,238,.2)}
+/* hero progress rings (decorative orbit rings around the 3 hero numbers) */
+.stats-grid.hero .stat b{position:relative;width:88px;height:88px;margin:0 auto 8px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:transparent;z-index:0}
+.stats-grid.hero .stat b::before{content:"";position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(from 0deg,#22D3EE,#0EA5E9 35%,#FB7185 62%,rgba(34,211,238,.14) 62%,rgba(34,211,238,.14));animation:orbitSpin 14s linear infinite;z-index:-1}
+.stats-grid.hero .stat b::after{content:"";position:absolute;inset:0;border-radius:50%;background:#0A1230;z-index:-1}
+@keyframes orbitSpin{to{transform:rotate(360deg)}}
+/* orbit loading overlay (entry animation, fades out by CSS only, never blocks clicks) */
+#orbitLoader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(800px 500px at 50% 40%,rgba(34,211,238,.16),transparent 65%),linear-gradient(180deg,#04061A,#070D2B);pointer-events:none;animation:loaderOut .6s ease 1.6s forwards}
+@keyframes loaderOut{to{opacity:0;visibility:hidden}}
+.orbit-wrap{position:relative;width:140px;height:140px}
+.orbit-core{position:absolute;inset:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:#fff;background:linear-gradient(135deg,#22D3EE,#0EA5E9);box-shadow:0 0 40px rgba(34,211,238,.6)}
+.orbit-ring{position:absolute;border-radius:50%;border:1px solid rgba(34,211,238,.35)}
+.orbit-ring.r1{inset:14px;animation:orbitSpin 3s linear infinite}
+.orbit-ring.r2{inset:0;border-color:rgba(251,113,133,.35);animation:orbitSpin 5s linear infinite reverse}
+.orbit-dot{position:absolute;width:10px;height:10px;border-radius:50%;background:#22D3EE;box-shadow:0 0 12px #22D3EE;top:-5px;left:50%;margin-left:-5px}
+.orbit-dot.d2{background:#FB7185;box-shadow:0 0 12px #FB7185}
+.orbit-title{font-size:20px;font-weight:800;letter-spacing:.5px}
+.orbit-bar{width:180px;height:6px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.orbit-bar span{display:block;height:100%;width:40%;border-radius:999px;background:linear-gradient(90deg,#22D3EE,#FB7185);animation:orbitShimmer 1.2s ease-in-out infinite alternate}
+@keyframes orbitShimmer{from{transform:translateX(-10%)}to{transform:translateX(160%)}}
+.orbit-sub{color:#A5B4D4;font-size:14px}
+
 </style></head><body>
+<div id="orbitLoader" aria-hidden="true"><div class="orbit-wrap"><div class="orbit-ring r1"><span class="orbit-dot d1"></span></div><div class="orbit-ring r2"><span class="orbit-dot d2"></span></div><div class="orbit-core">T</div></div><div class="orbit-title">Telesales Agent CRM</div><div class="orbit-bar"><span></span></div><div class="orbit-sub">লোড হচ্ছে...</div></div>
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
 <div class="top"><div class="top-inner"><div class="brand"><span class="logo-badge"><svg width="40" height="40" viewBox="0 0 84 84"><rect width="84" height="84" rx="20" fill="#0b1026" stroke="#8b5cf6" stroke-width="2"/><text x="42" y="58" font-size="44" font-weight="bold" text-anchor="middle" fill="#fff">T</text><path d="M58 26c4 2 4 8 0 10M64 20c7 4 7 14 0 18" fill="none" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/></svg></span><div><h1>Telesales Agent CRM</h1><p>Telesales (Team-03) • নিজের Agent ID দিয়ে শুধু নিজের লিস্ট</p></div></div></div></div>
 <div class="wrap">
