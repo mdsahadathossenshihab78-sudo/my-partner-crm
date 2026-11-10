@@ -244,7 +244,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 @media (max-width:600px){.vt-txt{display:none}.brand p{display:none}}
 /* --- call-list focus card (2026-11-10): big number + big Call on top, full list scrolls below --- */
 .focus-card{border:2px solid #F97316;box-shadow:0 6px 24px rgba(249,115,22,.22)}
-.focus-num{font-size:32px;line-height:1.15;overflow-wrap:anywhere}
+.focus-num{font-size:40px;line-height:1.15;overflow-wrap:anywhere}
 .focus-call{width:100%;min-height:56px;font-size:18px;background:linear-gradient(135deg,#F97316,#EA580C)}
 .focus-save{width:100%;min-height:56px;font-size:17px;background:linear-gradient(135deg,#F97316,#EA580C)}
 .next-strip{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
@@ -291,9 +291,9 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 <div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/><line x1="2" y1="2" x2="22" y2="22"/></svg><div><b id="stNotConn">0</b><span>Not Connected</span></div></div>
 <div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b id="stValid">0</b><span>Valid</span></div></div>
 <div class="stat s-rose"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><b id="stInv">0</b><span>Invalid</span></div></div>
-<div class="stat s-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg><div><b id="stFtd">0</b><span>এফটিডি</span></div></div>
-<div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><div><b id="stFtdAmt">৳0</b><span>এফটিডি টাকা</span></div></div>
-<div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg><div><b id="stReg">0</b><span>রেজিস্ট্রেশন</span></div></div>
+<div class="stat s-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg><div><b id="stFtd">0</b><span>এফটিডি</span><small id="stFtdMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
+<div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><div><b id="stFtdAmt">৳0</b><span>এফটিডি টাকা</span><small id="stFtdAmtMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
+<div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg><div><b id="stReg">0</b><span>রেজিস্ট্রেশন</span><small id="stRegMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
 </div>
 <div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">বাকি আছে</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div></div>
 <p class="muted" id="weekSummary"></p>
@@ -307,6 +307,7 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 <div class="row" style="margin-top:12px"><input id="search" placeholder="নাম্বার দিয়ে খুঁজুন" style="flex:1"><button class="btn btn-light" id="refreshBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> রিফ্রেশ</button></div>
 <p class="muted" id="syncStatus">লোড হচ্ছে...</p>
 <p class="muted" id="outboxLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px"></p>
+<div id="saveFailBox" style="display:none;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:10px 12px;margin-top:8px"></div>
 <div id="focusWrap" style="display:none">
 <p class="muted" id="focusHeader" style="margin:12px 0 0"></p>
 <div id="focusCard" class="report focus-card" style="margin-top:8px"></div>
@@ -370,6 +371,7 @@ const COMMISSION_STATS_ID='1NeR60FB-mfb1_xMM626q0x3QAZ36IdsfGzO6hXz6pJY';
 const CONFIG_FILE_ID=SHARED_STATUS_LOG_ID;
 const firebaseConfig={apiKey:"AIzaSyB03sx0s65ycG3MYcSbB2HfGMigs9DI-r4",authDomain:"fir-a-topup-bazar.firebaseapp.com",databaseURL:"https://fir-a-topup-bazar-default-rtdb.firebaseio.com",projectId:"fir-a-topup-bazar",storageBucket:"fir-a-topup-bazar.firebasestorage.app",messagingSenderId:"928168996366",appId:"1:928168996366:web:fd879d795202891ee9965f",measurementId:"G-9QBLYHR817"};
 let auth=null, token=null, agentId=null, userEmail=null, rows=[], tab='pending', lastStatusMap={};
+let manFtd=0, manFtdAmt=0, manReg=0;
 let typeFilter='';
 let focusRowNum=null; // user-selected focus (sheet row number); null = auto first pending
 let focusBoundRow=null; // sheet row number the rendered focus card is bound to
@@ -657,10 +659,6 @@ window.clearTypeFilter=()=>{typeFilter='';updateFilterNote();render();};
   bindTile('stConn','connected'); bindTile('stNotConn','notconnected'); bindTile('stValid','valid'); bindTile('stInv','invalid');
   bindTile('stFtd',null,true); bindTile('stFtdAmt',null,true); bindTile('stReg',null,true);
 })();
-window.addPhrase=(rowNum,text)=>{
-  const inp=$('r1-'+rowNum); if(!inp)return;
-  inp.value=inp.value?inp.value+' '+text:text; dirty=true; inp.focus();
-};
 window.setFtdAmt=(v)=>{const i=$('ftdStepAmt'); if(i){i.value=String(v); i.focus();}};
 $('refreshBtn').onclick=loadRows;
 $('search').addEventListener('input',render);
@@ -701,7 +699,7 @@ async function loadRows(){
     $('syncStatus').textContent='শিট থেকে লোড হচ্ছে...';
     const numsId=currentNumbersId();
     const data=await apiSid(numsId,encodeURIComponent(agentId)+'!A6:F');
-    rows=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||'',status:v[1]||'',valid:v[2]||'',remark1:v[3]||'',remark2:v[4]||'',others:v[5]||''})).filter(r=>r.number||r.status||r.valid||r.remark1||r.remark2||r.others);
+    rows=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||'',status:v[1]||'',valid:v[2]||'',remark1:v[3]||'',remark2:v[4]||'',others:v[5]||'',savedStatus:v[1]||'',savedValid:v[2]||''})).filter(r=>r.number||r.status||r.valid||r.remark1||r.remark2||r.others);
     lastStatusMap={}; rows.forEach(r=>{lastStatusMap[(r.number||'').trim()]=(r.status||'')+'|'+(r.valid||'');});
     applyDrafts(); updateOutboxLine(); renderReminders();
     render(); loadDayStats(); drainOutbox();
@@ -750,40 +748,75 @@ function setOutbox(list){ try{ localStorage.setItem(outboxKey(), JSON.stringify(
 function updateOutboxLine(){
   const el=$('outboxLine'); if(!el) return;
   const n=getOutbox().length;
+  renderSaveFailBox();
   if(!n){ el.style.display='none'; el.textContent=''; return; }
   el.style.display='block';
   el.textContent='জমা বাকি: '+n+'টা সেভ এখনো শিটে যায়নি — নেট আসলেই যাবে';
 }
+function renderSaveFailBox(){
+  const el=$('saveFailBox'); if(!el) return;
+  const list=getOutbox();
+  if(!list.length){ el.style.display='none'; el.innerHTML=''; return; }
+  const reasonBn={rowcheck:'রো বদলে গেছে',sheet:'শিটে সেভ হয়নি',log:'লগে জমা হয়নি','not-found':'শিটে নাম্বারটি পাওয়া যায়নি'};
+  el.style.display='block';
+  el.innerHTML='<b>⚠️ সেভ হয়নি — '+list.length+'টা নম্বর জমা বাকিতে আছে:</b><br>'+list.map(e=>esc(dialNumber(e.number||''))+' ('+(reasonBn[e.reason]||'সেভ হয়নি')+')').join('<br>')+'<br><button type="button" class="btn btn-sm" style="margin-top:8px" onclick="drainOutbox()">আবার চেষ্টা করুন</button>';
+}
 function queueFailedSave(p){ const list=getOutbox(); list.push(p); setOutbox(list); }
 function removeOutboxEntry(ts){ setOutbox(getOutbox().filter(e=>e.ts!==ts)); }
 async function drainOutbox(){
-  const list=getOutbox(); if(!list.length) return;
-  let done=0;
-  for(const e of list.slice()){
+  const list=getOutbox(); if(!list.length){ renderSaveFailBox(); return; }
+  let done=0; const keep=[];
+  for(const e of list){
+    let failed=null;
     try{
       await tryRefreshConfig();
       const numsId=currentNumbersId();
       const r=rows.find(x=>normLogNum(x.number||'')===normLogNum(e.number||''));
-      if(!r){ removeOutboxEntry(e.ts); continue; }
-      const cur=await apiSid(numsId,encodeURIComponent(agentId)+'!A'+r.row);
-      const curNum=(cur.values&&cur.values[0]&&cur.values[0][0])||'';
-      if(curNum!==r.number) continue;
-      await apiSid(numsId,encodeURIComponent(agentId)+'!B'+r.row+':F'+r.row+'?valueInputOption=USER_ENTERED','PUT',{values:[[e.val,e.vc,e.r1,e.r2,e.ot]]});
-      const key=(r.number||'').trim(), now=e.val+'|'+e.vc, old=lastStatusMap[key];
-      const changed=now!==old, isClear=!e.val&&!e.vc;
-      if(changed){
-        try{
-          const today=dhakaToday();
-          if(isClear){ await deleteLogRowsEverywhere(today,dialNumber(r.number)); }
-          else { const t=await logWriteTarget(today); await appendRowRaw(t.id,t.tab,[today,dialNumber(r.number),e.val,e.vc,dhakaTime24()]); }
-          lastStatusMap[key]=now;
-        }catch(err){}
+      if(!r){
+        // number is not in the sheet any more — NEVER delete silently: keep it and show it clearly
+        failed='not-found';
+      } else {
+        const cur=await apiSid(numsId,encodeURIComponent(agentId)+'!A'+r.row);
+        const curNum=(cur.values&&cur.values[0]&&cur.values[0][0])||'';
+        if(curNum!==r.number){
+          failed='rowcheck';
+        } else {
+          // (re)write the sheet row unless a previous attempt already verified it
+          let sheetOk=false;
+          if(e.logOnly){
+            try{ sheetOk=await verifySheetRow(r.row,r.number,e.val,e.vc); }catch(err){ sheetOk=false; }
+          }
+          if(!e.logOnly || !sheetOk){
+            await apiSid(numsId,encodeURIComponent(agentId)+'!B'+r.row+':F'+r.row+'?valueInputOption=USER_ENTERED','PUT',{values:[[e.val,e.vc,e.r1,e.r2,e.ot]]});
+            try{ sheetOk=await verifySheetRow(r.row,r.number,e.val,e.vc); }catch(err){ sheetOk=false; }
+          }
+          if(!sheetOk){
+            failed='sheet';
+          } else {
+            r.status=e.val; r.valid=e.vc; r.remark1=e.r1; r.remark2=e.r2; r.others=e.ot;
+            r.savedStatus=e.val; r.savedValid=e.vc;
+            lastStatusMap[(r.number||'').trim()]=e.val+'|'+e.vc;
+            clearDraft(r.number);
+            // log entry (deduped by ensureLogEntry so a retry never duplicates it)
+            const isClear=!e.val&&!e.vc;
+            const today=dhakaToday();
+            try{
+              if(isClear){ await deleteLogRowsEverywhere(today,dialNumber(r.number)); }
+              else { await ensureLogEntry(today,r.number,e.val,e.vc); }
+            }catch(err){
+              failed='log'; e.logOnly=true;
+            }
+          }
+        }
       }
-      r.status=e.val; r.valid=e.vc; r.remark1=e.r1; r.remark2=e.r2; r.others=e.ot;
-      clearDraft(r.number);
-      removeOutboxEntry(e.ts); done++;
-    }catch(err){ /* keep queued */ }
+    }catch(err){
+      failed=e.reason||'sheet';
+    }
+    if(failed){ e.attempts=(e.attempts||0)+1; e.reason=failed; keep.push(e); }
+    else { done++; }
   }
+  setOutbox(keep);
+  renderSaveFailBox();
   if(done){ render(); loadDayStats(); toast(done+'টা জমা বাকি সেভ শিটে গেছে'); }
 }
 /* ---- In-page reminders (app reminder parity, page-open only) ---- */
@@ -870,7 +903,7 @@ function filteredRows(){
   const qt=qRaw.toLowerCase();
   let list;
   if(tab==='done'){ list=calledRows.slice(); }
-  else { list=rows.filter(r=>!r.status); }
+  else { list=rows.filter(r=>!r.savedStatus); }
   if(typeFilter) list=list.filter(r=>matchesTypeFilter(r,typeFilter));
   if(qRaw){
     list=list.filter(r=>{
@@ -885,7 +918,7 @@ function filteredRows(){
 function focusModeActive(){
   return tab==='pending' && !$('search').value.trim() && !typeFilter;
 }
-function pendingList(){ return rows.filter(r=>!r.status); }
+function pendingList(){ return rows.filter(r=>!r.savedStatus); }
 function getFocusRow(){
   const pend=pendingList();
   if(!pend.length) return null;
@@ -908,14 +941,12 @@ function focusCardHtml(f){
   const badge=f.status==='call connected'?'badge-ok':f.status==='not connected'?'badge-no':'badge-blank';
   const _hist=historyMap[normLogNum(f.number||'')]||[];
   const _histTxt=_hist.length?('আগের কল: '+_hist.slice(0,3).map(d=>displayDay(d)).join(' • ')+(_hist.length>3?' +'+(_hist.length-3)+'টা':'')):'';
-  return `<div class="row"><b class="focus-num">${esc(dialNumber(f.number))}</b>${f.logTime?`<span class="badge"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fmtTimeBn(f.logTime)}</span>`:''}<span class="badge ${badge}">${f.status==='call connected'?'● call connected':f.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${f.row}</span>${f.prevDay?`<span class="badge">আগের দিনের কল</span>`:''}${f.valid?`<span class="badge">Valid: ${esc(f.valid)}</span>`:''}</div>${_histTxt?`<p class="muted" style="margin:6px 0 0;font-size:12px">${esc(_histTxt)}</p>`:''}
+  return `<div class="row"><b class="focus-num" style="flex:1 1 auto">${esc(dialNumber(f.number))}</b><button type="button" class="btn focus-call" style="width:auto;flex:0 0 auto;min-width:150px" onclick="callChooser(${f.row})">📞 Call করুন</button>${f.logTime?`<span class="badge"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${fmtTimeBn(f.logTime)}</span>`:''}<span class="badge ${badge}">${f.status==='call connected'?'● call connected':f.status==='not connected'?'● not connected':'● খালি'}</span><span class="badge">রো ${f.row}</span>${f.prevDay?`<span class="badge">আগের দিনের কল</span>`:''}${f.valid?`<span class="badge">Valid: ${esc(f.valid)}</span>`:''}</div>${_histTxt?`<p class="muted" style="margin:6px 0 0;font-size:12px">${esc(_histTxt)}</p>`:''}
     <div style="margin-top:10px"><label>CALLING STATUS</label><div class="row" style="margin-top:6px"><button type="button" id="fc-stc-conn" class="chip ${f.status==='call connected'?'chip-on-green':'chip-off'}" onclick="setFocusChip('status','call connected')">Connected</button><button type="button" id="fc-stc-notconn" class="chip ${f.status==='not connected'?'chip-on-rose':'chip-off'}" onclick="setFocusChip('status','not connected')">Not Connected</button></div></div>
     <div style="margin-top:8px"><label>Valid Conversation</label><div class="row" style="margin-top:6px"><button type="button" id="fc-vcc-yes" class="chip ${f.valid==='Yes'?'chip-on-blue':'chip-off'}" onclick="setFocusChip('valid','Yes')">Yes</button><button type="button" id="fc-vcc-no" class="chip ${f.valid==='No'?'chip-on-grey':'chip-off'}" onclick="setFocusChip('valid','No')">No</button></div></div>
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="fc-r1" value="${esc(f.remark1)}" placeholder="1st call remark লিখুন"></div>
-    <div class="row" style="margin-top:6px"><button type="button" class="btn btn-light btn-sm" onclick="addFocusPhrase('বিকেলে করবে')">বিকেলে করবে</button><button type="button" class="btn btn-light btn-sm" onclick="addFocusPhrase('ফোন বন্ধ')">ফোন বন্ধ</button><button type="button" class="btn btn-light btn-sm" onclick="addFocusPhrase('পরে কল করতে বলেছে')">পরে কল করতে বলেছে</button></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="fc-r2" value="${esc(f.remark2)}" placeholder="2nd call remark লিখুন"></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="fc-ot" value="${esc(f.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
-    <div class="row" style="margin-top:12px"><button type="button" class="btn focus-call" onclick="callChooser(${f.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> 📞 Call করুন</button></div>
     <div class="row" style="margin-top:8px"><button type="button" class="btn btn-light" style="flex:1" onclick="copyChooser(${f.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 📋 নাম্বার Copy করুন</button><button type="button" class="btn btn-light" style="flex:1" onclick="setReminderFor('${esc(dialNumber(f.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> মনে করিয়ে দাও</button></div>
     <div class="row" style="margin-top:10px"><button type="button" class="btn focus-save" onclick="saveFocusRow()"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> 💾 Save — শিটে জমা দিন</button></div>`;
 }
@@ -951,10 +982,6 @@ window.setFocusChip=(kind,value)=>{
   else{r.valid=(r.valid===value)?'':value;}
   dirty=true; refreshFocusChips(); refreshChips(r.row); saveDraftForRow(r);
 };
-window.addFocusPhrase=(text)=>{
-  const inp=$('fc-r1'); if(!inp) return;
-  inp.value=inp.value?inp.value+' '+text:text; dirty=true; inp.focus();
-};
 window.setFocusRow=(rowNum)=>{
   focusRowNum=rowNum;
   renderFocusCard();
@@ -966,8 +993,10 @@ window.saveFocusRow=async ()=>{
   const pend=pendingList();
   const idx=pend.findIndex(x=>x.row===r.row);
   const nxt=pend[idx+1]||pend[0];
+  const ok=await saveRow(r.row);
+  if(!ok) return;
   focusRowNum=(nxt&&nxt.row!==r.row)?nxt.row:null;
-  await saveRow(r.row);
+  renderFocusCard();
 };
 function render(){
   const list=filteredRows();
@@ -988,7 +1017,6 @@ function render(){
     <div style="margin-top:10px"><label>CALLING STATUS</label><div class="row" style="margin-top:6px"><button type="button" id="stc-${r.row}-conn" class="chip ${r.status==='call connected'?'chip-on-green':'chip-off'}" onclick="setChip(${r.row},'status','call connected')">Connected</button><button type="button" id="stc-${r.row}-notconn" class="chip ${r.status==='not connected'?'chip-on-rose':'chip-off'}" onclick="setChip(${r.row},'status','not connected')">Not Connected</button></div></div>
     <div style="margin-top:8px"><label>Valid Conversation</label><div class="row" style="margin-top:6px"><button type="button" id="vcc-${r.row}-yes" class="chip ${r.valid==='Yes'?'chip-on-blue':'chip-off'}" onclick="setChip(${r.row},'valid','Yes')">Yes</button><button type="button" id="vcc-${r.row}-no" class="chip ${r.valid==='No'?'chip-on-grey':'chip-off'}" onclick="setChip(${r.row},'valid','No')">No</button></div></div>
     <div style="margin-top:8px"><label>1ST CALL REMARK</label><input id="r1-${r.row}" value="${esc(r.remark1)}" placeholder="1st call remark লিখুন"></div>
-    <div class="row" style="margin-top:6px"><button type="button" class="btn btn-light btn-sm" onclick="addPhrase(${r.row},'বিকেলে করবে')">বিকেলে করবে</button><button type="button" class="btn btn-light btn-sm" onclick="addPhrase(${r.row},'ফোন বন্ধ')">ফোন বন্ধ</button><button type="button" class="btn btn-light btn-sm" onclick="addPhrase(${r.row},'পরে কল করতে বলেছে')">পরে কল করতে বলেছে</button></div>
     <div style="margin-top:8px"><label>2ND CALL REMARK</label><input id="r2-${r.row}" value="${esc(r.remark2)}" placeholder="2nd call remark লিখুন"></div>
     <div style="margin-top:8px"><label>OTHERS NUMBER</label><input id="ot-${r.row}" value="${esc(r.others)}" inputmode="tel" placeholder="Others number লিখুন"></div>
     <div class="row" style="margin-top:10px"><button type="button" class="btn btn-light btn-sm" onclick="callChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</button><button class="btn btn-light btn-sm" onclick="copyChooser(${r.row})"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button><button type="button" class="btn btn-light btn-sm" onclick="setReminderFor('${esc(dialNumber(r.number))}')"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> মনে করিয়ে দাও</button><button type="button" class="btn btn-light btn-sm" onclick="setFocusRow(${r.row})">🎯 ফোকাস</button><button class="btn btn-primary btn-sm" onclick="saveRow(${r.row})" style="flex:1"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> সেভ করুন</button></div></div>`;
@@ -1023,34 +1051,83 @@ function refreshChips(rowNum){
   if(vy)vy.className='chip '+(r.valid==='Yes'?'chip-on-blue':'chip-off');
   if(vn)vn.className='chip '+(r.valid==='No'?'chip-on-grey':'chip-off');
 }
+// --- save verification: every write is read back before it counts as saved ---
+async function verifySheetRow(rowNum, number, val, vc){
+  const d=await apiSid(currentNumbersId(),encodeURIComponent(agentId)+'!A'+rowNum+':C'+rowNum);
+  const v=(d.values&&d.values[0])||[];
+  return (v[0]||'')===number && (v[1]||'')===val && (v[2]||'')===vc;
+}
+async function logHasEntry(today, n, val, vc){
+  const rs=await readLogRowsForDate(today);
+  return rs.some(e=>cellE(e,0)===today && normLogNum(cellE(e,1))===n && cellE(e,2)===val && cellE(e,3)===vc);
+}
+async function ensureLogEntry(today, number, val, vc){
+  const n=normLogNum(number);
+  if(await logHasEntry(today,n,val,vc)) return true;
+  const t=await logWriteTarget(today);
+  await appendRowRaw(t.id,t.tab,[today,dialNumber(number),val,vc,dhakaTime24()]);
+  return await logHasEntry(today,n,val,vc);
+}
 window.saveRow=async (rowNum)=>{
-  const r=rows.find(x=>x.row===rowNum); if(!r)return;
-  const val=r.status, vc=r.valid, r1=$('r1-'+rowNum).value.trim(), r2=$('r2-'+rowNum).value.trim(), ot=$('ot-'+rowNum).value.trim();
-  if(!val && !vc){ const _old=lastStatusMap[(r.number||'').trim()]||''; if(_old && _old!=='|'){ if(!confirm('এই রো-র আজকের হিসাব (লগ রো) মুছে যাবে। ঠিক আছে?')) return; } }
+  const r=rows.find(x=>x.row===rowNum); if(!r) return false;
+  const val=r.status, vc=r.valid;
+  const r1=($('r1-'+rowNum)?$('r1-'+rowNum).value.trim():(r.remark1||'')), r2=($('r2-'+rowNum)?$('r2-'+rowNum).value.trim():(r.remark2||'')), ot=($('ot-'+rowNum)?$('ot-'+rowNum).value.trim():(r.others||''));
+  if(!val && !vc){ const _old=lastStatusMap[(r.number||'').trim()]||''; if(_old && _old!=='|'){ if(!confirm('এই রো-র আজকের হিসাব (লগ রো) মুছে যাবে। ঠিক আছে?')) return false; } }
   try{
     await tryRefreshConfig();
     const numsId=currentNumbersId();
     const cur=await apiSid(numsId,encodeURIComponent(agentId)+'!A'+rowNum);
     const curNum=(cur.values&&cur.values[0]&&cur.values[0][0])||'';
-    if(curNum!==r.number){toast('শিটে রো বদলে গেছে — রিফ্রেশ করে আবার সেভ করুন');await loadRows();return;}
+    if(curNum!==r.number){
+      // row moved in the sheet — never discard silently: queue for retry (resolved by number) and say so clearly
+      queueFailedSave({rowNum:rowNum,number:r.number,val:val,vc:vc,r1:r1,r2:r2,ot:ot,ts:Date.now(),reason:'rowcheck',attempts:0});
+      saveDraftForRow(r);
+      toast('রো বদলে গেছে — '+dialNumber(r.number)+' নম্বরটি জমা বাকিতে রাখা হয়েছে, আবার চেষ্টা করা হবে');
+      renderSaveFailBox();
+      await loadRows();
+      return false;
+    }
     await apiSid(numsId,encodeURIComponent(agentId)+'!B'+rowNum+':F'+rowNum+'?valueInputOption=USER_ENTERED','PUT',{values:[[val,vc,r1,r2,ot]]});
+    // verify the write actually landed (read-back); a write that cannot be verified counts as failed
+    let ok=false;
+    try{ ok=await verifySheetRow(rowNum,r.number,val,vc); }catch(e){ ok=false; }
+    if(!ok){
+      queueFailedSave({rowNum:rowNum,number:r.number,val:val,vc:vc,r1:r1,r2:r2,ot:ot,ts:Date.now(),reason:'sheet',attempts:0});
+      toast('সেভ যাচাই হয়নি — '+dialNumber(r.number)+' নম্বরটি জমা বাকিতে রাখা হয়েছে');
+      renderSaveFailBox();
+      return false;
+    }
     const key=(r.number||'').trim(), now=val+'|'+vc, old=lastStatusMap[key];
     const changed=now!==old;
     const isClear=!val&&!vc;
     r.status=val; r.valid=vc; r.remark1=r1; r.remark2=r2; r.others=ot;
-    let cleared=false;
+    r.savedStatus=val; r.savedValid=vc;
+    let cleared=false, logOk=true;
     if(changed || r.prevDay){
       try{
         const today=dhakaToday();
         if(isClear){ await deleteLogRowsEverywhere(today,dialNumber(r.number)); cleared=true; }
-        else { const t=await logWriteTarget(today); await appendRowRaw(t.id,t.tab,[today,dialNumber(r.number),val,vc,dhakaTime24()]); }
+        else { await ensureLogEntry(today,r.number,val,vc); }
         lastStatusMap[key]=now;
         if(!localStorage.getItem('log_anchor_date_'+agentId)) localStorage.setItem('log_anchor_date_'+agentId,today);
-      }catch(e){toast('শিটে সেভ হয়েছে, লগে জমা হয়নি');}
+      }catch(e){
+        // sheet is saved, but the log is not — queue a log-only retry and say so clearly
+        logOk=false;
+        queueFailedSave({rowNum:rowNum,number:r.number,val:val,vc:vc,r1:r1,r2:r2,ot:ot,ts:Date.now(),reason:'log',attempts:0,logOnly:true});
+        toast('শিটে সেভ হয়েছে, লগে জমা হয়নি — '+dialNumber(r.number)+' লগের জন্য জমা বাকিতে রাখা হয়েছে');
+        renderSaveFailBox();
+      }
     }
     clearDraft(r.number);
-    render(); loadDayStats(); dirty=false; toast('রো '+rowNum+' শিটে আপডেট হয়েছে'+(cleared?' (ajker log row muche geche)':''));
-  }catch(e){ queueFailedSave({rowNum:rowNum,number:r.number,val:val,vc:vc,r1:r1,r2:r2,ot:ot,ts:Date.now()}); toast('সেভ হয়নি — জমা বাকিতে রাখা হয়েছে, নেট আসলেই যাবে'); }
+    render(); loadDayStats(); dirty=false;
+    if(logOk) toast('রো '+rowNum+' শিটে আপডেট হয়েছে'+(cleared?' (ajker log row muche geche)':''));
+    return true;
+  }catch(e){
+    queueFailedSave({rowNum:rowNum,number:r.number,val:val,vc:vc,r1:r1,r2:r2,ot:ot,ts:Date.now(),reason:'sheet',attempts:0});
+    toast('সেভ হয়নি — '+dialNumber(r.number)+' নম্বরটি জমা বাকিতে রাখা হয়েছে, নেট আসলেই যাবে');
+    renderSaveFailBox();
+    return false;
+  }
 };
 function defaultConfigMap(){ return {NUMBERS:[{sheetId:SHEET_ID,fromDate:''}],STATUS_LOG:[{sheetId:SHARED_STATUS_LOG_ID,fromDate:''}],REPORTS:[{sheetId:SHARED_REPORT_ID,fromDate:''}],DAILY:[{sheetId:DAILY_REPORTS_ID,fromDate:''}],FTD_USERS:[{sheetId:FTD_USERS_ID,fromDate:''}],COMMISSION:[{sheetId:COMMISSION_STATS_ID,fromDate:''}]}; }
 function currentConfig(){ return sheetConfigCache||defaultConfigMap(); }
@@ -1136,8 +1213,8 @@ async function loadDayStats(){
     let connW=0, notConnW=0; filterRangeE(logs,blockStart,blockEnd).forEach(e=>{if(cellE(e,2)==='call connected')connW++;if(cellE(e,2)==='not connected')notConnW++;});
     const ftdWeek=filterRangeE(ftds,blockStart,blockEnd); let ftdSumW=0;
     ftdWeek.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSumW+=v;});
-    $('stConn').textContent=conn; $('stNotConn').textContent=notConn; $('stValid').textContent=valid; $('stInv').textContent=inv; $('stReg').textContent=reg;
-    $('heroCalls').textContent=logs.filter(e=>cellE(e,0)===day).length; $('heroNums').textContent=rows.length; $('heroRemain').textContent=rows.filter(r=>!r.status).length;
+    $('stConn').textContent=conn; $('stNotConn').textContent=notConn; $('stValid').textContent=valid; $('stInv').textContent=inv; manReg=reg;
+    $('heroCalls').textContent=logs.filter(e=>cellE(e,0)===day).length; $('heroNums').textContent=rows.length; $('heroRemain').textContent=rows.filter(r=>!r.savedStatus).length;
     const _qr=$('qlRemain'); if(_qr)_qr.textContent=$('heroRemain').textContent;
     const _blk=filterRangeE(logs,blockStart,blockEnd);
     const validW=_blk.filter(e=>cellE(e,3)==='Yes').length;
@@ -1146,13 +1223,12 @@ async function loadDayStats(){
     const _tLine=$('targetLine');
     if(_tLine){
       if(day===dhakaToday()){
-        const _done=logs.filter(e=>cellE(e,0)===day).length, _rem=rows.filter(r=>!r.status).length;
+        const _done=logs.filter(e=>cellE(e,0)===day).length, _rem=rows.filter(r=>!r.savedStatus).length;
         _tLine.style.display='block';
         _tLine.textContent=_rem===0?'আজকের সব কল শেষ ✓ — মোট '+_done+'টা কল হয়েছে':'আজ: '+_done+'টা কল হয়েছে • '+_rem+'টা বাকি';
       } else { _tLine.style.display='none'; }
     }
-    $('stFtd').textContent=ftdTotalCount(ftdToday); $('stFtdAmt').textContent='৳'+fmtAmt(ftdSum);
-    const _qf=$('qlFtd'); if(_qf)_qf.textContent=$('stFtd').textContent;
+    manFtd=ftdTotalCount(ftdToday); manFtdAmt=ftdSum; applyStatTiles();
     $('weekSummary').textContent='এই ৭ দিন ('+displayDay(blockStart)+' – '+displayDay(blockEnd)+'): Connected '+connW+' • Not Connected '+notConnW+' • Valid '+validW+' • Invalid '+invW+' • এফটিডি '+ftdTotalCount(ftdWeek)+' (৳'+fmtAmt(ftdSumW)+') • রেজিস্ট্রেশন '+regW+(lastLogReadUsedLegacy?' • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)':'')+((lastLogPartialFail||lastReportPartialFail)?' • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)':'');
     historyMap={};
     (logs||[]).forEach(e=>{
@@ -1197,7 +1273,7 @@ function buildCalledRows(logs,day){
     rows.forEach(r=>{ r.prevDay=false; });
     const _inCalled=new Set(Object.keys(latest));
     rows.forEach(r=>{
-      if(!r.status) return;
+      if(!r.savedStatus) return;
       const _n=normLogNum(r.number||'');
       if(!_n||_inCalled.has(_n)) return;
       r.prevDay=true; r.logTime='';
@@ -1214,20 +1290,30 @@ async function loadReportData(){
     const regs=filterTodayE(s.reg,day), ftds=filterTodayE(s.ftd,day), probs=filterTodayE(s.prob,day);
     const past=day<dhakaToday();
     renderEntryList('regList',regs,e=>isRegCountRow(e)?esc(cellE(e,1))+'টা':esc(cellE(e,1)),!past);
-    refreshRegStepper(day,regs);
-    refreshFtdStepper(day,ftds);
+    // Report headline: AUTO (Commission Stats) when a Stats row exists for this date, else MANUAL — never summed
+    let auto=null;
+    try{ await loadCommissionWeek(); auto=statsForDate(day); }catch(e){ auto=null; }
+    const manReg=regTotalCount(regs);
+    let manFtdSum=0; ftds.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))manFtdSum+=v;});
+    const manFtd=ftdTotalCount(ftds);
+    const headReg=auto?auto.reg:manReg;
+    const headFtd=auto?auto.ftd:manFtd;
+    const headAmt=auto?auto.amt:manFtdSum;
+    refreshRegStepper(day,regs,headReg,auto?manReg:null);
+    refreshFtdStepper(day,ftds,headFtd,headAmt,auto?{n:manFtd,amt:manFtdSum}:null);
     renderEntryList('ftdList',ftds,e=>'৳'+fmtAmt(parseFloat(cellE(e,2))||0),!past);
     renderEntryList('probList',probs,e=>esc(cellE(e,1)),!past);
     let autoInv=[];
     try{ const lrows=await readLogRowsForDate(day); autoInv=autoInvalidNumbers(lrows,day); }catch(e){}
     $('invAutoSummary').textContent=displayDay(day)+' — Invalid (অটো): '+autoInv.length+'টা';
     $('invAutoList').innerHTML='';
-    window._rep={regs:regs,ftds:ftds,invs:s.inv,probs:probs,autoInv:autoInv,repDay:day};
+    window._rep={regs:regs,ftds:ftds,invs:s.inv,probs:probs,autoInv:autoInv,repDay:day,auto:auto,headReg:headReg,headFtd:headFtd,headAmt:headAmt,manReg:manReg,manFtd:manFtd,manFtdSum:manFtdSum};
   }catch(e){toast('Report লোড হয়নি, আবার চেষ্টা করুন');}
 }
 const BN_WEEKDAY=['রবি','সোম','মঙ্গল','বুধ','বৃহঃ','শুক্র','শনি'];
 function weekdayBn(dateStr){const p=dateStr.split('-');if(p.length<3)return '';return BN_WEEKDAY[new Date(Date.UTC(+p[0],+p[1]-1,+p[2])).getUTCDay()];}
 let commissionCache=null, commissionCacheAt=0;
+function statsForDate(d){ return (commissionCache&&commissionCache.statsByDate&&commissionCache.statsByDate[d])||null; }
 function renderWeekBars(byDate){
   const bars=$('heroWeekBars'), days=$('heroWeekDays');
   if(!bars||!days) return;
@@ -1248,6 +1334,22 @@ function renderWeekBars(byDate){
 }
 function applyCommission(byDate,lastSync){
   renderWeekBars(byDate);
+  applyStatTiles();
+}
+function setTileSub(id,text){ const el=$(id); if(!el) return; if(text){ el.textContent=text; el.style.display='block'; } else { el.textContent=''; el.style.display='none'; } }
+function applyStatTiles(){
+  const d=selectedDate||dhakaToday();
+  const auto=statsForDate(d);
+  const headFtd=auto?auto.ftd:manFtd;
+  const headAmt=auto?auto.amt:manFtdAmt;
+  const headReg=auto?auto.reg:manReg;
+  $('stFtd').textContent=headFtd;
+  $('stFtdAmt').textContent='৳'+fmtAmt(headAmt);
+  $('stReg').textContent=headReg;
+  setTileSub('stFtdMan',auto?('ম্যানুয়াল: '+manFtd+'টা'):null);
+  setTileSub('stFtdAmtMan',auto?('ম্যানুয়াল: ৳'+fmtAmt(manFtdAmt)):null);
+  setTileSub('stRegMan',auto?('ম্যানুয়াল: '+manReg+'টা'):null);
+  const _qf=$('qlFtd'); if(_qf)_qf.textContent=headFtd;
 }
 async function loadCommissionWeek(){
   if(!token) return;
@@ -1260,14 +1362,16 @@ async function loadCommissionWeek(){
     const id=writeSheetFor(currentConfig(),'COMMISSION',dhakaToday());
     if(!id) throw new Error('no-commission-id');
     const rows=await getTabRows(id,'Stats');
-    const byDate={}; let lastSync='';
+    const byDate={}; const statsByDate={}; let lastSync='';
     rows.forEach(e=>{
       const d=(cellE(e,0)||'').trim(); if(!d) return;
       const v=parseInt(cellE(e,1),10); byDate[d]=isNaN(v)?0:v;
+      const amt=parseFloat(cellE(e,2))||0, reg=parseInt(cellE(e,3),10);
+      statsByDate[d]={ftd:isNaN(v)?0:v,amt:amt,reg:isNaN(reg)?0:reg};
       const s=(cellE(e,16)||'').trim();
       if(s&&(!lastSync||s>lastSync)) lastSync=s;
     });
-    commissionCache={byDate:byDate,lastSync:lastSync}; commissionCacheAt=Date.now();
+    commissionCache={byDate:byDate,statsByDate:statsByDate,lastSync:lastSync}; commissionCacheAt=Date.now();
     if(chart) chart.classList.remove('hero-week-loading');
     applyCommission(byDate,lastSync);
   }catch(e){
@@ -1312,25 +1416,31 @@ async function deleteEntry(listId,sheetRow,sourceSheet){
   }catch(e){toast('ডিলিট হয়নি, আবার চেষ্টা করুন');}
 }
 function regTodayRows(){const t=dhakaToday();return (window._rep&&window._rep.regs?window._rep.regs:[]).filter(e=>cellE(e,0)===t);}
-function refreshRegStepper(day,regs){const rows=(regs!==undefined)?regs:regTodayRows();$('regStepCount').textContent=regTotalCount(rows);const d=day||dhakaToday();$('regStepSummary').textContent=(d===dhakaToday()?'আজ: ':displayDay(d)+' — ')+regTotalCount(rows)+'টা';}
+function refreshRegStepper(day,regs,head,man){const rows=(regs!==undefined)?regs:regTodayRows();const h=(head===undefined||head===null)?regTotalCount(rows):head;$('regStepCount').textContent=h;const d=day||dhakaToday();const label=(d===dhakaToday()?'আজ: ':displayDay(d)+' — ')+h+'টা';$('regStepSummary').textContent=(man===undefined||man===null)?label:label+' • ম্যানুয়াল: '+man+'টা';}
 $('regPlusBtn').onclick=async()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await tryRefreshConfig();const wid=await reportWriteSheet();await appendRowRaw(wid,agentId,[dhakaToday(),'Registration','1','','']);$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 $('regMinusBtn').onclick=async()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে বদলানো যাবে না');return;}const rows=regTodayRows();if(!rows.length){toast('আজ কোনো রেজিস্ট্রেশন নেই');return;}let last=rows[0];rows.forEach(e=>{const so=e.sourceOrder||0, lso=last.sourceOrder||0; if(so>lso||(so===lso&&e.sheetRow>last.sheetRow)) last=e;});await deleteEntry('regList',last.sheetRow,last.sourceSheet);await loadDayStats();};
 function ftdTodayRows(){const t=dhakaToday();return (window._rep&&window._rep.ftds?window._rep.ftds:[]).filter(e=>cellE(e,0)===t);}
-function refreshFtdStepper(day,ftds){const rows=(ftds!==undefined)?ftds:ftdTodayRows();let sum=0;rows.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))sum+=v;});$('ftdStepCount').textContent=ftdTotalCount(rows);const d=day||dhakaToday();$('ftdStepSummary').textContent=(d===dhakaToday()?'আজ: ':displayDay(d)+' — ')+ftdTotalCount(rows)+'টা • মোট ৳'+fmtAmt(sum);}
+function refreshFtdStepper(day,ftds,headN,headAmt,man){const rows=(ftds!==undefined)?ftds:ftdTodayRows();let sum=0;rows.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))sum+=v;});const hn=(headN===undefined||headN===null)?ftdTotalCount(rows):headN;const ha=(headAmt===undefined||headAmt===null)?sum:headAmt;$('ftdStepCount').textContent=hn;const d=day||dhakaToday();const label=(d===dhakaToday()?'আজ: ':displayDay(d)+' — ')+hn+'টা • মোট ৳'+fmtAmt(ha);$('ftdStepSummary').textContent=man?label+' • ম্যানুয়াল: '+man.n+'টা • ৳'+fmtAmt(man.amt):label;}
 $('ftdPlusBtn').onclick=()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}const r=$('ftdStepAmountRow');if(r.style.display!=='none'){$('ftdStepAmt').focus();return;}const next=ftdTotalCount(ftdTodayRows())+1;$('ftdStepAmt').placeholder=next+' নম্বর FTD কত টাকার?';r.style.display='flex';$('ftdStepAmt').focus();};
 $('ftdStepAddBtn').onclick=async()=>{const a=$('ftdStepAmt').value.trim();if(!a)return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await tryRefreshConfig();const wid=await reportWriteSheet();await appendRowRaw(wid,agentId,[dhakaToday(),'FTD','1',a,'']);$('ftdStepAmt').value='';$('ftdStepAmountRow').style.display='none';$('reportOut').style.display='none';await loadReportData();await loadDayStats();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 $('ftdMinusBtn').onclick=async()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে বদলানো যাবে না');return;}const rows=ftdTodayRows();if(!rows.length){toast('আজ কোনো FTD নেই');return;}let last=rows[0];rows.forEach(e=>{const so=e.sourceOrder||0, lso=last.sourceOrder||0; if(so>lso||(so===lso&&e.sheetRow>last.sheetRow)) last=e;});await deleteEntry('ftdList',last.sheetRow,last.sourceSheet);await loadDayStats();};
 $('probAddBtn').onclick=async()=>{const t=$('probText').value.trim();if(!t)return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await tryRefreshConfig();const wid=await reportWriteSheet();await appendRowRaw(wid,agentId,[dhakaToday(),'Problems','','',t]);$('probText').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 $('genBtn').onclick=async()=>{
+  // refresh the headline first so the generated text uses the freshest Stats row
+  try{ await loadReportData(); }catch(e){}
   const r=window._rep||{regs:[],ftds:[],invs:[],probs:[],autoInv:[]};
   const now=dhakaNow();
   const day=r.repDay||reportDate;
   const total=rows.filter(x=>x.status).length, conn=rows.filter(x=>x.status==='call connected').length;
-  let ftdSum=0; r.ftds.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSum+=v;});
+  // headline: auto Stats when present, else manual — never summed
+  const headReg=(r.headReg===undefined||r.headReg===null)?regTotalCount(r.regs):r.headReg;
+  const headFtd=(r.headFtd===undefined||r.headFtd===null)?ftdTotalCount(r.ftds):r.headFtd;
+  let headAmt;
+  if(r.headAmt===undefined||r.headAmt===null){ let s=0; r.ftds.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))s+=v;}); headAmt=s; } else headAmt=r.headAmt;
   let out='Date: '+displayDay(day)+'\nTime: '+now.time+'\nAgent ID: '+agentId+'\nTotal Calls: '+total+'\nConnected: '+conn;
-  out+='\nRegistration: '+regTotalCount(r.regs);
-  out+='\nFTD: '+ftdTotalCount(r.ftds);
-  out+='\nTotal Amount Recharged: '+fmtAmt(ftdSum);
+  out+='\nRegistration: '+headReg;
+  out+='\nFTD: '+headFtd;
+  out+='\nTotal Amount Recharged: '+fmtAmt(headAmt);
   out+='\nInvalid Number ('+(r.autoInv?r.autoInv.length:0)+'): '+(r.autoInv||[]).join(', ');
   out+='\nProblems ('+r.probs.length+'): '+r.probs.map(e=>cellE(e,1)).join(', ');
   $('reportText').textContent=out; $('reportOut').style.display='block';
@@ -1343,7 +1453,7 @@ $('genBtn').onclick=async()=>{
     let _already=false;
     try{ const _ex=await getTabRows(dailyId,'Reports'); _already=_ex.some(e=>cellE(e,0)===displayDay(day)&&cellE(e,1)===agentId); }catch(e){}
     if(_already && !confirm('এই দিনের রিপোর্ট আগেই জমা আছে। আবার জমা করবেন?')){ $('dailyNote').textContent='আবার জমা করা হয়নি।'; return; }
-    await appendRowRaw(dailyId,'Reports',[displayDay(day),agentId,String(total),String(conn),String(regTotalCount(r.regs)),String(ftdTotalCount(r.ftds)),fmtAmt(ftdSum),String(r.autoInv?r.autoInv.length:0),probsText,displayDay(day)+' '+now.time]);
+    await appendRowRaw(dailyId,'Reports',[displayDay(day),agentId,String(total),String(conn),String(headReg),String(headFtd),fmtAmt(headAmt),String(r.autoInv?r.autoInv.length:0),probsText,displayDay(day)+' '+now.time]);
   }catch(e){ $('dailyNote').textContent='Daily Reports file-e joma hoyni — report text thik ache, copy korte parben'; }
 };
 $('copyReportBtn').onclick=async()=>{try{await navigator.clipboard.writeText($('reportText').textContent);toast('Copy হয়েছে');}catch(e){toast('কপি হয়নি');}};
