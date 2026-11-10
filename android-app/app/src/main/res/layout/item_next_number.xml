@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v6.9 (Phase 1): Design 3 "পরের নাম্বারগুলো নিচে লাইনে" — one compact item of the
+     horizontal next-numbers strip under the focus card. Board C-panel: "পরের:
+     01635••••87 / 01944••••51 / 01308••••94". Tap → that number becomes the focus.
+     Text-only on purpose: ic_call/ic_copy are white-stroked vectors made for dark/orange
+     buttons and would be invisible on this light field. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="128dp" android:layout_height="wrap_content"
+    android:orientation="vertical" android:background="@drawable/glass_field"
+    android:padding="10dp" android:layout_marginEnd="8dp"
+    android:clickable="true" android:focusable="true">
+    <TextView android:id="@+id/nextTvNumber"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textSize="15sp" android:textStyle="bold" android:textColor="@color/ink" />
+    <TextView android:id="@+id/nextTvSub"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="বাকি" android:textSize="11sp" android:textColor="@color/muted_warm"
+        android:layout_marginTop="2dp" />
+</LinearLayout>

@@ -105,6 +105,12 @@ public class RowAdapter extends RecyclerView.Adapter<RowAdapter.Holder> {
         notifyDataSetChanged();
     }
     public List<Row> getAll() { return all; }
+    // v6.9: focus card — MainActivity-ke pending row + history porar sujog (copy; kono behaviour bodol noy).
+    public List<Row> getShownRows() { return new ArrayList<>(shown); }
+    public java.util.List<Hist> getHistoryFor(String dialNum) {
+        java.util.List<Hist> h = history.get(dialNum);
+        return h == null ? null : new ArrayList<>(h);
+    }
 
 
     /** v4.44: ek tap-e chip — dialog/spinner nei. Chip chaplei value bosbe;

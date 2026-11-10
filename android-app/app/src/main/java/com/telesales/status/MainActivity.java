@@ -108,6 +108,20 @@ public class MainActivity extends AppCompatActivity {
     private java.util.Set<String> savingRows = new java.util.HashSet<>();
     private java.util.Set<String> optimisticTileKeys = new java.util.HashSet<>();
     private RowAdapter adapter;
+    // v6.9: focus card — Design 3 "একবারে একটা নাম্বারে ফোকাস".
+    private Row focusedRow;
+    private View focusCard;
+    private RecyclerView nextStrip;
+    private RecyclerView recyclerView;
+    private TextView nextStripLabel;
+    private NextStripAdapter nextStripAdapter;
+    private RowAdapter.OnSave rowOnSave;
+    private TextView focusHeaderSub, focusTvNumber, focusTvRow, focusTvHistory;
+    private TextView focusStatusChipConn, focusStatusChipNotConn, focusValidChipYes, focusValidChipNo;
+    private TextInputEditText focusEtRemark1, focusEtRemark2, focusEtOthers;
+    private MaterialButton focusBtnCall, focusBtnCopy, focusBtnSave, focusBtnRemind, focusBtnProblem;
+    private Button focusPhraseBtn1, focusPhraseBtn2, focusPhraseBtn3;
+    private TextWatcher wFocusRemark1, wFocusRemark2, wFocusOthers;
     private View loginView, mainView;
     private View agentView;
     private TextView agentError, agentSubtitle;
@@ -495,7 +509,7 @@ public class MainActivity extends AppCompatActivity {
 
         RecyclerView recycler = findViewById(R.id.recycler);
         recycler.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new RowAdapter(new RowAdapter.OnSave() {
+        rowOnSave = new RowAdapter.OnSave() {
             public void onSave(Row row, MaterialButton btn) {
             // v4.24: button disable/spinner noy — tap-er sathe sathe row + tile UI-te update,
             // network (sheet + log) background-e cholbe; double-tap guard-e ekoi row-e ektai flight.
@@ -618,6 +632,8 @@ public class MainActivity extends AppCompatActivity {
                         btn.setEnabled(true); btn.setText("সেভ করুন");
                         Toast.makeText(MainActivity.this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (লগ পরে সিঙ্ক হবে)" : (finalLogCleared ? " (আজকের লগ রো মুছে গেছে)" : "")), Toast.LENGTH_LONG).show();
                         adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
+                        // v6.9: focus mode-e save hole porer pending number-e focus jabe.
+                        advanceFocusAfterSave(row, changed, isClear);
                         refreshRemainingHero();
                         if (finalLogAppended) { refreshInvalidTileAfterSave(); }
                         else if (finalLogCleared) loadDayStats();
@@ -655,14 +671,17 @@ public class MainActivity extends AppCompatActivity {
                 String now = (row.status == null ? "" : row.status) + "|" + (row.valid == null ? "" : row.valid);
                 return !now.equals(old);
             }
-        });
+        };
+        adapter = new RowAdapter(rowOnSave);
         recycler.setAdapter(adapter);
+        recyclerView = recycler;
+        bindFocusViews();
         adapter.setOnRemind(row -> showReminderDialog(row));
         setTabUI();
 
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
-            public void onTextChanged(CharSequence s, int a, int b, int c) { if (adapter != null) adapter.filter(s.toString()); }
+            public void onTextChanged(CharSequence s, int a, int b, int c) { if (adapter != null) { adapter.filter(s.toString()); updateListMode(); } }
             public void afterTextChanged(Editable s) {}
         });
         // Batch fix #13: search clear-✕.
@@ -778,6 +797,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.menuHomeBtn).setBackgroundResource(sec == 1 ? R.drawable.btn_gradient : R.drawable.glass_field);
         // v4.20: list-e dhukle called tab-er date purono hole taja hisab ana.
         if (sec == 1 && adapter != null && selectedDate != null && !selectedDate.equals(adapter.getCalledDate())) loadDayStats();
+        updateListMode();
     }
     private void showAgent() {
         loginView.setVisibility(View.GONE);
@@ -1434,10 +1454,12 @@ public class MainActivity extends AppCompatActivity {
         if (adapter == null) return;
         String dial = RowAdapter.dialNumber(number);
         int tab = 0;
+        Row found = null;
         List<Row> all = adapter.getAll();
         if (all != null) {
             for (Row r : all) {
                 if (r != null && RowAdapter.dialNumber(r.number).equals(dial)) {
+                    found = r;
                     tab = (r.status == null || r.status.isEmpty()) ? 0 : 1;
                     break;
                 }
@@ -1445,6 +1467,20 @@ public class MainActivity extends AppCompatActivity {
         }
         applySection(1);
         adapter.setTab(tab); setTabUI();
+        // v6.9: pending number hole focus card-e khulbe (search-e filter noy);
+        // called/viewOnly row hole ager moto search-e dekhabe.
+        if (tab == 0 && found != null) {
+            if (searchBox != null) searchBox.setText("");
+            updateListMode();
+            Row focusTarget = null;
+            List<Row> shown = adapter.getShownRows();
+            if (shown != null) {
+                for (Row sr : shown) {
+                    if (sr != null && RowAdapter.dialNumber(sr.number).equals(dial)) { focusTarget = sr; break; }
+                }
+            }
+            if (focusTarget != null) { setFocus(focusTarget); return; }
+        }
         if (searchBox != null) searchBox.setText(dial);
         boolean loadingCalled = (tab == 1 && selectedDate != null && !selectedDate.equals(adapter.getCalledDate()));
         if (adapter.getItemCount() == 0 && !loadingCalled) {
@@ -1811,6 +1847,295 @@ public class MainActivity extends AppCompatActivity {
         boolean pending = adapter == null || adapter.getTab() == 0;
         findViewById(R.id.btnTabPending).setBackgroundResource(pending ? R.drawable.btn_gradient : R.drawable.glass_field);
         findViewById(R.id.btnTabDone).setBackgroundResource(pending ? R.drawable.glass_field : R.drawable.btn_gradient);
+        updateListMode();
+    }
+
+    // v6.9: focus card + next strip-er view bind (onCreate-e ekbar).
+    private void bindFocusViews() {
+        focusCard = findViewById(R.id.focusCard);
+        nextStripLabel = findViewById(R.id.nextStripLabel);
+        nextStrip = findViewById(R.id.nextStrip);
+        if (nextStrip != null) {
+            nextStrip.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+            nextStripAdapter = new NextStripAdapter(row -> setFocus(row));
+            nextStrip.setAdapter(nextStripAdapter);
+        }
+        if (focusCard == null) return;
+        focusHeaderSub = focusCard.findViewById(R.id.focusHeaderSub);
+        focusTvNumber = focusCard.findViewById(R.id.focusTvNumber);
+        focusTvRow = focusCard.findViewById(R.id.focusTvRow);
+        focusTvHistory = focusCard.findViewById(R.id.focusTvHistory);
+        focusStatusChipConn = focusCard.findViewById(R.id.focusStatusChipConn);
+        focusStatusChipNotConn = focusCard.findViewById(R.id.focusStatusChipNotConn);
+        focusValidChipYes = focusCard.findViewById(R.id.focusValidChipYes);
+        focusValidChipNo = focusCard.findViewById(R.id.focusValidChipNo);
+        focusEtRemark1 = focusCard.findViewById(R.id.focusEtRemark1);
+        focusEtRemark2 = focusCard.findViewById(R.id.focusEtRemark2);
+        focusEtOthers = focusCard.findViewById(R.id.focusEtOthers);
+        focusBtnCall = focusCard.findViewById(R.id.focusBtnCall);
+        focusBtnCopy = focusCard.findViewById(R.id.focusBtnCopy);
+        focusBtnSave = focusCard.findViewById(R.id.focusBtnSave);
+        focusBtnRemind = focusCard.findViewById(R.id.focusBtnRemind);
+        focusBtnProblem = focusCard.findViewById(R.id.focusBtnProblem);
+        focusPhraseBtn1 = focusCard.findViewById(R.id.focusPhraseBtn1);
+        focusPhraseBtn2 = focusCard.findViewById(R.id.focusPhraseBtn2);
+        focusPhraseBtn3 = focusCard.findViewById(R.id.focusPhraseBtn3);
+    }
+
+    private boolean isFocusModeActive() {
+        if (adapter == null || focusCard == null || nextStrip == null || nextStripLabel == null || recyclerView == null) return false;
+        if (adapter.getTab() != 0) return false;
+        String q = searchBox == null || searchBox.getText() == null ? "" : searchBox.getText().toString();
+        if (!q.isEmpty()) return false;
+        return true;
+    }
+
+    private Row firstPendingRow() {
+        if (adapter == null) return null;
+        List<Row> shown = adapter.getShownRows();
+        if (shown == null || shown.isEmpty()) return null;
+        return shown.get(0);
+    }
+
+    private boolean isRowInShown(Row row) {
+        if (row == null || adapter == null) return false;
+        String dial = RowAdapter.dialNumber(row.number);
+        List<Row> shown = adapter.getShownRows();
+        if (shown == null) return false;
+        for (Row sr : shown) {
+            if (sr != null && RowAdapter.dialNumber(sr.number).equals(dial)) return true;
+        }
+        return false;
+    }
+
+    // v6.9: focus card + strip sudhu Pending tab-e, search khali thakle; Called tab ba
+    // search hole ager recycler-i cholbe.
+    private void updateListMode() {
+        if (focusCard == null || nextStrip == null || nextStripLabel == null || recyclerView == null || adapter == null) return;
+        boolean focus = isFocusModeActive() && firstPendingRow() != null;
+        focusCard.setVisibility(focus ? View.VISIBLE : View.GONE);
+        nextStrip.setVisibility(focus ? View.VISIBLE : View.GONE);
+        nextStripLabel.setVisibility(focus ? View.VISIBLE : View.GONE);
+        recyclerView.setVisibility(focus ? View.GONE : View.VISIBLE);
+        if (focus) {
+            Row first = firstPendingRow();
+            if (focusedRow == null || !isRowInShown(focusedRow)) setFocus(first);
+            else { refreshNextStrip(); updateFocusHeader(); }
+        }
+    }
+
+    private void setFocus(Row row) {
+        if (row == null) { focusedRow = null; updateListMode(); return; }
+        focusedRow = row;
+        bindFocusCard(row);
+        refreshNextStrip();
+        updateFocusHeader();
+    }
+
+    private void updateFocusHeader() {
+        if (focusHeaderSub == null || adapter == null) return;
+        List<Row> shown = adapter.getShownRows();
+        int total = shown == null ? 0 : shown.size();
+        int pos = 0;
+        if (focusedRow != null && shown != null) {
+            String focusDial = RowAdapter.dialNumber(focusedRow.number);
+            for (int i = 0; i < shown.size(); i++) {
+                if (shown.get(i) != null && RowAdapter.dialNumber(shown.get(i).number).equals(focusDial)) { pos = i + 1; break; }
+            }
+        }
+        focusHeaderSub.setText(toBnDigits(String.valueOf(pos)) + " নম্বর নাম্বার · বাকি আছে " + toBnDigits(String.valueOf(total)) + "টা");
+    }
+
+    private void refreshNextStrip() {
+        if (nextStripAdapter == null || adapter == null) return;
+        List<Row> shown = adapter.getShownRows();
+        List<Row> next = new ArrayList<>();
+        if (shown != null) {
+            int focusIdx = -1;
+            if (focusedRow != null) {
+                String focusDial = RowAdapter.dialNumber(focusedRow.number);
+                for (int i = 0; i < shown.size(); i++) {
+                    if (shown.get(i) != null && RowAdapter.dialNumber(shown.get(i).number).equals(focusDial)) { focusIdx = i; break; }
+                }
+            }
+            for (int i = focusIdx + 1; i < shown.size() && next.size() < 10; i++) next.add(shown.get(i));
+        }
+        nextStripAdapter.setRows(next);
+    }
+
+    // v6.9: reload-er por focus row-ti notun list-e thakle abar bind; save hoye gele
+    // notun prothom pending row focus hobe.
+    private void refreshFocusAfterReload() {
+        if (adapter == null || focusCard == null) return;
+        if (adapter.getTab() != 0) return;
+        String q = searchBox == null || searchBox.getText() == null ? "" : searchBox.getText().toString();
+        if (!q.isEmpty()) return;
+        List<Row> shown = adapter.getShownRows();
+        if (shown == null || shown.isEmpty()) { focusedRow = null; updateListMode(); return; }
+        if (focusedRow != null) {
+            String focusDial = RowAdapter.dialNumber(focusedRow.number);
+            for (Row sr : shown) {
+                if (sr != null && RowAdapter.dialNumber(sr.number).equals(focusDial)) { setFocus(sr); return; }
+            }
+        }
+        setFocus(shown.get(0));
+    }
+
+    // v6.9: focus card-e Save — row Called-e gele porer pending number focus hobe;
+    // clear-save / no-change hole row-ti pending-ei thake, tai abar bind hobe.
+    private void advanceFocusAfterSave(Row savedRow, boolean changed, boolean isClear) {
+        if (!isFocusModeActive() || savedRow == null || focusedRow == null) return;
+        if (!RowAdapter.dialNumber(savedRow.number).equals(RowAdapter.dialNumber(focusedRow.number))) return;
+        if (changed && !isClear) {
+            List<Row> shown = adapter.getShownRows();
+            if (shown != null && !shown.isEmpty()) setFocus(shown.get(0));
+            else { focusedRow = null; updateListMode(); }
+        } else {
+            bindFocusCard(focusedRow);
+            refreshNextStrip();
+        }
+    }
+
+    private void refreshFocusStatusChips(String status) {
+        boolean conn = "call connected".equals(status);
+        boolean notConn = "not connected".equals(status);
+        focusStatusChipConn.setBackgroundResource(conn ? R.drawable.chip_green : R.drawable.glass_field);
+        focusStatusChipConn.setTextColor(conn ? Color.WHITE : Color.parseColor("#1F2937"));
+        focusStatusChipNotConn.setBackgroundResource(notConn ? R.drawable.chip_rose : R.drawable.glass_field);
+        focusStatusChipNotConn.setTextColor(notConn ? Color.WHITE : Color.parseColor("#1F2937"));
+    }
+
+    private void refreshFocusValidChips(String valid) {
+        boolean yes = "Yes".equals(valid);
+        boolean no = "No".equals(valid);
+        focusValidChipYes.setBackgroundResource(yes ? R.drawable.chip_blue : R.drawable.glass_field);
+        focusValidChipYes.setTextColor(yes ? Color.WHITE : Color.parseColor("#1F2937"));
+        focusValidChipNo.setBackgroundResource(no ? R.drawable.chip_grey : R.drawable.glass_field);
+        focusValidChipNo.setTextColor(no ? Color.WHITE : Color.parseColor("#1F2937"));
+    }
+
+    // v6.9: focus card bind — RowAdapter.onBindViewHolder-er motoi (line-for-line mirror).
+    // Shared static binder-e refactor kora jhukipurno mone hoyeche (choloman row list-e hat
+    // dile bhangte pare), tai MainActivity-te duplicate kora holo.
+    private void bindFocusCard(Row r) {
+        if (r == null || focusTvNumber == null) return;
+        focusTvNumber.setText(RowAdapter.dialNumber(r.number));
+        String timeTxt = (r.statusTime != null && !r.statusTime.isEmpty()) ? " • " + formatTimeBn(r.statusTime) : "";
+        focusTvRow.setText((r.viewOnly ? "লগ থেকে" : "রো " + r.row) + timeTxt + (r.prevDay ? " • আগের দিনের কল" : ""));
+        java.util.List<RowAdapter.Hist> hist = adapter == null ? null : adapter.getHistoryFor(RowAdapter.dialNumber(r.number));
+        StringBuilder hb = new StringBuilder();
+        int histShown = 0, histMore = 0;
+        if (hist != null) {
+            for (int i = hist.size() - 1; i >= 0; i--) {
+                RowAdapter.Hist he = hist.get(i);
+                if (histShown < 3) { if (hb.length() > 0) hb.append(" • "); hb.append(he.label); histShown++; }
+                else histMore++;
+            }
+        }
+        if (histShown == 0) focusTvHistory.setVisibility(View.GONE);
+        else { focusTvHistory.setText("আগের কল: " + hb.toString() + (histMore > 0 ? " +" + histMore + "টা" : "")); focusTvHistory.setVisibility(View.VISIBLE); }
+        boolean ro = r.viewOnly;
+        focusStatusChipConn.setEnabled(!ro); focusStatusChipNotConn.setEnabled(!ro);
+        focusValidChipYes.setEnabled(!ro); focusValidChipNo.setEnabled(!ro);
+        float chipAlpha = ro ? 0.55f : 1f;
+        focusStatusChipConn.setAlpha(chipAlpha); focusStatusChipNotConn.setAlpha(chipAlpha);
+        focusValidChipYes.setAlpha(chipAlpha); focusValidChipNo.setAlpha(chipAlpha);
+        focusEtRemark1.setEnabled(!ro); focusEtRemark2.setEnabled(!ro); focusEtOthers.setEnabled(!ro);
+        focusPhraseBtn1.setEnabled(!ro); focusPhraseBtn2.setEnabled(!ro); focusPhraseBtn3.setEnabled(!ro);
+        focusBtnSave.setEnabled(!ro);
+        focusBtnSave.setText(ro ? "শুধু দেখা যাবে" : "সেভ করুন");
+        refreshFocusStatusChips(r.status);
+        refreshFocusValidChips(r.valid);
+        focusStatusChipConn.setOnClickListener(v -> { if (r.viewOnly) return; r.status = "call connected".equals(r.status) ? "" : "call connected"; refreshFocusStatusChips(r.status); DraftStore.save(MainActivity.this, r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        focusStatusChipNotConn.setOnClickListener(v -> { if (r.viewOnly) return; r.status = "not connected".equals(r.status) ? "" : "not connected"; refreshFocusStatusChips(r.status); DraftStore.save(MainActivity.this, r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        focusValidChipYes.setOnClickListener(v -> { if (r.viewOnly) return; r.valid = "Yes".equals(r.valid) ? "" : "Yes"; refreshFocusValidChips(r.valid); DraftStore.save(MainActivity.this, r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        focusValidChipNo.setOnClickListener(v -> { if (r.viewOnly) return; r.valid = "No".equals(r.valid) ? "" : "No"; refreshFocusValidChips(r.valid); DraftStore.save(MainActivity.this, r.number, r.status, r.valid, r.remark1, r.remark2, r.others); });
+        if (wFocusRemark1 != null) focusEtRemark1.removeTextChangedListener(wFocusRemark1);
+        if (wFocusRemark2 != null) focusEtRemark2.removeTextChangedListener(wFocusRemark2);
+        if (wFocusOthers != null) focusEtOthers.removeTextChangedListener(wFocusOthers);
+        wFocusRemark1 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark1 = s.toString(); DraftStore.save(MainActivity.this, r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
+        wFocusRemark2 = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.remark2 = s.toString(); DraftStore.save(MainActivity.this, r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
+        wFocusOthers = new TextWatcher() { public void beforeTextChanged(CharSequence s, int a, int b, int c) {} public void onTextChanged(CharSequence s, int a, int b, int c) {} public void afterTextChanged(Editable s) { r.others = s.toString(); DraftStore.save(MainActivity.this, r.number, r.status, r.valid, r.remark1, r.remark2, r.others); } };
+        focusEtRemark1.addTextChangedListener(wFocusRemark1); focusEtRemark2.addTextChangedListener(wFocusRemark2); focusEtOthers.addTextChangedListener(wFocusOthers);
+        focusEtRemark1.setText(r.remark1); focusEtRemark2.setText(r.remark2); focusEtOthers.setText(r.others);
+        focusBtnCall.setOnClickListener(v -> {
+            String main = RowAdapter.dialNumber(r.number);
+            String other = focusEtOthers.getText() == null ? "" : RowAdapter.dialNumber(focusEtOthers.getText().toString());
+            if (!other.isEmpty() && !other.equals(main)) {
+                final String[] nums = {main, other};
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("কোন নাম্বারে কল করবেন?")
+                    .setItems(nums, (d, w) -> {
+                        Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + nums[w]));
+                        Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+                        MainActivity.this.startActivity(chooser);
+                    })
+                    .setNegativeButton("বাতিল", null)
+                    .show();
+            } else {
+                Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + main));
+                Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+                MainActivity.this.startActivity(chooser);
+            }
+        });
+        focusBtnCopy.setOnClickListener(v -> {
+            String main = RowAdapter.dialNumber(r.number);
+            String other = focusEtOthers.getText() == null ? "" : RowAdapter.dialNumber(focusEtOthers.getText().toString());
+            if (!other.isEmpty() && !other.equals(main)) {
+                final String[] nums = {main, other};
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("কোনটা কপি করবেন?")
+                    .setItems(nums, (d, w) -> {
+                        try {
+                            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                            cm.setPrimaryClip(ClipData.newPlainText("Number", nums[w]));
+                            Toast.makeText(MainActivity.this, "কপি হয়েছে: " + nums[w], Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            Toast.makeText(MainActivity.this, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("বাতিল", null)
+                    .show();
+            } else {
+                try {
+                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    cm.setPrimaryClip(ClipData.newPlainText("Number", main));
+                    Toast.makeText(MainActivity.this, "কপি হয়েছে: " + main, Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        focusBtnSave.setOnClickListener(v -> {
+            r.remark1 = focusEtRemark1.getText() == null ? "" : focusEtRemark1.getText().toString().trim();
+            r.remark2 = focusEtRemark2.getText() == null ? "" : focusEtRemark2.getText().toString().trim();
+            r.others = focusEtOthers.getText() == null ? "" : focusEtOthers.getText().toString().trim();
+            if (rowOnSave == null) return;
+            if (rowOnSave.needsClearConfirm(r)) {
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("নিশ্চিত করুন")
+                    .setMessage("এই রো-র আজকের হিসাব (লগ রো) মুছে যাবে। ঠিক আছে?")
+                    .setPositiveButton("হ্যাঁ, মুছুন", (d, w) -> rowOnSave.onSave(r, focusBtnSave))
+                    .setNegativeButton("না", null)
+                    .show();
+            } else {
+                rowOnSave.onSave(r, focusBtnSave);
+            }
+        });
+        focusBtnRemind.setOnClickListener(v -> showReminderDialog(r));
+        focusBtnProblem.setOnClickListener(v -> {
+            if (r.viewOnly) return;
+            addReportEntry("Problems", new String[]{dhakaDate(), RowAdapter.dialNumber(r.number)}, () -> Toast.makeText(MainActivity.this, "সমস্যা নাম্বার হিসেবে যোগ হয়েছে", Toast.LENGTH_SHORT).show());
+        });
+        android.view.View.OnClickListener phraseTap = v -> {
+            String phrase = (String) v.getTag();
+            if (phrase == null) return;
+            String cur = focusEtRemark1.getText() == null ? "" : focusEtRemark1.getText().toString();
+            focusEtRemark1.setText(cur.isEmpty() ? phrase : cur + " " + phrase);
+            if (focusEtRemark1.getText() != null) focusEtRemark1.setSelection(focusEtRemark1.getText().length());
+        };
+        focusPhraseBtn1.setTag("বিকেলে করবে"); focusPhraseBtn2.setTag("ফোন বন্ধ"); focusPhraseBtn3.setTag("পরে কল করতে বলেছে");
+        focusPhraseBtn1.setOnClickListener(phraseTap); focusPhraseBtn2.setOnClickListener(phraseTap); focusPhraseBtn3.setOnClickListener(phraseTap);
     }
     private void showReport() {
         if (token == null) { showLogin(); return; }
@@ -1999,6 +2324,7 @@ public class MainActivity extends AppCompatActivity {
                     applyDrafts(rows, false); adapter.setRows(rows); statTotalNumDay.setText(String.valueOf(rows.size())); refreshRemainingHero();
                     refreshQueuedCounter();
                     adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
+                    refreshFocusAfterReload();
                     rowsLoaded = true; maybeOpenPendingReminder();
                     statusText.setText("শিটের সাথে সংযুক্ত — " + rows.size() + "টি রো");
                     if (rows.isEmpty()) {
