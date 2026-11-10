@@ -1847,6 +1847,10 @@ public class MainActivity extends AppCompatActivity {
         boolean pending = adapter == null || adapter.getTab() == 0;
         findViewById(R.id.btnTabPending).setBackgroundResource(pending ? R.drawable.btn_gradient : R.drawable.glass_field);
         findViewById(R.id.btnTabDone).setBackgroundResource(pending ? R.drawable.glass_field : R.drawable.btn_gradient);
+        // v6.10: tab-er text rong-o bodle dao — na bodlale halka (glass_field)
+        // background-e sada text dekha jay na (Called tab-e gele Call Baki adrishya hoto).
+        ((TextView) findViewById(R.id.btnTabPending)).setTextColor(ContextCompat.getColor(this, pending ? R.color.white : R.color.ink));
+        ((TextView) findViewById(R.id.btnTabDone)).setTextColor(ContextCompat.getColor(this, pending ? R.color.ink : R.color.white));
         updateListMode();
     }
 
@@ -1916,7 +1920,9 @@ public class MainActivity extends AppCompatActivity {
         focusCard.setVisibility(focus ? View.VISIBLE : View.GONE);
         nextStrip.setVisibility(focus ? View.VISIBLE : View.GONE);
         nextStripLabel.setVisibility(focus ? View.VISIBLE : View.GONE);
-        recyclerView.setVisibility(focus ? View.GONE : View.VISIBLE);
+        // v6.10: focus mode-eo recycler lukano hobe na — focus card + strip upore
+        // thakbe, puro row list niche scroll kora jabe (ager GONE-e list dekha jeto na).
+        recyclerView.setVisibility(View.VISIBLE);
         if (focus) {
             Row first = firstPendingRow();
             if (focusedRow == null || !isRowInShown(focusedRow)) setFocus(first);
