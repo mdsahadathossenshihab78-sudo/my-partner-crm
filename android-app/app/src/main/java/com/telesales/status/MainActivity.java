@@ -108,18 +108,18 @@ public class MainActivity extends AppCompatActivity {
     private java.util.Set<String> savingRows = new java.util.HashSet<>();
     private java.util.Set<String> optimisticTileKeys = new java.util.HashSet<>();
     private RowAdapter adapter;
-    // v6.9: focus card — Design 3 "একবারে একটা নাম্বারে ফোকাস".
-    // v6.13: focus card ekhon RecyclerView-er header item (RowAdapter) —
-    // alada view hisebe ar nei; focusedRow-i ekmatro source of truth.
-    private Row focusedRow;
-    private RecyclerView recyclerView;
+    // v6.14: per-number card — kono focus card / pinned bar nei; focus row,
+    // pinned bar ar orbit ring sorano holo. Dashboard-er digital animation-er
+    // animator list (glow pulse + meter sweep) — onDestroy-e cancel hobe.
+    // Count-up animator-gulo alada map-e (prottek stat-er jonno ektai).
+    private java.util.List<android.animation.Animator> digitalAnimators = new java.util.ArrayList<>();
+    private java.util.List<android.view.View> meterSegments = new java.util.ArrayList<>();
+    private java.util.List<android.graphics.drawable.GradientDrawable> meterSegDrawables = new java.util.ArrayList<>();
+    private android.animation.ValueAnimator meterAnimator = null;
+    private java.util.Map<TextView, android.animation.ValueAnimator> statAnimators = new java.util.HashMap<>();
+    private boolean meterBuilt = false;
+    private static final int METER_SEGMENTS = 12;
     private RowAdapter.OnSave rowOnSave;
-    // v6.13: upore pinned Call bar (focus mode-e sob somoy dekha jabe).
-    private View pinnedCallBar;
-    private TextView pinnedTvNumber;
-    private MaterialButton pinnedBtnCall, pinnedBtnCopy;
-    // v6.13: dashboard orbit animation — 3 ring animator.
-    private java.util.List<android.animation.ObjectAnimator> orbitAnimators = new java.util.ArrayList<>();
     private View loginView, mainView;
     private View agentView;
     private TextView agentError, agentSubtitle;
@@ -656,8 +656,6 @@ public class MainActivity extends AppCompatActivity {
                         btn.setEnabled(true); btn.setText("সেভ করুন");
                         Toast.makeText(MainActivity.this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (লগ পরে সিঙ্ক হবে)" : (finalLogCleared ? " (আজকের লগ রো মুছে গেছে)" : "")), Toast.LENGTH_LONG).show();
                         adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
-                        // v6.9: focus mode-e save hole porer pending number-e focus jabe.
-                        advanceFocusAfterSave(row, changed, isClear);
                         refreshRemainingHero();
                         if (finalLogAppended) { refreshInvalidTileAfterSave(); }
                         else if (finalLogCleared) loadDayStats();
@@ -698,24 +696,13 @@ public class MainActivity extends AppCompatActivity {
         };
         adapter = new RowAdapter(rowOnSave);
         recycler.setAdapter(adapter);
-        recyclerView = recycler;
-        bindPinnedCallBar();
-        adapter.setFocusActions(new RowAdapter.FocusActions() {
-            public void onFocusSave(Row row, MaterialButton btn) { if (rowOnSave != null) rowOnSave.onSave(row, btn); }
-            public boolean focusNeedsClearConfirm(Row row) { return rowOnSave != null && rowOnSave.needsClearConfirm(row); }
-            public void onFocusRemind(Row row) { showReminderDialog(row); }
-            public void onFocusProblem(Row row) {
-                if (row == null || row.viewOnly) return;
-                addReportEntry("Problems", new String[]{dhakaDate(), RowAdapter.dialNumber(row.number)}, () -> Toast.makeText(MainActivity.this, "সমস্যা নাম্বার হিসেবে যোগ হয়েছে", Toast.LENGTH_SHORT).show());
-            }
-            public void onStripTap(Row row) { setFocus(row); }
-        });
+        buildDigitalMeterBar();
         adapter.setOnRemind(row -> showReminderDialog(row));
         setTabUI();
 
         searchBox.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
-            public void onTextChanged(CharSequence s, int a, int b, int c) { if (adapter != null) { adapter.filter(s.toString()); updateListMode(); } }
+            public void onTextChanged(CharSequence s, int a, int b, int c) { if (adapter != null) { adapter.filter(s.toString()); } }
             public void afterTextChanged(Editable s) {}
         });
         // Batch fix #13: search clear-✕.
@@ -751,7 +738,7 @@ public class MainActivity extends AppCompatActivity {
     @Override protected void onResume() { super.onResume(); if (mainView != null && mainView.getVisibility() == View.VISIBLE && token != null) { checkForUpdate(); refreshReminderList(); maybeShowDueReminderPopup(); refreshQueuedCounter(); if (currentSection == 1) maybeAutoRefreshList(); } else if ((loginView != null && loginView.getVisibility() == View.VISIBLE) || (agentView != null && agentView.getVisibility() == View.VISIBLE)) { checkForUpdate(); } } private void showMain() {
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.VISIBLE);
-        startOrbitAnimations();
+        startDigitalAnimations();
         applySection(currentSection);
         // Batch feature #10b: diner hisab-er alarm bosano (idempotent).
         DaySummaryReceiver.schedule(this);
@@ -832,7 +819,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.menuHomeBtn).setBackgroundResource(sec == 1 ? R.drawable.btn_gradient : R.drawable.glass_field);
         // v4.20: list-e dhukle called tab-er date purono hole taja hisab ana.
         if (sec == 1 && adapter != null && selectedDate != null && !selectedDate.equals(adapter.getCalledDate())) loadDayStats();
-        updateListMode();
     }
     private void showAgent() {
         loginView.setVisibility(View.GONE);
@@ -1502,20 +1488,6 @@ public class MainActivity extends AppCompatActivity {
         }
         applySection(1);
         adapter.setTab(tab); setTabUI();
-        // v6.9: pending number hole focus card-e khulbe (search-e filter noy);
-        // called/viewOnly row hole ager moto search-e dekhabe.
-        if (tab == 0 && found != null) {
-            if (searchBox != null) searchBox.setText("");
-            updateListMode();
-            Row focusTarget = null;
-            List<Row> shown = adapter.getShownRows();
-            if (shown != null) {
-                for (Row sr : shown) {
-                    if (sr != null && RowAdapter.dialNumber(sr.number).equals(dial)) { focusTarget = sr; break; }
-                }
-            }
-            if (focusTarget != null) { setFocus(focusTarget); return; }
-        }
         if (searchBox != null) searchBox.setText(dial);
         boolean loadingCalled = (tab == 1 && selectedDate != null && !selectedDate.equals(adapter.getCalledDate()));
         if (adapter.getItemCount() == 0 && !loadingCalled) {
@@ -1886,188 +1858,152 @@ public class MainActivity extends AppCompatActivity {
         // background-e sada text dekha jay na (Called tab-e gele Call Baki adrishya hoto).
         ((TextView) findViewById(R.id.btnTabPending)).setTextColor(ContextCompat.getColor(this, pending ? R.color.white : R.color.ink));
         ((TextView) findViewById(R.id.btnTabDone)).setTextColor(ContextCompat.getColor(this, pending ? R.color.ink : R.color.white));
-        updateListMode();
     }
 
-    // v6.13: upore pinned Call bar-er view bind (onCreate-e ekbar).
-    // Focus card ekhon RecyclerView-er header item — alada view nei.
-    private void bindPinnedCallBar() {
-        pinnedCallBar = findViewById(R.id.pinnedCallBar);
-        pinnedTvNumber = findViewById(R.id.pinnedTvNumber);
-        pinnedBtnCall = findViewById(R.id.pinnedBtnCall);
-        pinnedBtnCopy = findViewById(R.id.pinnedBtnCopy);
-        if (pinnedBtnCall != null) pinnedBtnCall.setOnClickListener(v -> callFocusedNumber());
-        if (pinnedBtnCopy != null) pinnedBtnCopy.setOnClickListener(v -> copyFocusedNumber());
-        updatePinnedCallBar();
+    /** v6.14: digital animation — orbit ring-er bodle. Dashboard-er stat
+     *  number count-up (0 theke), tile-e soft glow pulse, ar stat section-er
+     *  niche segmented digital meter bar. Sob GPU/property animation —
+     *  layout-e hat dey na, screen-er baire jay na. */
+    private void buildDigitalMeterBar() {
+        LinearLayout bar = findViewById(R.id.digitalMeterBar);
+        if (bar == null || meterBuilt) return;
+        meterBuilt = true;
+        meterSegments.clear();
+        meterSegDrawables.clear();
+        float density = getResources().getDisplayMetrics().density;
+        for (int i = 0; i < METER_SEGMENTS; i++) {
+            View seg = new View(this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+            if (i > 0) lp.setMarginStart((int) (4 * density));
+            seg.setLayoutParams(lp);
+            android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
+            d.setCornerRadius(3 * density);
+            d.setColor(0xFFFED7AA);
+            seg.setBackground(d);
+            bar.addView(seg);
+            meterSegments.add(seg);
+            meterSegDrawables.add(d);
+        }
     }
 
-    private void updatePinnedCallBar() {
-        if (pinnedCallBar == null) return;
-        boolean show = isFocusModeActive() && focusedRow != null;
-        pinnedCallBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        if (show && pinnedTvNumber != null) pinnedTvNumber.setText(RowAdapter.dialNumber(focusedRow.number));
+    private void startDigitalAnimations() {
+        stopDigitalAnimations();
+        // (b) glow pulse — prottek stat tile-er background halka jolbe-nivbe.
+        // Drawable mutate() kore alada instance — na korle eki drawable
+        // byabohar kora sob tile ek sathe jolto.
+        int[] tileIds = {R.id.heroCard, R.id.tileCallDay, R.id.tileRemainDay,
+                R.id.tileConnDay, R.id.tileNotConnDay, R.id.tileValidDay, R.id.tileInvDay, R.id.ftdBand};
+        for (int i = 0; i < tileIds.length; i++) {
+            View tile = findViewById(tileIds[i]);
+            if (tile == null || tile.getBackground() == null) continue;
+            android.graphics.drawable.Drawable bg = tile.getBackground().mutate();
+            tile.setBackground(bg);
+            android.animation.ObjectAnimator pulse = android.animation.ObjectAnimator.ofInt(bg, "alpha", 255, 205, 255);
+            pulse.setDuration(2600);
+            pulse.setStartDelay(i * 220L);
+            pulse.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+            pulse.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+            pulse.start();
+            digitalAnimators.add(pulse);
+        }
+        // (c) segmented meter — segment-gulo ek-er por ek jolbe, tarpor abar.
+        startMeterSweep();
     }
 
-    /** v6.13: pinned Call + focus card-er Call — ekoi focused number.
-     *  Pinned bar-e "other" field nei, tai focused row-er main number-e
-     *  dial hobe (single source of truth: focusedRow). */
-    private void callFocusedNumber() {
-        if (focusedRow == null) return;
-        String main = RowAdapter.dialNumber(focusedRow.number);
-        if (main.isEmpty()) return;
-        Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + main));
-        Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
-        startActivity(chooser);
+    private void startMeterSweep() {
+        if (meterSegments.isEmpty()) return;
+        meterAnimator = android.animation.ValueAnimator.ofInt(0, METER_SEGMENTS);
+        meterAnimator.setDuration(1600);
+        meterAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        meterAnimator.setRepeatMode(android.animation.ValueAnimator.RESTART);
+        meterAnimator.addUpdateListener(anim -> {
+            int lit = (int) anim.getAnimatedValue();
+            for (int i = 0; i < meterSegDrawables.size(); i++) {
+                meterSegDrawables.get(i).setColor(i < lit ? 0xFFF97316 : 0xFFFED7AA);
+            }
+        });
+        meterAnimator.start();
+        digitalAnimators.add(meterAnimator);
     }
 
-    private void copyFocusedNumber() {
-        if (focusedRow == null) return;
-        String main = RowAdapter.dialNumber(focusedRow.number);
-        if (main.isEmpty()) return;
+    private void stopDigitalAnimations() {
+        for (android.animation.Animator a : digitalAnimators) {
+            try { a.cancel(); } catch (Exception ignored) {}
+        }
+        digitalAnimators.clear();
+        meterAnimator = null;
+    }
+
+    /** v6.14: digital count-up — stat number purono value theke notun
+     *  value porjonto ~800ms-e gunbe. Ekoi value hole soja bosbe (abar
+     *  animate noy). Prottek TextView-er jonno ektai animator — notun
+     *  count-up age ager-ta cancel kore (duitai ek sathe cholle number
+     *  ulta-palta dekhabe). */
+    private void animateStatNumber(TextView tv, int target) {
+        if (tv == null) return;
+        android.animation.ValueAnimator old = statAnimators.get(tv);
+        if (old != null) { try { old.cancel(); } catch (Exception ignored) {} }
+        int from = parseStatInt(tv);
+        if (from == target) { tv.setText(String.valueOf(target)); statAnimators.remove(tv); return; }
+        android.animation.ValueAnimator anim = android.animation.ValueAnimator.ofInt(from, target);
+        anim.setDuration(800);
+        anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
+        anim.addUpdateListener(a -> tv.setText(String.valueOf((int) a.getAnimatedValue())));
+        anim.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(android.animation.Animator a) {
+                if (statAnimators.get(tv) == a) statAnimators.remove(tv);
+            }
+        });
+        statAnimators.put(tv, anim);
+        anim.start();
+    }
+
+    private void animateStatAmount(TextView tv, double target) {
+        if (tv == null) return;
+        android.animation.ValueAnimator old = statAnimators.get(tv);
+        if (old != null) { try { old.cancel(); } catch (Exception ignored) {} }
+        double from = parseStatAmount(tv);
+        if (from == target) { tv.setText("৳" + fmtAmount(target)); statAnimators.remove(tv); return; }
+        android.animation.ValueAnimator anim = android.animation.ValueAnimator.ofFloat((float) from, (float) target);
+        anim.setDuration(800);
+        anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
+        anim.addUpdateListener(a -> tv.setText("৳" + fmtAmount(Math.round((float) a.getAnimatedValue()))));
+        anim.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(android.animation.Animator a) {
+                if (statAnimators.get(tv) == a) statAnimators.remove(tv);
+            }
+        });
+        statAnimators.put(tv, anim);
+        anim.start();
+    }
+
+    private int parseStatInt(TextView tv) {
         try {
-            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            cm.setPrimaryClip(ClipData.newPlainText("Number", main));
-            Toast.makeText(this, "কপি হয়েছে: " + main, Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "কপি হয়নি, আবার চেষ্টা করুন", Toast.LENGTH_SHORT).show();
-        }
+            String s = tv.getText() == null ? "" : tv.getText().toString().replaceAll("[^0-9-]", "");
+            if (s.isEmpty() || "-".equals(s)) return 0;
+            return Integer.parseInt(s);
+        } catch (Exception ignored) { return 0; }
     }
 
-    /** v6.13: dashboard orbit animation — hero + calls row + FTD band-er
-     *  charpashe ring aste aste ghurbe (gol gol). ObjectAnimator rotation,
-     *  GPU-te chole, layout-e hat dey na. showMain() theke daka hoy. */
-    private void startOrbitAnimations() {
-        stopOrbitAnimations();
-        int[] ids = {R.id.orbitHero, R.id.orbitCalls, R.id.orbitFtd};
-        for (int id : ids) {
-            View ring = findViewById(id);
-            if (ring == null) continue;
-            android.animation.ObjectAnimator anim = android.animation.ObjectAnimator.ofFloat(ring, "rotation", 0f, 360f);
-            anim.setDuration(8000);
-            anim.setInterpolator(new android.view.animation.LinearInterpolator());
-            anim.setRepeatCount(android.animation.ValueAnimator.INFINITE);
-            anim.start();
-            orbitAnimators.add(anim);
-        }
+    private double parseStatAmount(TextView tv) {
+        try {
+            String s = tv.getText() == null ? "" : tv.getText().toString().replaceAll("[^0-9.]", "");
+            if (s.isEmpty() || ".".equals(s)) return 0;
+            return Double.parseDouble(s);
+        } catch (Exception ignored) { return 0; }
     }
 
-    private void stopOrbitAnimations() {
-        for (android.animation.ObjectAnimator anim : orbitAnimators) {
-            try { anim.cancel(); } catch (Exception ignored) {}
-        }
-        orbitAnimators.clear();
+    /** v6.14: string theke number niye count-up; parse na hole soja text. */
+    private void animateStatNumberText(TextView tv, String s) {
+        if (tv == null) return;
+        try { animateStatNumber(tv, Integer.parseInt(s.trim())); }
+        catch (Exception ignored) { tv.setText(s); }
     }
 
-    private boolean isFocusModeActive() {
-        if (adapter == null || recyclerView == null) return false;
-        if (adapter.getTab() != 0) return false;
-        String q = searchBox == null || searchBox.getText() == null ? "" : searchBox.getText().toString();
-        if (!q.isEmpty()) return false;
-        return true;
-    }
-
-    private Row firstPendingRow() {
-        if (adapter == null) return null;
-        List<Row> shown = adapter.getShownRows();
-        if (shown == null || shown.isEmpty()) return null;
-        return shown.get(0);
-    }
-
-    private boolean isRowInShown(Row row) {
-        if (row == null || adapter == null) return false;
-        String dial = RowAdapter.dialNumber(row.number);
-        List<Row> shown = adapter.getShownRows();
-        if (shown == null) return false;
-        for (Row sr : shown) {
-            if (sr != null && RowAdapter.dialNumber(sr.number).equals(dial)) return true;
-        }
-        return false;
-    }
-
-    // v6.9: focus card + strip sudhu Pending tab-e, search khali thakle; Called tab ba
-    // search hole ager recycler-i cholbe.
-    private void updateListMode() {
-        if (recyclerView == null || adapter == null) return;
-        boolean focus = isFocusModeActive() && firstPendingRow() != null;
-        if (focus) {
-            Row first = firstPendingRow();
-            if (focusedRow == null || !isRowInShown(focusedRow)) setFocus(first);
-            else setFocus(focusedRow);
-        } else {
-            focusedRow = null;
-            adapter.clearFocusHeader();
-        }
-        updatePinnedCallBar();
-    }
-
-    private void setFocus(Row row) {
-        if (row == null) { focusedRow = null; updateListMode(); return; }
-        focusedRow = row;
-        adapter.setFocusHeader(row, computeNextStripRows(), computeFocusHeaderSub());
-        updatePinnedCallBar();
-    }
-
-    private String computeFocusHeaderSub() {
-        if (adapter == null) return "";
-        List<Row> shown = adapter.getShownRows();
-        int total = shown == null ? 0 : shown.size();
-        int pos = 0;
-        if (focusedRow != null && shown != null) {
-            String focusDial = RowAdapter.dialNumber(focusedRow.number);
-            for (int i = 0; i < shown.size(); i++) {
-                if (shown.get(i) != null && RowAdapter.dialNumber(shown.get(i).number).equals(focusDial)) { pos = i + 1; break; }
-            }
-        }
-        return toBnDigits(String.valueOf(pos)) + " নম্বর নাম্বার · বাকি আছে " + toBnDigits(String.valueOf(total)) + "টা";
-    }
-
-    private List<Row> computeNextStripRows() {
-        List<Row> next = new ArrayList<>();
-        if (adapter == null) return next;
-        List<Row> shown = adapter.getShownRows();
-        if (shown != null) {
-            int focusIdx = -1;
-            if (focusedRow != null) {
-                String focusDial = RowAdapter.dialNumber(focusedRow.number);
-                for (int i = 0; i < shown.size(); i++) {
-                    if (shown.get(i) != null && RowAdapter.dialNumber(shown.get(i).number).equals(focusDial)) { focusIdx = i; break; }
-                }
-            }
-            for (int i = focusIdx + 1; i < shown.size() && next.size() < 10; i++) next.add(shown.get(i));
-        }
-        return next;
-    }
-
-    // v6.9: reload-er por focus row-ti notun list-e thakle abar bind; save hoye gele
-    // notun prothom pending row focus hobe.
-    private void refreshFocusAfterReload() {
-        if (adapter == null) return;
-        if (adapter.getTab() != 0) return;
-        String q = searchBox == null || searchBox.getText() == null ? "" : searchBox.getText().toString();
-        if (!q.isEmpty()) return;
-        List<Row> shown = adapter.getShownRows();
-        if (shown == null || shown.isEmpty()) { focusedRow = null; updateListMode(); return; }
-        if (focusedRow != null) {
-            String focusDial = RowAdapter.dialNumber(focusedRow.number);
-            for (Row sr : shown) {
-                if (sr != null && RowAdapter.dialNumber(sr.number).equals(focusDial)) { setFocus(sr); return; }
-            }
-        }
-        setFocus(shown.get(0));
-    }
-
-    // v6.9: focus card-e Save — row Called-e gele porer pending number focus hobe;
-    // clear-save / no-change hole row-ti pending-ei thake, tai abar bind hobe.
-    private void advanceFocusAfterSave(Row savedRow, boolean changed, boolean isClear) {
-        if (!isFocusModeActive() || savedRow == null || focusedRow == null) return;
-        if (!RowAdapter.dialNumber(savedRow.number).equals(RowAdapter.dialNumber(focusedRow.number))) return;
-        if (changed && !isClear) {
-            List<Row> shown = adapter.getShownRows();
-            if (shown != null && !shown.isEmpty()) setFocus(shown.get(0));
-            else { focusedRow = null; updateListMode(); }
-        } else {
-            setFocus(focusedRow);
-        }
+    private void animateStatAmountText(TextView tv, String s) {
+        if (tv == null) return;
+        try { animateStatAmount(tv, Double.parseDouble(s.trim())); }
+        catch (Exception ignored) { tv.setText("৳" + (s.isEmpty() ? "0" : s)); }
     }
 
     private void showReport() {
@@ -2254,10 +2190,9 @@ public class MainActivity extends AppCompatActivity {
                     // aar draft thaka row filter-e pending theke gayeb hoye jeto.
                     lastStatusMap.clear();
                     for (Row r : rows) { r.savedStatus = r.status == null ? "" : r.status; lastStatusMap.put(r.number == null ? "" : r.number.trim(), (r.status == null ? "" : r.status) + "|" + (r.valid == null ? "" : r.valid)); }
-                    applyDrafts(rows, false); adapter.setRows(rows); statTotalNumDay.setText(String.valueOf(rows.size())); refreshRemainingHero();
+                    applyDrafts(rows, false); adapter.setRows(rows); animateStatNumber(statTotalNumDay, rows.size()); refreshRemainingHero();
                     refreshQueuedCounter();
                     adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
-                    refreshFocusAfterReload();
                     rowsLoaded = true; maybeOpenPendingReminder();
                     statusText.setText("শিটের সাথে সংযুক্ত — " + rows.size() + "টি রো");
                     if (rows.isEmpty()) {
@@ -2382,9 +2317,9 @@ public class MainActivity extends AppCompatActivity {
                     // sync-er row ajker hole. Na hole manual hisab-i thake.
                     if (!reg.isEmpty() && !ftd.isEmpty() && date.equals(dhakaDate()) && selectedDate != null && selectedDate.equals(dhakaDate())) {
                         commissionStatsShown = true;
-                        if (statRegDay != null) statRegDay.setText(reg);
-                        if (statFtdDay != null) statFtdDay.setText(ftd);
-                        if (statFtdAmtDay != null) statFtdAmtDay.setText("৳" + (amt.isEmpty() ? "0" : amt));
+                        if (statRegDay != null) animateStatNumberText(statRegDay, reg);
+                        if (statFtdDay != null) animateStatNumberText(statFtdDay, ftd);
+                        if (statFtdAmtDay != null) animateStatAmountText(statFtdAmtDay, amt);
                     }
                 });
             } catch (Exception e) { postCommissionEmpty(); }
@@ -2658,15 +2593,15 @@ public class MainActivity extends AppCompatActivity {
                 double finalFtdSum = ftdSum, finalFtdSumW = ftdSumW;
                 runOnUiThread(() -> {
                     if (seq != statsSeq) return; // purono hisab notun diner upor boshbe na
-                    statConnDay.setText(String.valueOf(finalConn)); statTotalCallDay.setText(String.valueOf(finalTotalCall));
+                    animateStatNumber(statConnDay, finalConn); animateStatNumber(statTotalCallDay, finalTotalCall);
                     lastTotalCallDay = finalTotalCall; targetStatsReady = true; refreshTargetCard();
-                    statNotConnDay.setText(String.valueOf(finalNotConn));
-                    statValidDay.setText(String.valueOf(finalValid));
-                    statInvDay.setText(String.valueOf(finalInv));
+                    animateStatNumber(statNotConnDay, finalNotConn);
+                    animateStatNumber(statValidDay, finalValid);
+                    animateStatNumber(statInvDay, finalInv);
                     if (!commissionStatsShown) {
-                        statRegDay.setText(String.valueOf(finalReg));
-                        statFtdDay.setText(String.valueOf(finalFtdN));
-                        statFtdAmtDay.setText("৳" + fmtAmount(finalFtdSum));
+                        animateStatNumber(statRegDay, finalReg);
+                        animateStatNumber(statFtdDay, finalFtdN);
+                        animateStatAmount(statFtdAmtDay, finalFtdSum);
                     }
                     weekSummary.setText("এই ৭ দিন (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • এফটিডি " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • Valid " + finalValidW + " • Invalid " + finalInvW + " • রেজিস্ট্রেশন " + finalRegW + (finalUsedLegacy ? " • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)" : "") + (finalPartialFail ? " • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)" : ""));
                     buildCalledRows(logs, day);
@@ -3308,7 +3243,7 @@ public class MainActivity extends AppCompatActivity {
             for (Row r : adapter.getAll()) {
                 if (r != null && (r.status == null || r.status.isEmpty())) remain++;
             }
-            statTotalRemainDay.setText(String.valueOf(remain));
+            animateStatNumber(statTotalRemainDay, remain);
             lastRemaining = remain; targetRemainReady = true; refreshTargetCard();
         } catch (Exception ignored) { /* hero ager value-i thakbe — bhul sonkha dekhano noy */ }
     }
@@ -3834,7 +3769,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override protected void onDestroy() {
-        stopOrbitAnimations();
+        stopDigitalAnimations();
         try { if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss(); } catch (Exception ignored) {}
         loadingDialog = null;
         try { if (updateReceiver != null) unregisterReceiver(updateReceiver); } catch (Exception ignored) {}
