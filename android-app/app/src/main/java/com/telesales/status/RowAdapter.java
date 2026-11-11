@@ -172,7 +172,6 @@ public class RowAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         h.statusChipConn.setAlpha(chipAlpha); h.statusChipNotConn.setAlpha(chipAlpha);
         h.validChipYes.setAlpha(chipAlpha); h.validChipNo.setAlpha(chipAlpha);
         h.etRemark1.setEnabled(!r.viewOnly); h.etRemark2.setEnabled(!r.viewOnly); h.etOthers.setEnabled(!r.viewOnly);
-        h.phraseBtn1.setEnabled(!r.viewOnly); h.phraseBtn2.setEnabled(!r.viewOnly); h.phraseBtn3.setEnabled(!r.viewOnly);
         h.btnSave.setEnabled(!r.viewOnly);
         h.btnSave.setText(r.viewOnly ? "শুধু দেখা যাবে" : "সেভ করুন");
         // v4.44: status/valid ekhon ek-tap chip — dialog/spinner nei, chip chaplei bosbe.
@@ -265,16 +264,6 @@ public class RowAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
         });
         h.btnRemind.setOnClickListener(v -> { if (onRemind != null) onRemind.onRemind(r); });
-        // Batch feature #6: phrase tap -> 1st remark-e jog (khali thakle soja, na hole space diye).
-        android.view.View.OnClickListener phraseTap = v -> {
-            String phrase = (String) v.getTag();
-            if (phrase == null) return;
-            String cur = h.etRemark1.getText() == null ? "" : h.etRemark1.getText().toString();
-            h.etRemark1.setText(cur.isEmpty() ? phrase : cur + " " + phrase);
-            if (h.etRemark1.getText() != null) h.etRemark1.setSelection(h.etRemark1.getText().length());
-        };
-        h.phraseBtn1.setTag("বিকেলে করবে"); h.phraseBtn2.setTag("ফোন বন্ধ"); h.phraseBtn3.setTag("পরে কল করতে বলেছে");
-        h.phraseBtn1.setOnClickListener(phraseTap); h.phraseBtn2.setOnClickListener(phraseTap); h.phraseBtn3.setOnClickListener(phraseTap);
     }
     @Override public int getItemCount() { return shown.size(); }
     @Override public long getItemId(int position) {
@@ -288,7 +277,6 @@ public class RowAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         TextInputEditText etRemark1, etRemark2, etOthers;
         TextWatcher wRemark1, wRemark2, wOthers;
         android.widget.Button btnCall, btnCopy, btnRemind; MaterialButton btnSave;
-        android.widget.Button phraseBtn1, phraseBtn2, phraseBtn3;
         Holder(View v) {
             super(v);
             tvNumber = v.findViewById(R.id.tvNumber); tvRow = v.findViewById(R.id.tvRow);
@@ -298,8 +286,6 @@ public class RowAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             etRemark1 = v.findViewById(R.id.etRemark1); etRemark2 = v.findViewById(R.id.etRemark2);
             etOthers = v.findViewById(R.id.etOthers); btnCall = v.findViewById(R.id.btnCall);
             btnCopy = v.findViewById(R.id.btnCopy); btnRemind = v.findViewById(R.id.remindBtn);
-            phraseBtn1 = v.findViewById(R.id.phraseBtn1); phraseBtn2 = v.findViewById(R.id.phraseBtn2);
-            phraseBtn3 = v.findViewById(R.id.phraseBtn3);
             btnSave = v.findViewById(R.id.btnSave);
         }
     }

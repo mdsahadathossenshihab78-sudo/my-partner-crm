@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
     private java.util.List<android.view.View> weekChartBars = new java.util.ArrayList<>();
     private java.util.List<android.graphics.drawable.GradientDrawable> weekChartBarDrawables = new java.util.ArrayList<>();
     private java.util.List<TextView> weekChartLabels = new java.util.ArrayList<>();
+    private java.util.List<TextView> weekChartValues = new java.util.ArrayList<>();
     private boolean weekChartBuilt = false;
     private int lastTotalNumDay = 0;
     private RowAdapter.OnSave rowOnSave;
@@ -1961,7 +1962,7 @@ public class MainActivity extends AppCompatActivity {
     private void buildWeekChart() {
         if (weekChartRow == null || weekChartBuilt) return;
         weekChartBuilt = true;
-        weekChartBars.clear(); weekChartBarDrawables.clear(); weekChartLabels.clear();
+        weekChartBars.clear(); weekChartBarDrawables.clear(); weekChartLabels.clear(); weekChartValues.clear();
         float density = getResources().getDisplayMetrics().density;
         for (int i = 0; i < 7; i++) {
             LinearLayout col = new LinearLayout(this);
@@ -1972,6 +1973,14 @@ public class MainActivity extends AppCompatActivity {
             View spacer = new View(this);
             spacer.setLayoutParams(new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
             col.addView(spacer);
+            // v6.16: bar-er upore oi din-er FTD songkha (value label).
+            TextView val = new TextView(this);
+            val.setLayoutParams(new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+            val.setTextSize(10);
+            val.setTypeface(null, android.graphics.Typeface.BOLD);
+            val.setTextColor(0xFF1F2937);
+            val.setText("");
+            col.addView(val);
             View bar = new View(this);
             bar.setLayoutParams(new LinearLayout.LayoutParams((int) (14 * density), (int) (2 * density)));
             android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
@@ -1981,7 +1990,7 @@ public class MainActivity extends AppCompatActivity {
             col.addView(bar);
             TextView lab = new TextView(this);
             lab.setLayoutParams(new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
-            lab.setTextSize(9);
+            lab.setTextSize(10);
             lab.setTextColor(0xFF78716C);
             lab.setText("");
             col.addView(lab);
@@ -1989,17 +1998,32 @@ public class MainActivity extends AppCompatActivity {
             weekChartBars.add(bar);
             weekChartBarDrawables.add(d);
             weekChartLabels.add(lab);
+            weekChartValues.add(val);
         }
     }
 
+    // v6.16: chart bar-er height ekhon asol row height onujayi (taller row =
+    // lomba bar). Row ekhono layout na hole layout-er pore abar bosbe.
     private void updateWeekChart(int[] perDay, String blockStart, String day) {
+        if (weekChartRow == null || !weekChartBuilt) return;
+        int rowH = weekChartRow.getHeight();
+        if (rowH <= 0) {
+            weekChartRow.post(() -> applyWeekChartBars(perDay, blockStart, day, weekChartRow.getHeight()));
+            return;
+        }
+        applyWeekChartBars(perDay, blockStart, day, rowH);
+    }
+
+    private void applyWeekChartBars(int[] perDay, String blockStart, String day, int rowHPx) {
         if (weekChartRow == null || !weekChartBuilt) return;
         int max = 0;
         for (int v : perDay) if (v > max) max = v;
         float density = getResources().getDisplayMetrics().density;
+        // Bar-er jonno jayga: row height theke value label + din label + gap bad.
+        int maxBarH = rowHPx > 0 ? Math.max(24, (int) (rowHPx / density) - 34) : 40;
         for (int i = 0; i < 7 && i < weekChartBars.size(); i++) {
             int v = perDay[i];
-            int h = max <= 0 ? 2 : 2 + (int) Math.round((double) v * 18 / max);
+            int h = max <= 0 ? 2 : 2 + (int) Math.round((double) v * (maxBarH - 2) / max);
             View bar = weekChartBars.get(i);
             android.view.ViewGroup.LayoutParams lp = bar.getLayoutParams();
             lp.height = (int) (h * density);
@@ -2010,6 +2034,7 @@ public class MainActivity extends AppCompatActivity {
             String label = d.length() >= 10 ? d.substring(8) : "";
             if (label.startsWith("0")) label = label.substring(1);
             weekChartLabels.get(i).setText(label);
+            if (i < weekChartValues.size()) weekChartValues.get(i).setText(String.valueOf(v));
         }
         if (weekChartRange != null) weekChartRange.setText(displayDay(blockStart) + " – " + displayDay(addDays(blockStart, 6)));
     }
@@ -2471,6 +2496,30 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception ignored) { return null; }
     }
 
+    /** v6.16: Commission Stats sheet-er sob row theke date -> FTD (col B) map.
+     *  Chart-er trailing 7 din-er headline hisab-er jonno — ekbar pore 7 din
+     *  milano hoy (protteke alada read noy). Read na hole khali map (chart
+     *  tokhon sob din manual dekhabe). Background thread theke daka hoy. */
+    private Map<String, Integer> readCommissionStatsFtdMap() {
+        Map<String, Integer> m = new HashMap<>();
+        try {
+            if (token == null) return m;
+            String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
+            if (id == null) return m;
+            List<String[]> rows = null;
+            try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
+            catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
+            if (rows == null) return m;
+            for (String[] r : rows) {
+                if (r == null || r.length < 2) continue;
+                String d = cell(r, 0).trim();
+                if (d.isEmpty() || "Date".equals(d)) continue;
+                try { m.put(d, (int) Math.round(Double.parseDouble(cell(r, 1).trim()))); } catch (Exception ignored) {}
+            }
+        } catch (Exception ignored) { }
+        return m;
+    }
+
     /** v6.11: reportDate-r auto hisab background-e pore ane; tarikh bodle
      *  gele purono response boshbe na (date miliye dekha hoy). */
     private void loadReportAutoForDate(String date) {
@@ -2693,8 +2742,19 @@ public class MainActivity extends AppCompatActivity {
                 int ftdNW = ftdTotalCount(ftdWeek);
                 double ftdSumW = 0;
                 for (REntry e : ftdWeek) { try { ftdSumW += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
-                int[] ftdPerDay = new int[7];
-                for (REntry e : ftdWeek) { int di = (int) daysBetween(blockStart, cellE(e, 0)); if (di >= 0 && di < 7) ftdPerDay[di] += ftdCountOf(e); }
+                // v6.16: chart — trailing 7 din (nirbachito din-e sesh), headline FTD
+                // (Stats row thakle AUTO, na hole manual report). weekSummary ager motoi
+                // anchor block-e thakbe.
+                String trailStart = addDays(day, -6);
+                int[] manPerDay = new int[7];
+                for (REntry e : filterRange(ftds, trailStart, day)) { int di = (int) daysBetween(trailStart, cellE(e, 0)); if (di >= 0 && di < 7) manPerDay[di] += ftdCountOf(e); }
+                Map<String, Integer> autoFtdByDate = readCommissionStatsFtdMap();
+                int[] headPerDay = new int[7];
+                for (int i = 0; i < 7; i++) {
+                    String d = addDays(trailStart, i);
+                    Integer a = autoFtdByDate.get(d);
+                    headPerDay[i] = (a != null) ? a : manPerDay[i];
+                }
                 // Batch fix #12: 7-din line-e Valid/Invalid/Registration-o thakbe.
                 int validW = 0;
                 for (REntry e : filterRange(logs, blockStart, blockEnd)) if ("Yes".equals(cellE(e, 3))) validW++;
@@ -2705,7 +2765,7 @@ public class MainActivity extends AppCompatActivity {
                 final boolean finalPartialFail = lastLogPartialFail || lastReportPartialFail;
                 int finalConn = conn, finalValid = valid, finalInv = inv, finalReg = reg, finalFtdN = ftdN, finalConnW = connW, finalFtdNW = ftdNW, finalNotConn = notConn, finalNotConnW = notConnW, finalTotalCall = totalCall, finalValidW = validW, finalInvW = invW, finalRegW = regW;
                 double finalFtdSum = ftdSum, finalFtdSumW = ftdSumW;
-                final int[] finalFtdPerDay = ftdPerDay; final String finalDay = day;
+                final int[] finalHeadPerDay = headPerDay; final String finalTrailStart = trailStart; final String finalDay = day;
                 runOnUiThread(() -> {
                     if (seq != statsSeq) return; // purono hisab notun diner upor boshbe na
                     animateStatNumber(statConnDay, finalConn);
@@ -2722,7 +2782,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     updateHeroProgress(finalTotalCall, lastRemaining, lastTotalNumDay);
                     updateConnBar(finalConn, finalNotConn);
-                    updateWeekChart(finalFtdPerDay, finalBlockStart, finalDay);
+                    updateWeekChart(finalHeadPerDay, finalTrailStart, finalDay);
                     if (weekChartCard != null) weekChartCard.setVisibility(View.VISIBLE);
                     weekSummary.setText("এই ৭ দিন (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • এফটিডি " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • Valid " + finalValidW + " • Invalid " + finalInvW + " • রেজিস্ট্রেশন " + finalRegW + (finalUsedLegacy ? " • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)" : "") + (finalPartialFail ? " • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)" : ""));
                     buildCalledRows(logs, day);

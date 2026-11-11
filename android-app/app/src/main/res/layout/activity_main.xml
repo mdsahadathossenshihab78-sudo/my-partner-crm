@@ -100,22 +100,22 @@
             <com.google.android.material.button.MaterialButton android:id="@+id/btnToday" android:layout_width="wrap_content" android:layout_height="36dp" android:minWidth="0dp" android:paddingHorizontal="12dp" android:layout_marginStart="6dp" android:text="আজ" android:textSize="13sp" android:textStyle="bold" app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/ink" />
         </LinearLayout>
         </com.google.android.material.appbar.AppBarLayout>
-        <androidx.core.widget.NestedScrollView android:id="@+id/dashboardView" android:clipToPadding="false" android:paddingBottom="8dp"
+        <androidx.core.widget.NestedScrollView android:id="@+id/dashboardView" android:clipToPadding="false" android:fillViewport="true" android:paddingBottom="8dp"
             android:layout_width="match_parent" android:layout_height="match_parent"
             android:orientation="vertical" android:layout_marginBottom="12dp"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"><LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
         <!-- v6.15: Digital Compact Dashboard — hero (mot number + progress bar),
              2 bar tile (Connected / FTD), 4 compact tile, 7-din chart,
              quick link, sync line, target. Sob ek mobile screen-e dhorbe. -->
-        <LinearLayout android:id="@+id/heroCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/hero_card" android:padding="8dp" android:layout_marginHorizontal="16dp" android:layout_marginTop="8dp" android:gravity="center_horizontal">
+        <LinearLayout android:id="@+id/heroCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/hero_card" android:padding="8dp" android:layout_marginHorizontal="16dp" android:layout_marginTop="8dp" android:gravity="center">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট নাম্বার" android:textSize="11sp" android:textColor="#FFE7D6" />
             <TextView android:id="@+id/statTotalNumDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="28sp" android:textStyle="bold" android:textColor="@color/white" android:fontFamily="monospace" />
             <LinearLayout android:id="@+id/heroProgressBar" android:layout_width="match_parent" android:layout_height="8dp" android:orientation="horizontal" android:layout_marginTop="5dp" />
             <TextView android:id="@+id/heroProgressText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="হিসাব লোড হচ্ছে…" android:textSize="11sp" android:textColor="#FFE7D6" android:layout_marginTop="4dp" />
         </LinearLayout>
         <!-- v6.15: bar tile — Connected (conn / not-conn) ar FTD (FTD / reg) -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="8dp">
-            <LinearLayout android:id="@+id/connBarTile" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_green" android:padding="6dp" android:layout_marginEnd="4dp" android:gravity="center_horizontal">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="8dp" android:layout_weight="1">
+            <LinearLayout android:id="@+id/connBarTile" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/stat_green" android:padding="6dp" android:layout_marginEnd="4dp" android:gravity="center">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="কানেক্টেড" android:textSize="10sp" android:textColor="#E6FFFFFF" />
                 <TextView android:id="@+id/statConnDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/white" android:fontFamily="monospace" />
                 <LinearLayout android:id="@+id/connBar" android:layout_width="match_parent" android:layout_height="6dp" android:orientation="horizontal" android:layout_marginTop="3dp" />
@@ -124,7 +124,7 @@
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" নট কানেক্টেড" android:textSize="11sp" android:textColor="#E6FFFFFF" />
                 </LinearLayout>
             </LinearLayout>
-            <LinearLayout android:id="@+id/ftdBarTile" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/ftd_band" android:padding="6dp" android:layout_marginStart="4dp" android:gravity="center_horizontal">
+            <LinearLayout android:id="@+id/ftdBarTile" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/ftd_band" android:padding="6dp" android:layout_marginStart="4dp" android:gravity="center">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="এফটিডি" android:textSize="10sp" android:textColor="#FFE7D6" />
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                     <TextView android:id="@+id/statFtdDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="18sp" android:textStyle="bold" android:textColor="@color/white" android:fontFamily="monospace" />
@@ -135,31 +135,31 @@
             </LinearLayout>
         </LinearLayout>
         <!-- v6.15: compact digital tile — Registration / Valid / Invalid / জমা -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="8dp">
-            <LinearLayout android:id="@+id/tileRegDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="5dp" android:layout_marginEnd="3dp" android:gravity="center_horizontal">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingTop="8dp" android:layout_weight="1">
+            <LinearLayout android:id="@+id/tileRegDay" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="5dp" android:layout_marginEnd="3dp" android:gravity="center">
                 <TextView android:id="@+id/statRegDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="15sp" android:textStyle="bold" android:textColor="@color/ink" android:fontFamily="monospace" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="রেজিস্ট্রেশন" android:textSize="9sp" android:textColor="@color/muted_warm" android:layout_marginTop="2dp" />
             </LinearLayout>
-            <LinearLayout android:id="@+id/tileValidDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="5dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:gravity="center_horizontal">
+            <LinearLayout android:id="@+id/tileValidDay" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="5dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:gravity="center">
                 <TextView android:id="@+id/statValidDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="15sp" android:textStyle="bold" android:textColor="@color/ink" android:fontFamily="monospace" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Valid" android:textSize="9sp" android:textColor="@color/muted_warm" android:layout_marginTop="2dp" />
             </LinearLayout>
-            <LinearLayout android:id="@+id/tileInvDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="5dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:gravity="center_horizontal">
+            <LinearLayout android:id="@+id/tileInvDay" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="5dp" android:layout_marginStart="3dp" android:layout_marginEnd="3dp" android:gravity="center">
                 <TextView android:id="@+id/statInvDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="15sp" android:textStyle="bold" android:textColor="@color/ink" android:fontFamily="monospace" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Invalid" android:textSize="9sp" android:textColor="@color/muted_warm" android:layout_marginTop="2dp" />
             </LinearLayout>
-            <LinearLayout android:id="@+id/tileJomaDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="5dp" android:layout_marginStart="3dp" android:gravity="center_horizontal">
+            <LinearLayout android:id="@+id/tileJomaDay" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="5dp" android:layout_marginStart="3dp" android:gravity="center">
                 <TextView android:id="@+id/jomaAmtNum" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="৳0" android:textSize="15sp" android:textStyle="bold" android:textColor="@color/ink" android:fontFamily="monospace" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="জমা" android:textSize="9sp" android:textColor="@color/muted_warm" android:layout_marginTop="2dp" />
             </LinearLayout>
         </LinearLayout>
         <!-- v6.15: 7-din FTD chart (compact) — bar-gulo code-e toiri hobe -->
-        <LinearLayout android:id="@+id/weekChartCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="6dp" android:layout_marginHorizontal="16dp" android:layout_marginTop="8dp">
+        <LinearLayout android:id="@+id/weekChartCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_weight="2" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="6dp" android:layout_marginHorizontal="16dp" android:layout_marginTop="8dp">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                 <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="এই ৭ দিনের এফটিডি" android:textSize="11sp" android:textStyle="bold" android:textColor="@color/ink" />
                 <TextView android:id="@+id/weekChartRange" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="10sp" android:textColor="@color/muted_warm" />
             </LinearLayout>
-            <LinearLayout android:id="@+id/weekChartRow" android:layout_width="match_parent" android:layout_height="32dp" android:orientation="horizontal" android:layout_marginTop="3dp" />
+            <LinearLayout android:id="@+id/weekChartRow" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:minHeight="56dp" android:orientation="horizontal" android:layout_marginTop="3dp" />
         </LinearLayout>
         <TextView android:id="@+id/weekSummary" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="11sp" android:textColor="@color/muted_warm" android:paddingHorizontal="16dp" android:paddingTop="4dp" />
         <!-- v6.15: quick link — ek row-e 4 ta chhoto button -->
