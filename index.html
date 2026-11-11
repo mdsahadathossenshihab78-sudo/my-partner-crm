@@ -173,21 +173,21 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 #loginHero .hero-eyebrow{position:relative;z-index:1;font-size:11px;font-weight:800;letter-spacing:.08em;color:#FEF9C3}
 #loginHero .hero-title{position:relative;z-index:1;font-size:21px;font-weight:800;line-height:1.3;margin-top:4px}
 #loginCard{margin-top:-46px;position:relative;z-index:2}
-/* --- 7-day FTD bar chart --- */
-.hero-week{background:#fff;border:1px solid #BAE6FD;border-radius:16px;padding:14px 16px;margin-top:14px}
-.hero-week-title{font-size:13px;font-weight:800;color:#075985;margin-bottom:10px}
+/* --- 7-day FTD bar chart (Command Center: dark glass, accent bars) --- */
+.hero-week{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);border-radius:16px;padding:14px 16px;margin-top:14px}
+.hero-week-title{font-size:13px;font-weight:800;color:#E0F2FE;margin-bottom:10px}
 .hero-weekbars{display:flex;align-items:flex-end;gap:8px;height:92px}
-.hero-bar{flex:1;background:#38BDF8;border-radius:6px 6px 0 0;min-height:5px}
-.hero-bar-today{background:#F59E0B}
+.hero-bar{flex:1;background:var(--dash-accent,#22D3EE);border-radius:6px 6px 0 0;min-height:5px;box-shadow:0 0 10px var(--dash-accent,#22D3EE)}
+.hero-bar-today{background:linear-gradient(180deg,#FDE68A,#F59E0B);box-shadow:0 0 10px rgba(251,191,36,.50)}
 .hero-bar-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;min-width:0}
 .hero-bar-col .hero-bar{flex:0 0 auto}
-.hero-bar-count{font-size:11px;font-weight:800;color:#075985;text-align:center;margin-bottom:3px}
+.hero-bar-count{font-size:11px;font-weight:800;color:#E0F2FE;text-align:center;margin-bottom:3px}
 .hero-bar{transform-origin:bottom;animation:heroBarGrow .7s ease-out both;animation-delay:var(--d,0s)}
 @keyframes heroBarGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-.hero-week-loading .hero-bar{background:linear-gradient(90deg,#BAE6FD,#E0F2FE,#BAE6FD);background-size:200% 100%;animation:heroShimmer 1.1s linear infinite}
-.hero-week-loading .hero-bar-count{color:#BAE6FD}
+.hero-week-loading .hero-bar{background:linear-gradient(90deg,rgba(148,197,255,.20),rgba(148,197,255,.06),rgba(148,197,255,.20));background-size:200% 100%;animation:heroShimmer 1.1s linear infinite;box-shadow:none}
+.hero-week-loading .hero-bar-count{color:rgba(148,197,255,.40)}
 @keyframes heroShimmer{from{background-position:200% 0}to{background-position:-200% 0}}
-.hero-weekdays{display:flex;justify-content:space-between;font-size:11px;color:#64748B;margin-top:6px}
+.hero-weekdays{display:flex;justify-content:space-between;font-size:11px;color:#94A3B8;margin-top:6px}
 .hero-weekdays span{flex:1;text-align:center}
 /* --- dashboard quick links (2026-11-10): 4 small tiles above the 7-day summary — moved up so they show on the first screen --- */
 .quick-links{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
@@ -226,113 +226,89 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
    segmented meter is replaced by functional progress bars (2026-11-11). --- */
 .stat{animation:digiGlow 2.6s ease-in-out infinite}
 @keyframes digiGlow{0%,100%{box-shadow:0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 16px rgba(56,189,248,.30)}}
-/* ===== DIGITAL COMPACT DASHBOARD (2026-11-11) =====
-   Rebuild: the whole Dashboard fits one mobile screen (no scroll);
-   the date bar is sticky at the top; Total Numbers has a segmented
-   progress bar (called vs remaining); Connected and FTD are bar tiles;
-   the rest are compact digital tiles. Same layout on the app (v6.15).
-   The old .stats-grid hero/tiles and the decorative segmented meter are gone.
-   Numbers stay monospace (digital look) and keep the count-up
-   (setStatNum) + glow pulse (.stat). */
-#dashView{margin-top:6px}
-/* --- sticky date bar: pinned under the 64px site header, never scrolls away --- */
-.dash-datebar{position:sticky;top:64px;z-index:40;background:linear-gradient(135deg,#E0F2FE,#F0F9FF);border:1px solid #BAE6FD;border-radius:14px;padding:4px 8px;box-shadow:0 2px 10px rgba(2,132,199,.18)}
+/* ===== FUTURISTIC COMMAND CENTER DASHBOARD (2026-11-11) =====
+   The user rejected the light sky-blue "Digital Compact" look and asked
+   for a different, unique, professional futuristic style. This is a dark
+   glassy command-center: a deep-navy console panel, glass cards, ONE vivid
+   accent (electric cyan) that shifts subtly with the time-of-day band,
+   glowing monospace numerals, luminous segmented bars. Clearly different
+   from the old light look. Same data, ids, JS and layout — VISUAL ONLY.
+   The whole Dashboard still fits one mobile screen; the date bar stays
+   sticky; text stays high-contrast (white/slate on dark glass).
+   Time-of-day (PR #61) is KEPT but re-scoped: the console stays dark in
+   every band; only the accent hue changes (morning cyan, noon sky,
+   afternoon amber, evening violet, night indigo). */
+#dashView{--dash-accent:#22D3EE;margin-top:6px;background:linear-gradient(180deg,#0A1128 0%,#0D1B3E 100%);border:1px solid rgba(56,189,248,.30);border-radius:20px;padding:10px 10px 12px;box-shadow:0 14px 34px rgba(2,6,23,.45),0 0 0 1px rgba(56,189,248,.06)}
+.tod-noon #dashView{--dash-accent:#38BDF8}
+.tod-afternoon #dashView{--dash-accent:#FBBF24}
+.tod-evening #dashView{--dash-accent:#A78BFA}
+.tod-night #dashView{--dash-accent:#818CF8}
+/* --- sticky date bar: dark glass, pinned under the 64px site header --- */
+.dash-datebar{position:sticky;top:64px;z-index:40;background:rgba(13,27,62,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(148,197,255,.22);border-radius:14px;padding:4px 8px;box-shadow:0 4px 16px rgba(2,6,23,.40)}
 .dash-date-row{display:flex;gap:6px;align-items:center}
 .dash-date-row .btn{min-height:34px;padding:6px 10px;font-size:14px}
 .dash-date-row .dash-date-btn{flex:1}
-.dash-greet{font-size:11px;font-weight:700;color:#0369A1;text-align:center;margin-top:4px;line-height:1.3}
+.dash-datebar .btn-light{background:rgba(255,255,255,.08);color:#E0F2FE;border:1px solid rgba(148,197,255,.22)}
+.dash-datebar #dashTodayBtn{background:var(--dash-accent);color:#0B1226;border-color:transparent;font-weight:800}
+.dash-greet{font-size:11px;font-weight:700;color:#BAE6FD;text-align:center;margin-top:4px;line-height:1.3}
 .dash-greet #heroGreetText{font-size:11px}
-/* --- Total Numbers hero card --- */
-.dash-hero{background:linear-gradient(135deg,#E0F2FE,#F0F9FF);border:1px solid #7DD3FC;border-radius:16px;padding:8px 14px;margin-top:5px}
-.dash-label{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0369A1;display:block}
-.dash-big{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:24px;font-weight:800;color:#075985;line-height:1.15;display:block}
-.dash-hero-sub{font-size:12px;color:#075985;margin-top:5px}
-.dash-hero-sub b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
-/* --- segmented progress bar (functional: lit = done, track = remaining) --- */
+/* --- Total Numbers hero: glass console card, glowing accent numeral --- */
+.dash-hero{background:rgba(148,197,255,.07);border:1px solid rgba(148,197,255,.18);border-radius:16px;padding:10px 14px;margin-top:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.dash-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94A3B8;display:block}
+.dash-big{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:26px;font-weight:800;color:var(--dash-accent);line-height:1.15;display:block;text-shadow:0 0 16px rgba(125,211,252,.35)}
+.dash-hero-sub{font-size:12px;color:#CBD5E1;margin-top:5px}
+.dash-hero-sub b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:#F0F9FF}
+/* --- luminous segmented progress bar (lit = done, track = remaining) --- */
 .progbar{display:flex;gap:2px;margin-top:7px}
-.progbar i{flex:1;height:8px;border-radius:2px;background:#BAE6FD}
-.progbar i.on{background:#0284C7}
+.progbar i{flex:1;height:8px;border-radius:2px;background:rgba(148,163,184,.25)}
+.progbar i.on{background:var(--dash-accent);box-shadow:0 0 8px var(--dash-accent)}
 .progbar-mini{margin-top:6px}
 .progbar-mini i{height:6px}
 .progbar-row{display:flex;align-items:center;gap:6px;margin-top:5px}
 .progbar-row .progbar{flex:1;margin-top:0;min-width:0}
-.prog-pct{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;font-weight:800;color:#075985;line-height:1.2;white-space:nowrap}
+.prog-pct{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;font-weight:800;color:var(--dash-accent);line-height:1.2;white-space:nowrap}
 .prog-pct-mini{font-size:10px}
-/* --- bar tiles: Connected + FTD --- */
-.dash-bars{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px}
-.dash-bar-tile{background:#fff;border:1px solid #BAE6FD;border-radius:14px;padding:10px 12px;min-width:0}
-.dash-bar-tile .dash-label{color:#475569}
-.dash-bar-tile .dash-num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:20px;font-weight:800;color:#075985;line-height:1.2;display:block}
+/* --- bar tiles: Connected + FTD (dark glass) --- */
+.dash-bars{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.dash-bar-tile{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);border-radius:14px;padding:10px 12px;min-width:0}
+.dash-bar-tile .dash-label{color:#94A3B8}
+.dash-bar-tile .dash-num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:20px;font-weight:800;color:#F0F9FF;line-height:1.2;display:block}
 .dash-ftd-nums{display:flex;align-items:baseline;gap:8px}
-.dash-ftd-nums .dash-amt{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:15px;font-weight:800;color:#16A34A}
-.dash-bar-tile .dash-sub{font-size:11px;color:#475569;display:block;margin-top:5px}
-.dash-bar-tile .dash-sub b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#075985}
-.dash-man{font-size:10px;color:#64748B;display:block}
-.dash-man small{font-size:10px;color:#64748B}
-/* --- compact digital tiles: Registration / Valid / Invalid / জমা --- */
-.dash-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:5px}
-.dash-tile{background:#fff;border:1px solid #BAE6FD;border-radius:12px;padding:8px 4px;text-align:center;min-width:0}
-.dash-tile .dash-label{font-size:10px;color:#475569}
-.dash-tile .dash-num-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;font-weight:800;color:#075985;line-height:1.25;display:block}
-.dash-tile small{font-size:10px;color:#64748B;display:block}
-/* --- compact chart + quick links + summary lines --- */
-.hero-week{padding:10px 12px;margin-top:5px}
-.hero-week-title{font-size:12px;margin-bottom:4px}
+.dash-ftd-nums .dash-amt{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:15px;font-weight:800;color:#34D399}
+.dash-bar-tile .dash-sub{font-size:11px;color:#94A3B8;display:block;margin-top:5px}
+.dash-bar-tile .dash-sub b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#F0F9FF}
+#dashView #ncTap b{color:#FB7185}
+.dash-man{font-size:10px;color:#94A3B8;display:block}
+.dash-man small{font-size:10px;color:#94A3B8}
+/* --- compact tiles: Registration / Valid / Invalid / জমা (dark glass) --- */
+.dash-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.dash-tile{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);border-radius:12px;padding:8px 4px;text-align:center;min-width:0}
+.dash-tile .dash-label{font-size:10px;color:#94A3B8}
+.dash-tile .dash-num-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;font-weight:800;color:#F0F9FF;line-height:1.25;display:block}
+.dash-tile small{font-size:10px;color:#94A3B8;display:block}
+/* --- glow pulse on the stat tiles (cyan, Dashboard-scoped) --- */
+#dashView .stat{animation:digiGlowDash 2.6s ease-in-out infinite}
+@keyframes digiGlowDash{0%,100%{box-shadow:0 0 0 rgba(34,211,238,0)}50%{box-shadow:0 0 16px rgba(34,211,238,.28)}}
+/* --- compact chart + quick links + summary lines (dark glass) --- */
+#dashView .hero-week{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);padding:10px 12px;margin-top:6px}
+#dashView .hero-week-title{font-size:12px;margin-bottom:4px;color:#E0F2FE}
 .hero-weekbars{height:34px}
 .hero-bar-count{font-size:10px;margin-bottom:2px}
 .hero-weekdays{font-size:10px;margin-top:4px}
-#dashView .quick-links{grid-template-columns:repeat(4,1fr);gap:6px;margin-top:5px}
-#dashView .quick-link{padding:6px 4px;border-radius:12px}
-#dashView .quick-link .ql-label{font-size:11px}
-#dashView .quick-link .ql-count{font-size:15px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin-top:1px}
-#dashView .quick-link .ql-sub{font-size:10px}
-#weekSummary{font-size:11px;margin:5px 0 0}
-#targetLine{font-size:11px;margin:5px 0 0}
+#dashView .quick-links{grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+#dashView .quick-link{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);padding:6px 4px;border-radius:12px}
+#dashView .quick-link .ql-label{font-size:11px;color:#94A3B8}
+#dashView .quick-link .ql-count{font-size:15px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin-top:1px;color:var(--dash-accent)}
+#dashView .quick-link .ql-sub{font-size:10px;color:#94A3B8}
+#dashView #weekSummary{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);color:#CBD5E1;font-size:11px;margin:6px 0 0}
+#dashView #targetLine{background:rgba(251,191,36,.12)!important;border:1px solid rgba(251,191,36,.28);color:#FDE68A;font-size:11px;margin:6px 0 0}
 @media(max-width:480px){
 .wrap{margin-top:12px}
 #mainView>.card{padding:12px}
 #mainView .user-bar{padding:6px 10px;font-size:12px}
 #mainView .user-bar .btn{min-height:28px;padding:5px 10px;font-size:12px}
 }
-@media(max-width:360px){.dash-tile .dash-num-sm{font-size:14px}.dash-big{font-size:20px}}
-/* --- time-of-day accents for the new dashboard --- */
-.tod-noon .progbar i.on{background:#0284C7}
-.tod-noon .dash-hero{background:linear-gradient(135deg,#E0F2FE,#FEF9C3)}
-.tod-afternoon .progbar i{background:#FED7AA}
-.tod-afternoon .progbar i.on{background:#EA580C}
-.tod-afternoon .dash-hero{background:linear-gradient(135deg,#FFEDD5,#FEF3C7);border-color:#FDBA74}
-.tod-afternoon .dash-hero .dash-label{color:#9A3412}
-.tod-afternoon .dash-hero .dash-big{color:#9A3412}
-.tod-afternoon .dash-hero-sub{color:#7C2D12}
-.tod-afternoon .dash-datebar{background:linear-gradient(135deg,#FFEDD5,#FEF3C7);border-color:#FDBA74}
-.tod-afternoon .dash-greet{color:#9A3412}
-.tod-evening .progbar i{background:#E9D5FF}
-.tod-evening .progbar i.on{background:#9333EA}
-.tod-evening .dash-hero{background:linear-gradient(135deg,#F5F3FF,#FCE7F3);border-color:#DDD6FE}
-.tod-evening .dash-hero .dash-label{color:#6B21A8}
-.tod-evening .dash-hero .dash-big{color:#6B21A8}
-.tod-evening .dash-hero-sub{color:#581C87}
-.tod-evening .dash-datebar{background:linear-gradient(135deg,#F5F3FF,#FCE7F3);border-color:#DDD6FE}
-.tod-evening .dash-greet{color:#6B21A8}
-.tod-night .progbar i{background:#1E293B}
-.tod-night .progbar i.on{background:#38BDF8}
-.tod-afternoon .dash-hero .prog-pct{color:#9A3412}
-.tod-evening .dash-hero .prog-pct{color:#6B21A8}
-.tod-night .prog-pct{color:#E0F2FE}
-.tod-night .dash-hero{background:#0F172A;border-color:#334155}
-.tod-night .dash-hero .dash-label{color:#BAE6FD}
-.tod-night .dash-hero .dash-big{color:#E0F2FE}
-.tod-night .dash-hero-sub{color:#CBD5E1}
-.tod-night .dash-hero-sub b{color:#E0F2FE}
-.tod-night .dash-datebar{background:linear-gradient(135deg,#1E3A5F,#0F172A);border-color:#334155}
-.tod-night .dash-greet{color:#BAE6FD}
-.tod-night .dash-bar-tile,.tod-night .dash-tile{background:#0F172A;border-color:#334155}
-.tod-night .dash-bar-tile .dash-label,.tod-night .dash-tile .dash-label{color:#94A3B8}
-.tod-night .dash-bar-tile .dash-num,.tod-night .dash-tile .dash-num-sm{color:#E0F2FE}
-.tod-night .dash-ftd-nums .dash-amt{color:#4ADE80}
-.tod-night .dash-bar-tile .dash-sub{color:#94A3B8}
-.tod-night .dash-bar-tile .dash-sub b{color:#E0F2FE}
-.tod-night .dash-man,.tod-night .dash-man small,.tod-night .dash-tile small{color:#94A3B8}
+@media(max-width:360px){.dash-tile .dash-num-sm{font-size:14px}.dash-big{font-size:22px}}
 @media(max-width:480px){
 #loginHero{padding:20px 16px 56px}
 #loginHero .hero-title{font-size:18px}
