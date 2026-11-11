@@ -110,7 +110,6 @@
                 <ImageView android:layout_width="28dp" android:layout_height="28dp" android:src="@drawable/ic_users" android:layout_marginBottom="6dp" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট নাম্বার" android:textSize="14sp" android:textColor="#FFE7D6" />
                 <TextView android:id="@+id/statTotalNumDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="52sp" android:textStyle="bold" android:textColor="@color/white" />
-                <TextView android:id="@+id/heroPctText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="০%" android:textSize="13sp" android:textStyle="bold" android:textColor="#FFE7D6" android:layout_marginTop="2dp" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="আজকের তালিকার মোট নাম্বার" android:textSize="12sp" android:textColor="#FFE7D6" />
             </LinearLayout>
         </RelativeLayout>
@@ -135,7 +134,6 @@
             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
                 <TextView android:id="@+id/statConnDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/white" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Connected" android:textSize="10sp" android:textColor="#E6FFFFFF" />
-                <TextView android:id="@+id/connPctText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="০%" android:textSize="11sp" android:textColor="#E6FFFFFF" />
             </LinearLayout>
             </LinearLayout>
             <LinearLayout android:id="@+id/tileNotConnDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/stat_rose" android:padding="14dp" android:layout_marginStart="6dp" android:gravity="center_vertical">
@@ -168,7 +166,6 @@
                 <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center_horizontal">
                     <TextView android:id="@+id/statFtdDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="24sp" android:textStyle="bold" android:textColor="@color/white" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="এফটিডি" android:textSize="11sp" android:textColor="#FFE7D6" />
-                    <TextView android:id="@+id/ftdPctText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="০%" android:textSize="11sp" android:textColor="#FFE7D6" />
                 </LinearLayout>
                 <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center_horizontal">
                     <TextView android:id="@+id/statFtdAmtDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="৳0" android:textSize="24sp" android:textStyle="bold" android:textColor="@color/white" />

@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, VerifiedSheet> verifiedSheets = new HashMap<>();
     private TextView loginError, avatarView, statusText, weekSummary, queuedCountText;
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
-    private TextView weekChartRange, heroPctText, connPctText, ftdPctText;
+    private TextView weekChartRange;
     private TextView autoSyncTime;
     private TextView ftdUsersCount, ftdUsersSyncTime, ftdUsersEmpty;
     private TextView ftdTodayCount, ftdTotalCount, regTodayCount, regTotalCount;
@@ -271,7 +271,6 @@ public class MainActivity extends AppCompatActivity {
         statRegDay = findViewById(R.id.statRegDay);
         statFtdDay = findViewById(R.id.statFtdDay);
         statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalRemainDay = findViewById(R.id.statTotalRemainDay); weekChartRow = findViewById(R.id.weekChartRow); weekChartRange = findViewById(R.id.weekChartRange); weekChartCard = findViewById(R.id.weekChartCard);
-        heroPctText = findViewById(R.id.heroPctText); connPctText = findViewById(R.id.connPctText); ftdPctText = findViewById(R.id.ftdPctText);
         autoSyncTime = findViewById(R.id.autoSyncTime);
         ftdUsersCount = findViewById(R.id.ftdUsersCount); ftdUsersSyncTime = findViewById(R.id.ftdUsersSyncTime); ftdUsersEmpty = findViewById(R.id.ftdUsersEmpty); ftdUsersList = findViewById(R.id.ftdUsersList);
         ftdTodayCount = findViewById(R.id.ftdTodayCount); ftdTotalCount = findViewById(R.id.ftdTotalCount); regTodayCount = findViewById(R.id.regTodayCount); regTotalCount = findViewById(R.id.regTotalCount);
@@ -1923,21 +1922,6 @@ public class MainActivity extends AppCompatActivity {
         digitalAnimators.add(meterAnimator);
     }
 
-    // v6.19: % labels — big-card design-e chhoto figure hisebe (kono bar noy).
-    // heroPct = Called/Total, connPct = Connected/(Connected+Not Connected),
-    // ftdPct = FTD/Registration. toBnPct (v6.17) Bangla % dey.
-    private void updateHeroPct(int called, int remain, int total) {
-        if (heroPctText != null) heroPctText.setText(total > 0 ? toBnPct(called, total) : "০%");
-    }
-
-    private void updateConnPct(int conn, int notConn) {
-        if (connPctText != null) connPctText.setText(toBnPct(conn, conn + notConn));
-    }
-
-    private void updateFtdPct(int ftd, int reg) {
-        if (ftdPctText != null) ftdPctText.setText(toBnPct(ftd, reg));
-    }
-
     // v6.15: 7-din FTD chart — 7 ta column (bar + din-er tarikh). Bar-er height
     // oi din-er FTD onupate (sobcheye boro din = 20dp, khali din = 2dp).
     // Dekha din-er bar komola (orange), bakigulo halka.
@@ -2441,7 +2425,6 @@ public class MainActivity extends AppCompatActivity {
                         if (statRegDay != null) animateStatNumberText(statRegDay, reg);
                         if (statFtdDay != null) animateStatNumberText(statFtdDay, ftd);
                         if (statFtdAmtDay != null) animateStatAmountText(statFtdAmtDay, amt);
-                        try { updateFtdPct(Integer.parseInt(ftd.trim()), Integer.parseInt(reg.trim())); } catch (Exception ignored) {}
                     }
                 });
             } catch (Exception e) { postCommissionEmpty(); }
@@ -2763,10 +2746,7 @@ public class MainActivity extends AppCompatActivity {
                         animateStatNumber(statRegDay, finalReg);
                         animateStatNumber(statFtdDay, finalFtdN);
                         animateStatAmount(statFtdAmtDay, finalFtdSum);
-                        updateFtdPct(finalFtdN, finalReg);
                     }
-                    updateHeroPct(finalTotalCall, lastRemaining, lastTotalNumDay);
-                    updateConnPct(finalConn, finalNotConn);
                     updateWeekChart(finalHeadPerDay, finalTrailStart, finalDay);
                     if (weekChartCard != null) weekChartCard.setVisibility(View.VISIBLE);
                     weekSummary.setText("এই ৭ দিন (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • এফটিডি " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • Valid " + finalValidW + " • Invalid " + finalInvW + " • রেজিস্ট্রেশন " + finalRegW + (finalUsedLegacy ? " • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)" : "") + (finalPartialFail ? " • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)" : ""));
@@ -2906,15 +2886,6 @@ public class MainActivity extends AppCompatActivity {
             else b.append(c);
         }
         return b.toString();
-    }
-    // v6.17: bar-er percentage label — Bengali digit + % (e.g. "৪৭%").
-    // whole<=0 ba part<=0 hole "০%" — kokhono NaN/Infinity/crash noy.
-    private static String toBnPct(int part, int whole) {
-        if (whole <= 0 || part <= 0) return "০%";
-        int pct = (int) Math.round((double) part * 100 / whole);
-        if (pct < 0) pct = 0;
-        if (pct > 100) pct = 100;
-        return toBnDigits(String.valueOf(pct)) + "%";
     }
     private static String fmtAmount(double v) {
         if (v == Math.floor(v)) return String.valueOf((long) v);
@@ -3420,7 +3391,6 @@ public class MainActivity extends AppCompatActivity {
             }
             animateStatNumber(statTotalRemainDay, remain);
             lastRemaining = remain; targetRemainReady = true; refreshTargetCard();
-            updateHeroPct(lastTotalCallDay, lastRemaining, lastTotalNumDay);
         } catch (Exception ignored) { /* hero ager value-i thakbe — bhul sonkha dekhano noy */ }
     }
 
@@ -3435,8 +3405,6 @@ public class MainActivity extends AppCompatActivity {
             if ("call connected".equals(newStatus)) statConnDay.setText(String.valueOf(Integer.parseInt(statConnDay.getText().toString()) + 1));
             if ("not connected".equals(newStatus)) statNotConnDay.setText(String.valueOf(Integer.parseInt(statNotConnDay.getText().toString()) + 1));
             if ("Yes".equals(newValid)) statValidDay.setText(String.valueOf(Integer.parseInt(statValidDay.getText().toString()) + 1));
-            updateConnPct(parseStatInt(statConnDay), parseStatInt(statNotConnDay));
-            updateHeroPct(lastTotalCallDay, lastRemaining, lastTotalNumDay);
         } catch (Exception ignored) { /* tile-e number na thakle porer loadDayStats thik kore debe */ }
     }
 
