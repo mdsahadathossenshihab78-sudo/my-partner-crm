@@ -634,6 +634,7 @@ let manFtd=0, manFtdAmt=0, manReg=0;
 let typeFilter='';
 let historyMap={};
 let calledRows=[]; let sheetConfigCache=null; let ensuredLogSheets={}; let ensuredReportSheets={}; let verifiedSheets={}; let logMigratedThisSession=false; let lastLogPartialFail=false; let lastReportPartialFail=false; let lastLogReadUsedLegacy=false;
+let lastLogs=[]; let lastLogsDay=null; // last log rows read by loadDayStats (optimistic Save rebuilds Called from this cache)
 let selectedDate=dhakaToday();
 let reportDate=dhakaToday();
 function updateRepDateBtn(){$('repDateBtn').textContent=displayDay(reportDate)+(reportDate===dhakaToday()?' • আজ':'');const past=reportDate<dhakaToday();$('repDateNote').textContent=past?'শুধু দেখা যাবে — এই তারিখে যোগ/ডিলিট বন্ধ।':'';['regAddRow','probAddRow'].forEach(id=>{const el=$(id);if(el)el.style.display=past?'none':'';});const fs=$('ftdStepRow');if(fs)fs.style.display=past?'none':'';const fa=$('ftdStepAmountRow');if(fa)fa.style.display='none';}
@@ -1285,10 +1286,19 @@ async function ensureLogEntry(today, number, val, vc){
 }
 window.saveRow=async (rowNum)=>{
   const r=rows.find(x=>x.row===rowNum); if(!r) return false;
+  if(r.optimistic) return false; // a background save is already in flight for this row — ignore a duplicate tap
   const val=r.status, vc=r.valid;
   const r1=($('r1-'+rowNum)?$('r1-'+rowNum).value.trim():(r.remark1||'')), r2=($('r2-'+rowNum)?$('r2-'+rowNum).value.trim():(r.remark2||'')), ot=($('ot-'+rowNum)?$('ot-'+rowNum).value.trim():(r.others||''));
   if(!val && !vc){ const _old=lastStatusMap[(r.number||'').trim()]||''; if(_old && _old!=='|'){ if(!confirm('এই রো-র আজকের হিসাব (লগ রো) মুছে যাবে। ঠিক আছে?')) return false; } }
+  // ---- optimistic Save: move the row to Called NOW; the sheet+log write runs in the background ----
+  const _prev={savedStatus:r.savedStatus,savedValid:r.savedValid,logTime:r.logTime,prevDay:r.prevDay};
+  const _revert=()=>{ r.savedStatus=_prev.savedStatus; r.savedValid=_prev.savedValid; r.logTime=_prev.logTime; r.prevDay=_prev.prevDay; r.optimistic=false; if(lastLogsDay===selectedDate) buildCalledRows(lastLogs,selectedDate); render(); loadDayStats(); };
   try{
+    r.remark1=r1; r.remark2=r2; r.others=ot;
+    r.savedStatus=val; r.savedValid=vc; r.optimistic=true;
+    r.logTime=dhakaTime24(); r.prevDay=false;
+    if(lastLogsDay===selectedDate) buildCalledRows(lastLogs,selectedDate);
+    render(); loadDayStats();
     await tryRefreshConfig();
     const numsId=currentNumbersId();
     const cur=await apiSid(numsId,encodeURIComponent(agentId)+'!A'+rowNum);
@@ -1299,6 +1309,7 @@ window.saveRow=async (rowNum)=>{
       saveDraftForRow(r);
       toast('রো বদলে গেছে — '+dialNumber(r.number)+' নম্বরটি জমা বাকিতে রাখা হয়েছে, আবার চেষ্টা করা হবে');
       renderSaveFailBox();
+      _revert();
       await loadRows();
       return false;
     }
@@ -1310,15 +1321,18 @@ window.saveRow=async (rowNum)=>{
       queueFailedSave({rowNum:rowNum,number:r.number,val:val,vc:vc,r1:r1,r2:r2,ot:ot,ts:Date.now(),reason:'sheet',attempts:0});
       toast('সেভ যাচাই হয়নি — '+dialNumber(r.number)+' নম্বরটি জমা বাকিতে রাখা হয়েছে');
       renderSaveFailBox();
+      _revert();
       return false;
     }
+    // sheet is verified — the row genuinely belongs in Called; only the log is still pending
+    r.optimistic=false;
     const key=(r.number||'').trim(), now=val+'|'+vc, old=lastStatusMap[key];
     const changed=now!==old;
     const isClear=!val&&!vc;
     r.status=val; r.valid=vc; r.remark1=r1; r.remark2=r2; r.others=ot;
     r.savedStatus=val; r.savedValid=vc;
     let cleared=false, logOk=true;
-    if(changed || r.prevDay){
+    if(changed || _prev.prevDay){
       try{
         const today=dhakaToday();
         if(isClear){ await deleteLogRowsEverywhere(today,dialNumber(r.number)); cleared=true; }
@@ -1341,6 +1355,7 @@ window.saveRow=async (rowNum)=>{
     queueFailedSave({rowNum:rowNum,number:r.number,val:val,vc:vc,r1:r1,r2:r2,ot:ot,ts:Date.now(),reason:'sheet',attempts:0});
     toast('সেভ হয়নি — '+dialNumber(r.number)+' নম্বরটি জমা বাকিতে রাখা হয়েছে, নেট আসলেই যাবে');
     renderSaveFailBox();
+    _revert();
     return false;
   }
 };
@@ -1413,7 +1428,7 @@ async function loadDayStats(){
     loadCommissionWeek();
     loadFtdUsers(); // dashboard quick tile-er total (qlFtdUsers) agei dekhabe
     let logs=[];
-    try{ logs=await readLogRowsForDate(day); }catch(e){ $('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।'; calledRows=[]; if(tab==='done'&&!dirty) render(); return; }
+    try{ logs=await readLogRowsForDate(day); lastLogs=logs; lastLogsDay=day; }catch(e){ $('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।'; calledRows=[]; if(tab==='done'&&!dirty) render(); return; }
     let regs=[], ftds=[];
     try{ const s=splitReportRows(await readReportRowsForDate(day)); regs=s.reg; ftds=s.ftd; }catch(e){}
     let conn=0, valid=0, notConn=0;
@@ -1495,6 +1510,7 @@ function buildCalledRows(logs,day){
       if(!r.savedStatus) return;
       const _n=normLogNum(r.number||'');
       if(!_n||_inCalled.has(_n)) return;
+      if(r.optimistic){ r.prevDay=false; called.push(r); return; } // optimistic Save: in Called now, no prevDay badge (log not written yet)
       r.prevDay=true; r.logTime='';
       called.push(r);
     });
@@ -1576,7 +1592,19 @@ function applyStatTiles(){
 async function loadCommissionWeek(){
   if(!token) return;
   const chart=$('heroWeekChart');
-  if(commissionCache&&Date.now()-commissionCacheAt<300000){ applyCommission(commissionCache.byDate,commissionCache.lastSync); return; }
+  // Chart headline rule (same as the Report headline + the app v6.16 chart):
+  // per day, AUTO (Stats) when a Stats row exists, else MANUAL (Reports sheet), never summed.
+  // Manual FTDs are read FRESH on every call — they change via the Report FTD
+  // stepper, so the 5-minute Stats cache must not hide a new manual FTD.
+  // The Stats (auto) part stays cached for 5 minutes.
+  let manByDate={};
+  try{
+    const _s=splitReportRows(await readReportRowsForDate(dhakaToday()));
+    const _today=dhakaToday();
+    for(let i=6;i>=0;i--){ const _d=addDays(_today,-i); manByDate[_d]=ftdTotalCount(filterTodayE(_s.ftd,_d)); }
+  }catch(e){ manByDate={}; }
+  const _merge=(statsByDate)=>{ const out={}; const _today=dhakaToday(); for(let i=6;i>=0;i--){ const _d=addDays(_today,-i); out[_d]=(statsByDate&&statsByDate[_d])?statsByDate[_d].ftd:(manByDate[_d]||0); } return out; };
+  if(commissionCache&&Date.now()-commissionCacheAt<300000){ applyCommission(_merge(commissionCache.statsByDate),commissionCache.lastSync); return; }
   if(chart) chart.classList.add('hero-week-loading');
   renderWeekBars(null);
   try{
@@ -1584,23 +1612,24 @@ async function loadCommissionWeek(){
     const id=writeSheetFor(currentConfig(),'COMMISSION',dhakaToday());
     if(!id) throw new Error('no-commission-id');
     const rows=await getTabRows(id,'Stats');
-    const byDate={}; const statsByDate={}; let lastSync='';
+    const statsByDate={}; let lastSync='';
     rows.forEach(e=>{
       const d=(cellE(e,0)||'').trim(); if(!d) return;
-      const v=parseInt(cellE(e,1),10); byDate[d]=isNaN(v)?0:v;
+      const v=parseInt(cellE(e,1),10);
       const amt=parseFloat(cellE(e,2))||0, reg=parseInt(cellE(e,3),10);
       statsByDate[d]={ftd:isNaN(v)?0:v,amt:amt,reg:isNaN(reg)?0:reg};
       const s=(cellE(e,16)||'').trim();
       if(s&&(!lastSync||s>lastSync)) lastSync=s;
     });
-    commissionCache={byDate:byDate,statsByDate:statsByDate,lastSync:lastSync}; commissionCacheAt=Date.now();
+    const merged=_merge(statsByDate);
+    commissionCache={byDate:merged,statsByDate:statsByDate,lastSync:lastSync}; commissionCacheAt=Date.now();
     if(chart) chart.classList.remove('hero-week-loading');
-    applyCommission(byDate,lastSync);
+    applyCommission(merged,lastSync);
   }catch(e){
     if(chart) chart.classList.remove('hero-week-loading');
-    if(commissionCache){ applyCommission(commissionCache.byDate,commissionCache.lastSync); }
+    if(commissionCache){ applyCommission(_merge(commissionCache.statsByDate),commissionCache.lastSync); }
     else{
-      renderWeekBars({});
+      renderWeekBars(_merge(null));
     }
   }
 }
