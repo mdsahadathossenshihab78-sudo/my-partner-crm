@@ -689,9 +689,9 @@ function parseDay(s){const p=s.split('-');return Date.UTC(+p[0],+p[1]-1,+p[2])}
 function fmtDay(ms){const d=new Date(ms);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0')}
 function addDays(day,n){return fmtDay(parseDay(day)+n*86400000)}
 function daysBetween(a,b){return Math.floor((parseDay(b)-parseDay(a))/86400000)}
-function dialNumber(n){n=(n||'').replace(/[^0-9+]/g,'');if(!n)return '';if(n.startsWith('+'))return n;if(n.startsWith('0'))return n;return '0'+n}
+function dialNumber(n){n=(n||'').replace(/[^0-9+]/g,'');if(!n)return '';if(n.startsWith('+880'))return '0'+n.slice(4);if(n.startsWith('880'))return '0'+n.slice(3);if(n.startsWith('+'))return n;if(n.startsWith('0'))return n;return '0'+n}
 function digits(n){return (n||'').replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d)).replace(/[^0-9]/g,'')}
-function normLogNum(n){let d=(n||'').replace(/[^0-9]/g,'');if(!d)return '';if(d.startsWith('880')&&d.length===13)d='0'+d.slice(3);else if(!d.startsWith('0'))d='0'+d;return d;}
+function normLogNum(n){let d=(n||'').replace(/[^0-9]/g,'');if(!d)return '';if(d.startsWith('880'))d='0'+d.slice(3);else if(!d.startsWith('0'))d='0'+d;return d;}
 function autoInvalidNumbers(logs,day){const seen=new Set(),out=[];logs.forEach(e=>{if(cellE(e,0)!==day)return;if(cellE(e,2)!=='not connected')return;if(cellE(e,3)!=='No')return;const n=normLogNum(cellE(e,1));if(!n||seen.has(n))return;seen.add(n);out.push(n);});return out;}
 function showLogin(){window.scrollTo(0,0);$('loginCard').style.display='block';$('loginHero').style.display='block';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='none'}
 function showAgent(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='block';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='none'}
@@ -775,7 +775,7 @@ $('agentBtn').onclick=async()=>{
   }catch(e){$('agentMsg').textContent='যাচাই হয়নি, আবার চেষ্টা করুন।';}
 };
 $('adminLogoutBtn').onclick=()=>{if(auth)auth.signOut();token=null;agentId=null;localStorage.removeItem('agent_id');localStorage.removeItem('agent_email');localStorage.removeItem('g_token');localStorage.removeItem('g_token_exp');showLogin();};
-function normAdminNum(raw){let s=(raw||'').replace(/[\s-]/g,'');if(s.startsWith('+880'))s='0'+s.slice(4);else if(s.startsWith('880')&&s.length===13)s='0'+s.slice(3);else if(!s.startsWith('0'))s='0'+s;return s}
+function normAdminNum(raw){let s=(raw||'').replace(/[\s-]/g,'');if(s.startsWith('+880'))s='0'+s.slice(4);else if(s.startsWith('880'))s='0'+s.slice(3);else if(!s.startsWith('0'))s='0'+s;return s}
 $('adminAddBtn').onclick=async()=>{
   const target=$('adminAgentInput').value.trim();
   const pasted=$('adminNumbersInput').value;
