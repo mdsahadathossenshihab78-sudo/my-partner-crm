@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Design #2 chip, SELECTED: Connected — fill #0d7a3f, border #9fd8b4, 8dp radius.
+     Java selected chip-er text sada (white) bosay — #0d7a3f-er upore sada pore. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <corners android:radius="100dp" />
-    <solid android:color="#CC10B981" />
-    <stroke android:width="2dp" android:color="#FF10B981" />
+    <corners android:radius="8dp" />
+    <solid android:color="@color/d2_chip_conn_text" />
+    <stroke android:width="2dp" android:color="@color/d2_chip_conn_border" />
 </shape>

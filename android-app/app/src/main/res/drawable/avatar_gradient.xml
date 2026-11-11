@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Design #2: avatar / brand mark — solid #2e1c10 oval; avatar text #ffb03a (XML-e). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <gradient android:angle="45" android:startColor="@color/orange" android:endColor="@color/orange_deep" />
+    <solid android:color="@color/d2_ink" />
 </shape>

@@ -1,22 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item><color android:color="@color/cream" /></item>
-    <item>
-        <shape android:shape="rectangle">
-            <gradient android:type="radial" android:centerX="0.15" android:centerY="0.02"
-                android:gradientRadius="420dp" android:startColor="#33F97316" android:endColor="#00F97316" />
-        </shape>
-    </item>
-    <item>
-        <shape android:shape="rectangle">
-            <gradient android:type="radial" android:centerX="0.95" android:centerY="0.35"
-                android:gradientRadius="380dp" android:startColor="#1FFDBA74" android:endColor="#00FDBA74" />
-        </shape>
-    </item>
-    <item>
-        <shape android:shape="rectangle">
-            <gradient android:type="radial" android:centerX="0.30" android:centerY="1.0"
-                android:gradientRadius="400dp" android:startColor="#14F97316" android:endColor="#00F97316" />
-        </shape>
-    </item>
-</layer-list>
+<!-- Design #2: page background — solid cream #f6ead3 (aurora gradient sorano). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/d2_bg" />
+</shape>

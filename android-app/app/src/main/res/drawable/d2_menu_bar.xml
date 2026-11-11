@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Design #2: bottom menu bar — bg #fffaf0, 2dp #2e1c10 TOP border.
+     Nicher layer purota #2e1c10; uporer layer upore theke 2dp inset, tai uporer 2dp border hisebe dekha jay. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><color android:color="@color/d2_line" /></item>
+    <item android:top="2dp"><color android:color="@color/d2_surface" /></item>
+</layer-list>

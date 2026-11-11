@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Design #2 chip, SELECTED: No — fill #546e7a, border #c3ced4, 8dp radius. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <corners android:radius="100dp" />
-    <solid android:color="#CC94A3B8" />
-    <stroke android:width="2dp" android:color="#FF94A3B8" />
+    <corners android:radius="8dp" />
+    <solid android:color="@color/d2_chip_no_text" />
+    <stroke android:width="2dp" android:color="@color/d2_chip_no_border" />
 </shape>

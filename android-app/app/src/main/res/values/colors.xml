@@ -1,5 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Design #2 (Energy Orange) — EXACT spec tokens, light + dark + chips.
+         Existing semantic names keep their names but now carry the Design #2
+         values, so every layout / R.color reference restyles automatically. -->
+    <!-- Design #2 light tokens -->
+    <color name="d2_bg">#f6ead3</color>
+    <color name="d2_surface">#fffaf0</color>
+    <color name="d2_surface2">#fdeeda</color>
+    <color name="d2_ink">#2e1c10</color>
+    <color name="d2_muted">#8a6a52</color>
+    <color name="d2_line">#2e1c10</color>
+    <color name="d2_accent">#f06414</color>
+    <color name="d2_accent2">#ffb03a</color>
+    <color name="d2_hard">#2e1c10</color>
+    <!-- Design #2 dark tokens -->
+    <color name="d2_dark_bg">#211308</color>
+    <color name="d2_dark_surface">#2d1a0c</color>
+    <color name="d2_dark_surface2">#3a2110</color>
+    <color name="d2_dark_ink">#ffeeda</color>
+    <color name="d2_dark_muted">#c9a582</color>
+    <color name="d2_dark_line">#ffeeda</color>
+    <color name="d2_dark_accent">#ff7d2a</color>
+    <color name="d2_dark_accent2">#ffb03a</color>
+    <color name="d2_dark_hard">#000000</color>
+    <!-- Design #2 status chips — light (bg / text / border) -->
+    <color name="d2_chip_conn_bg">#e2f4e8</color>
+    <color name="d2_chip_conn_text">#0d7a3f</color>
+    <color name="d2_chip_conn_border">#9fd8b4</color>
+    <color name="d2_chip_notconn_bg">#fdeaea</color>
+    <color name="d2_chip_notconn_text">#b3261e</color>
+    <color name="d2_chip_notconn_border">#f2b8b5</color>
+    <color name="d2_chip_yes_bg">#e3edfd</color>
+    <color name="d2_chip_yes_text">#1757c2</color>
+    <color name="d2_chip_yes_border">#aecbf5</color>
+    <color name="d2_chip_no_bg">#eceff1</color>
+    <color name="d2_chip_no_text">#546e7a</color>
+    <color name="d2_chip_no_border">#c3ced4</color>
+    <!-- Design #2 status chips — dark -->
+    <color name="d2_chip_conn_dark_bg">#123526</color>
+    <color name="d2_chip_conn_dark_text">#5fd598</color>
+    <color name="d2_chip_conn_dark_border">#1f5c3d</color>
+    <color name="d2_chip_notconn_dark_bg">#3d1a18</color>
+    <color name="d2_chip_notconn_dark_text">#ff9d94</color>
+    <color name="d2_chip_notconn_dark_border">#6e2a26</color>
+    <color name="d2_chip_yes_dark_bg">#16294d</color>
+    <color name="d2_chip_yes_dark_text">#8db4f7</color>
+    <color name="d2_chip_yes_dark_border">#2c4d8a</color>
+    <color name="d2_chip_no_dark_bg">#232a2e</color>
+    <color name="d2_chip_no_dark_text">#9fb3bd</color>
+    <color name="d2_chip_no_dark_border">#3a464d</color>
+
+    <!-- Legacy names, now carrying Design #2 values (used all over layouts + R.color) -->
     <color name="base_navy">#0B1026</color>
     <color name="white">#FFFFFF</color>
     <color name="muted_light">#94A3B8</color>
@@ -10,25 +61,25 @@
     <color name="pink">#EC4899</color>
     <color name="green">#10B981</color>
     <color name="rose">#F43F5E</color>
-    <color name="orange">#F97316</color>
-    <!-- v6.6 Energy Sales skin (design 3): cream background, orange accent, dark ink text -->
-    <color name="cream">#FFF7ED</color>
-    <color name="card_white">#FFFFFF</color>
-    <color name="field_cream">#FFFBEB</color>
-    <color name="ink">#1F2937</color>
-    <color name="muted_warm">#78716C</color>
-    <color name="orange_deep">#EA580C</color>
-    <color name="orange_dark">#C2410C</color>
-    <color name="orange_light">#FFEDD5</color>
-    <color name="orange_border">#FED7AA</color>
+    <color name="orange">#f06414</color>
+    <!-- Design #2: cream background, orange accent, dark brown ink -->
+    <color name="cream">#f6ead3</color>
+    <color name="card_white">#fffaf0</color>
+    <color name="field_cream">#fffaf0</color>
+    <color name="ink">#2e1c10</color>
+    <color name="muted_warm">#8a6a52</color>
+    <color name="orange_deep">#f06414</color>
+    <color name="orange_dark">#2e1c10</color>
+    <color name="orange_light">#fdeeda</color>
+    <color name="orange_border">#2e1c10</color>
     <color name="green_deep">#16A34A</color>
     <color name="blue_deep">#2563EB</color>
     <color name="rose_deep">#E11D48</color>
     <color name="error">#DC2626</color>
-    <color name="glass_white">#FFFFFF</color>
-    <color name="glass_border">#FED7AA</color>
-    <color name="field_bg">#FFFBEB</color>
-    <color name="field_border">#FED7AA</color>
-    <color name="dropdown_bg">#FFF7ED</color>
+    <color name="glass_white">#fffaf0</color>
+    <color name="glass_border">#2e1c10</color>
+    <color name="field_bg">#fffaf0</color>
+    <color name="field_border">#2e1c10</color>
+    <color name="dropdown_bg">#fffaf0</color>
     <color name="error_light">#DC2626</color>
 </resources>

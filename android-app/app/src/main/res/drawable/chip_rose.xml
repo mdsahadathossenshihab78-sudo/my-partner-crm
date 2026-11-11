@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Design #2 chip, SELECTED: Not Connected — fill #b3261e, border #f2b8b5, 8dp radius. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <corners android:radius="100dp" />
-    <solid android:color="#CCF43F5E" />
-    <stroke android:width="2dp" android:color="#FFF43F5E" />
+    <corners android:radius="8dp" />
+    <solid android:color="@color/d2_chip_notconn_text" />
+    <stroke android:width="2dp" android:color="@color/d2_chip_notconn_border" />
 </shape>

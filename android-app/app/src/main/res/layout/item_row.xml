@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Design #2 (Energy Orange): call card — bg #fffaf0, 2dp #2e1c10 border, 12dp radius, 4dp hard shadow.
+     Number 18sp bold. Call button square 46x46dp, #f06414, 12dp radius, 3dp shadow, phone icon 20dp.
+     Chips 36dp, 13sp, 8dp radius (glass_field unselected; chip_green/rose/blue/grey selected by RowAdapter). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:orientation="vertical" android:background="@drawable/glass_card"
-    android:layout_margin="6dp" android:padding="12dp">
+    android:orientation="vertical" android:background="@drawable/d2_call_card"
+    android:layout_margin="6dp" android:paddingTop="12dp" android:paddingBottom="12dp" android:paddingStart="15dp" android:paddingEnd="15dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:gravity="center_vertical">
         <TextView android:id="@+id/tvNumber" android:layout_width="0dp" android:layout_height="wrap_content"
-            android:layout_weight="1" android:textSize="17sp" android:textStyle="bold"
+            android:layout_weight="1" android:textSize="18sp" android:textStyle="bold"
             android:textColor="@color/ink" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnCall" android:layout_width="wrap_content"
-            android:layout_height="48dp" android:minWidth="84dp" android:minHeight="0dp" android:gravity="center" android:textSize="14sp" android:paddingHorizontal="12dp"
-            android:layout_marginStart="8dp" android:text="কল"
-            app:backgroundTint="@null" android:background="@drawable/glass_field" android:textColor="@color/ink" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnCall" android:layout_width="46dp"
+            android:layout_height="46dp" android:minWidth="0dp" android:minHeight="0dp" android:gravity="center" android:padding="0dp"
+            android:layout_marginStart="8dp"
+            app:icon="@drawable/ic_call" app:iconSize="20dp" app:iconTint="@color/white" app:iconGravity="textStart" app:iconPadding="0dp"
+            app:backgroundTint="@null" android:background="@drawable/btn_gradient" android:textColor="@color/white" />
     </LinearLayout>
     <TextView android:id="@+id/tvRow" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:textSize="12sp" android:textColor="@color/muted_warm" android:layout_marginTop="2dp" />
+        android:textSize="13sp" android:textColor="@color/muted_warm" android:layout_marginTop="2dp" />
     <TextView android:id="@+id/tvHistory" android:layout_width="match_parent"
-        android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/muted_warm"
+        android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/muted_warm"
         android:layout_marginTop="4dp" android:visibility="gone" />
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:text="কলিং স্ট্যাটাস" android:textSize="12sp" android:textStyle="bold"
@@ -25,13 +29,13 @@
     <!-- v4.44: ek tap-e chip — kono popup na -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:layout_marginTop="4dp">
-        <TextView android:id="@+id/statusChipConn" android:layout_width="0dp" android:layout_height="44dp"
+        <TextView android:id="@+id/statusChipConn" android:layout_width="0dp" android:layout_height="36dp"
             android:layout_weight="1" android:background="@drawable/glass_field" android:gravity="center"
-            android:text="Connected" android:textSize="14sp" android:textStyle="bold"
+            android:text="Connected" android:textSize="13sp" android:textStyle="bold"
             android:textColor="@color/ink" android:clickable="true" android:focusable="true" />
-        <TextView android:id="@+id/statusChipNotConn" android:layout_width="0dp" android:layout_height="44dp"
+        <TextView android:id="@+id/statusChipNotConn" android:layout_width="0dp" android:layout_height="36dp"
             android:layout_weight="1" android:layout_marginStart="8dp" android:background="@drawable/glass_field"
-            android:gravity="center" android:text="Not Connected" android:textSize="14sp" android:textStyle="bold"
+            android:gravity="center" android:text="Not Connected" android:textSize="13sp" android:textStyle="bold"
             android:textColor="@color/ink" android:clickable="true" android:focusable="true" />
     </LinearLayout>
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -40,13 +44,13 @@
     <!-- v4.44: ek tap-e chip — kono popup na -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:layout_marginTop="4dp">
-        <TextView android:id="@+id/validChipYes" android:layout_width="0dp" android:layout_height="44dp"
+        <TextView android:id="@+id/validChipYes" android:layout_width="0dp" android:layout_height="36dp"
             android:layout_weight="1" android:background="@drawable/glass_field" android:gravity="center"
-            android:text="Yes" android:textSize="14sp" android:textStyle="bold"
+            android:text="Yes" android:textSize="13sp" android:textStyle="bold"
             android:textColor="@color/ink" android:clickable="true" android:focusable="true" />
-        <TextView android:id="@+id/validChipNo" android:layout_width="0dp" android:layout_height="44dp"
+        <TextView android:id="@+id/validChipNo" android:layout_width="0dp" android:layout_height="36dp"
             android:layout_weight="1" android:layout_marginStart="8dp" android:background="@drawable/glass_field"
-            android:gravity="center" android:text="No" android:textSize="14sp" android:textStyle="bold"
+            android:gravity="center" android:text="No" android:textSize="13sp" android:textStyle="bold"
             android:textColor="@color/ink" android:clickable="true" android:focusable="true" />
     </LinearLayout>
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"

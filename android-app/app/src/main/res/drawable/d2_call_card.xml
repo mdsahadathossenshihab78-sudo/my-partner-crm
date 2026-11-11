@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Design #2: call card (item_row root) — bg #fffaf0, 2dp #2e1c10 border, 12dp radius, 4dp HARD shadow (no blur). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:left="4dp" android:top="4dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="@color/d2_hard" />
+        </shape>
+    </item>
+    <item android:right="4dp" android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="@color/d2_surface" />
+            <stroke android:width="2dp" android:color="@color/d2_line" />
+        </shape>
+    </item>
+</layer-list>
