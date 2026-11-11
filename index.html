@@ -254,6 +254,10 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 .progbar i.on{background:#0284C7}
 .progbar-mini{margin-top:6px}
 .progbar-mini i{height:6px}
+.progbar-row{display:flex;align-items:center;gap:6px;margin-top:5px}
+.progbar-row .progbar{flex:1;margin-top:0;min-width:0}
+.prog-pct{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;font-weight:800;color:#075985;line-height:1.2;white-space:nowrap}
+.prog-pct-mini{font-size:10px}
 /* --- bar tiles: Connected + FTD --- */
 .dash-bars{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px}
 .dash-bar-tile{background:#fff;border:1px solid #BAE6FD;border-radius:14px;padding:10px 12px;min-width:0}
@@ -312,6 +316,9 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 .tod-evening .dash-greet{color:#6B21A8}
 .tod-night .progbar i{background:#1E293B}
 .tod-night .progbar i.on{background:#38BDF8}
+.tod-afternoon .dash-hero .prog-pct{color:#9A3412}
+.tod-evening .dash-hero .prog-pct{color:#6B21A8}
+.tod-night .prog-pct{color:#E0F2FE}
 .tod-night .dash-hero{background:#0F172A;border-color:#334155}
 .tod-night .dash-hero .dash-label{color:#BAE6FD}
 .tod-night .dash-hero .dash-big{color:#E0F2FE}
@@ -550,8 +557,8 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 <div class="card"><div class="row user-bar" style="justify-content:space-between"><span><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <b id="userEmail"></b> • <span id="agentLabel"></span></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
 <div id="dashView">
 <div class="dash-datebar" id="dashDateBar"><div class="dash-date-row"><button class="btn btn-light" id="prevDayBtn" aria-label="আগের দিন"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light dash-date-btn" id="dateBtn"></button><button class="btn btn-light" id="nextDayBtn" aria-label="পরের দিন"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button><button class="btn btn-light btn-sm" id="dashTodayBtn">আজ</button></div><div class="dash-greet"><span id="heroGreetText">স্বাগতম 👋</span></div></div>
-<div class="dash-hero"><span class="dash-label">মোট নাম্বার</span><b class="dash-big" id="heroNums">0</b><div class="progbar" id="heroProgBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="dash-hero-sub"><b id="heroCalls">0</b> টা হয়েছে, <b id="heroRemain">0</b> টা বাকি আছে</div></div>
-<div class="dash-bars"><div class="stat dash-bar-tile"><span class="dash-label">কানেক্টেড</span><b class="dash-num" id="stConn">0</b><div class="progbar progbar-mini" id="connProgBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="dash-sub" id="ncTap"><b id="stNotConn">0</b> নট কানেক্টেড</span></div><div class="stat dash-bar-tile"><span class="dash-label">এফটিডি</span><div class="dash-ftd-nums"><b class="dash-num" id="stFtd">0</b><b class="dash-amt" id="stFtdAmt">৳0</b></div><div class="progbar progbar-mini" id="ftdProgBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="dash-sub" id="ftdBarSub">0 FTD / 0 রেজিস্ট্রেশন</span><div class="dash-man"><small id="stFtdMan" style="display:none"></small><small id="stFtdAmtMan" style="display:none"></small></div></div></div>
+<div class="dash-hero"><span class="dash-label">মোট নাম্বার</span><b class="dash-big" id="heroNums">0</b><div class="progbar-row"><div class="progbar" id="heroProgBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><b class="prog-pct" id="heroPct">০%</b></div><div class="dash-hero-sub"><b id="heroCalls">0</b> টা হয়েছে, <b id="heroRemain">0</b> টা বাকি আছে</div></div>
+<div class="dash-bars"><div class="stat dash-bar-tile"><span class="dash-label">কানেক্টেড</span><b class="dash-num" id="stConn">0</b><div class="progbar-row"><div class="progbar progbar-mini" id="connProgBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><b class="prog-pct prog-pct-mini" id="connPct">০%</b></div><span class="dash-sub" id="ncTap"><b id="stNotConn">0</b> নট কানেক্টেড</span></div><div class="stat dash-bar-tile"><span class="dash-label">এফটিডি</span><div class="dash-ftd-nums"><b class="dash-num" id="stFtd">0</b><b class="dash-amt" id="stFtdAmt">৳0</b></div><div class="progbar-row"><div class="progbar progbar-mini" id="ftdProgBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><b class="prog-pct prog-pct-mini" id="ftdPct">০%</b></div><span class="dash-sub" id="ftdBarSub">0 FTD / 0 রেজিস্ট্রেশন</span><div class="dash-man"><small id="stFtdMan" style="display:none"></small><small id="stFtdAmtMan" style="display:none"></small></div></div></div>
 <div class="dash-tiles"><div class="stat dash-tile"><span class="dash-label">রেজিস্ট্রেশন</span><b class="dash-num-sm" id="stReg">0</b><small id="stRegMan" style="display:none"></small></div><div class="stat dash-tile"><span class="dash-label">Valid</span><b class="dash-num-sm" id="stValid">0</b></div><div class="stat dash-tile"><span class="dash-label">Invalid</span><b class="dash-num-sm" id="stInv">0</b></div><div class="stat dash-tile"><span class="dash-label">জমা</span><b class="dash-num-sm" id="stDepAmt">৳0</b></div></div>
 <div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
 <div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">বাকি আছে</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div></div>
@@ -1425,8 +1432,8 @@ async function loadDayStats(){
     var _rem=rows.filter(r=>!r.savedStatus).length;
     var _called=logs.filter(e=>cellE(e,0)===day).length;
     setStatNum($('heroCalls'),_called); setStatNum($('heroNums'),rows.length); setStatNum($('heroRemain'),_rem);
-    setProgBar($('heroProgBar'),_called,rows.length);
-    setProgBar($('connProgBar'),conn,conn+notConn);
+    setProgBar($('heroProgBar'),_called,rows.length,$('heroPct'));
+    setProgBar($('connProgBar'),conn,conn+notConn,$('connPct'));
     const _qr=$('qlRemain'); if(_qr) setStatNum(_qr,_rem);
     const _blk=filterRangeE(logs,blockStart,blockEnd);
     const validW=_blk.filter(e=>cellE(e,3)==='Yes').length;
@@ -1559,7 +1566,7 @@ function applyStatTiles(){
   setStatNum($('stFtdAmt'),headAmt,{prefix:'৳',fmt:fmtAmt});
   setStatNum($('stReg'),headReg);
   setStatNum($('stDepAmt'),headAmt,{prefix:'৳',fmt:fmtAmt});
-  setProgBar($('ftdProgBar'),headFtd,headReg);
+  setProgBar($('ftdProgBar'),headFtd,headReg,$('ftdPct'));
   var _fbs=$('ftdBarSub'); if(_fbs) _fbs.textContent=headFtd+' FTD / '+headReg+' রেজিস্ট্রেশন';
   setTileSub('stFtdMan',auto?('ম্যানুয়াল: '+manFtd+'টা'):null);
   setTileSub('stFtdAmtMan',auto?('ম্যানুয়াল: ৳'+fmtAmt(manFtdAmt)):null);
@@ -1686,12 +1693,19 @@ setTabUI(); updateDateBtn();
    0 -> value in ~800ms (setStatNum); tiles glow-pulse (CSS). The
    segmented progress bars (setProgBar) show done vs remaining.
    Loader % counter 0 -> 100. ---- */
-function setProgBar(el,done,total){
+function bnNum(n){ return String(n).replace(/\d/g,function(x){ return '০১২৩৪৫৬৭৮৯'[+x]; }); }
+function setProgBar(el,done,total,pctEl){
   if(!el) return;
-  var n=el.children.length;
+  var segs=el.querySelectorAll('i');
+  var n=segs.length;
   var lit=(total>0)?Math.round(done/total*n):0;
   if(lit<0) lit=0; if(lit>n) lit=n;
-  for(var i=0;i<n;i++){ el.children[i].classList.toggle('on',i<lit); }
+  for(var i=0;i<n;i++){ segs[i].classList.toggle('on',i<lit); }
+  if(pctEl){
+    var pct=(total>0)?Math.round(done/total*100):0;
+    if(pct<0) pct=0; if(pct>100) pct=100;
+    pctEl.textContent=bnNum(pct)+'%';
+  }
 }
 function setStatNum(el,target,opts){
   if(!el) return;
