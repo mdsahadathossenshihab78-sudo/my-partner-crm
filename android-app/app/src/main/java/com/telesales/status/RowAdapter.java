@@ -73,11 +73,15 @@ public class RowAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
     public int getTab() { return tab; }
     /** Sheet-e number jemon ache temon thakbe; app-e dekhano + call korar somoy
-     *  samne 0 na thakle 0 jog hobe. 0 ba + diye suru hole kichu bodlabe na. */
+     *  country code 880 thakle kokhono 0 bosabe na (+880/880 -> 0-rup);
+     *  880 na thakle ar samne 0 na thakle 0 jog hobe. 0 diye suru hole kichu bodlabe na. */
     public static String dialNumber(String raw) {
         if (raw == null) return "";
         String n = raw.trim().replaceAll("[\\s\\-]", "");
-        if (n.isEmpty() || n.startsWith("0") || n.startsWith("+")) return n;
+        if (n.isEmpty()) return n;
+        if (n.startsWith("+880")) return "0" + n.substring(4);
+        if (n.startsWith("880")) return "0" + n.substring(3);
+        if (n.startsWith("0") || n.startsWith("+")) return n;
         return "0" + n;
     }
     public void filter(String q) {

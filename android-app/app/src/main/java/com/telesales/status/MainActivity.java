@@ -1872,11 +1872,11 @@ public class MainActivity extends AppCompatActivity {
             return "agent tab kopi hoyni: " + e.getMessage();
         }
     }
-    /** Paste/sheet-er number-ke sheet-er niyome anbe: 0 na thakle 0 jog, +880/880 hole 0-rup. */
+    /** Paste/sheet-er number-ke sheet-er niyome anbe: country code 880 thakle kokhono 0 bosabe na (+880/880 -> 0-rup); 880 na thakle ar 0 na thakle 0 jog. */
     private static String normalizeAdminNumber(String raw) {
         String s = raw.trim().replaceAll("[\\s\\-]", "");
         if (s.startsWith("+880")) s = "0" + s.substring(4);
-        else if (s.startsWith("880") && s.length() == 13) s = "0" + s.substring(3);
+        else if (s.startsWith("880")) s = "0" + s.substring(3);
         else if (!s.startsWith("0")) s = "0" + s;
         return s;
     }
