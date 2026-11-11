@@ -7,13 +7,13 @@ import android.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -121,21 +121,24 @@ public class RowAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      *  select kora chip-e abar chaple khali hobe (toggle off). Sheet-er ochena
      *  value thakle kono chip select hobe na, kintu Save-e ager motoi thakbe —
      *  chip na chaple r.status/r.valid bodlay na (silent data loss nei). */
+    // v7.3: dark mode — select kora chip-er text: chip-er bg rong (halka mode-e pray sada,
+    // dark mode-e garo — halka fill-er upore sada porle pora jeto na). Select na kora
+    // chip-er text: chip-er text rong (R.color — night-e dark token).
     private void refreshStatusChips(Holder h, String status) {
         boolean conn = "call connected".equals(status);
         boolean notConn = "not connected".equals(status);
         h.statusChipConn.setBackgroundResource(conn ? R.drawable.chip_green : R.drawable.glass_field);
-        h.statusChipConn.setTextColor(conn ? Color.WHITE : Color.parseColor("#0d7a3f"));
+        h.statusChipConn.setTextColor(conn ? ContextCompat.getColor(h.statusChipConn.getContext(), R.color.d2_chip_conn_bg) : ContextCompat.getColor(h.statusChipConn.getContext(), R.color.d2_chip_conn_text));
         h.statusChipNotConn.setBackgroundResource(notConn ? R.drawable.chip_rose : R.drawable.glass_field);
-        h.statusChipNotConn.setTextColor(notConn ? Color.WHITE : Color.parseColor("#b3261e"));
+        h.statusChipNotConn.setTextColor(notConn ? ContextCompat.getColor(h.statusChipNotConn.getContext(), R.color.d2_chip_notconn_bg) : ContextCompat.getColor(h.statusChipNotConn.getContext(), R.color.d2_chip_notconn_text));
     }
     private void refreshValidChips(Holder h, String valid) {
         boolean yes = "Yes".equals(valid);
         boolean no = "No".equals(valid);
         h.validChipYes.setBackgroundResource(yes ? R.drawable.chip_blue : R.drawable.glass_field);
-        h.validChipYes.setTextColor(yes ? Color.WHITE : Color.parseColor("#1757c2"));
+        h.validChipYes.setTextColor(yes ? ContextCompat.getColor(h.validChipYes.getContext(), R.color.d2_chip_yes_bg) : ContextCompat.getColor(h.validChipYes.getContext(), R.color.d2_chip_yes_text));
         h.validChipNo.setBackgroundResource(no ? R.drawable.chip_grey : R.drawable.glass_field);
-        h.validChipNo.setTextColor(no ? Color.WHITE : Color.parseColor("#546e7a"));
+        h.validChipNo.setTextColor(no ? ContextCompat.getColor(h.validChipNo.getContext(), R.color.d2_chip_no_bg) : ContextCompat.getColor(h.validChipNo.getContext(), R.color.d2_chip_no_text));
     }
 
     // v6.14: per-number card — ektai view type (item_row). Focus card /

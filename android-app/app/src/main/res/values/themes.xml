@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Telesales" parent="Theme.Material3.Light.NoActionBar">
+    <!-- v7.3: dark mode — DayNight parent (light-e ager motoi, night-e values-night/colors.xml). -->
+    <style name="Theme.Telesales" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/d2_accent</item>
         <item name="colorPrimaryVariant">@color/d2_accent</item>
         <item name="android:textColorPrimary">@color/d2_ink</item>

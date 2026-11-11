@@ -22,7 +22,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList; import android.graphics.Color; import android.graphics.Typeface;
+import android.content.res.ColorStateList; import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -39,6 +39,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.browser.customtabs.CustomTabsIntent; import android.webkit.CookieManager; import android.webkit.WebView; import android.webkit.WebViewClient; import android.webkit.WebResourceRequest; import android.webkit.WebResourceError;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -73,6 +74,33 @@ import java.util.TimeZone;
 public class MainActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 1001;
     private static final int RC_AUTH = 1002;
+    // v7.3: dark mode — theme mode (Auto / Alo / Ondhokar), telesales_prefs-e save thake.
+    private static final String THEME_PREFS = "telesales_prefs";
+    private static final String THEME_KEY = "theme_mode";
+    private static final int THEME_AUTO = 0;
+    private static final int THEME_LIGHT = 1;
+    private static final int THEME_DARK = 2;
+    private int savedThemeMode() {
+        return getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE).getInt(THEME_KEY, THEME_AUTO);
+    }
+    private int nightModeFor(int themeMode) {
+        if (themeMode == THEME_LIGHT) return AppCompatDelegate.MODE_NIGHT_NO;
+        if (themeMode == THEME_DARK) return AppCompatDelegate.MODE_NIGHT_YES;
+        return AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+    }
+    private int nextThemeMode(int cur) {
+        if (cur == THEME_AUTO) return THEME_LIGHT;
+        if (cur == THEME_LIGHT) return THEME_DARK;
+        return THEME_AUTO;
+    }
+    private String themeModeLabel(int themeMode) {
+        if (themeMode == THEME_LIGHT) return "☀️ আলো";
+        if (themeMode == THEME_DARK) return "🌙 অন্ধকার";
+        return "🔄 অটো";
+    }
+    private void applyThemeMode(int themeMode) {
+        AppCompatDelegate.setDefaultNightMode(nightModeFor(themeMode));
+    }
     // v4.32: package-visible — SaveDrainWorker eki scope string-e token nebe (ek source of truth).
     static final String SHEET_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
     static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
@@ -257,6 +285,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // v7.3: dark mode — save kora theme apply koro, setContentView-er age.
+        applyThemeMode(savedThemeMode());
         // Keyboard: app-e dhuklei search field-e keyboard auto-khulbe na — sudhu tap korle khulbe
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         setContentView(R.layout.activity_main);
@@ -264,6 +294,17 @@ public class MainActivity extends AppCompatActivity {
         mainView = findViewById(R.id.mainView);
         loginError = findViewById(R.id.loginError);
         avatarView = findViewById(R.id.avatarView);
+        // v7.3: dark mode toggle — header-e (avatar-er pashe). Tap korle mode bodle + recreate.
+        MaterialButton themeToggleBtn = findViewById(R.id.themeToggleBtn);
+        if (themeToggleBtn != null) {
+            themeToggleBtn.setText(themeModeLabel(savedThemeMode()));
+            themeToggleBtn.setOnClickListener(v -> {
+                int next = nextThemeMode(savedThemeMode());
+                getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE).edit().putInt(THEME_KEY, next).apply();
+                applyThemeMode(next);
+                recreate();
+            });
+        }
         statConnDay = findViewById(R.id.statConnDay);
         statNotConnDay = findViewById(R.id.statNotConnDay);
         statValidDay = findViewById(R.id.statValidDay);
@@ -827,7 +868,7 @@ public class MainActivity extends AppCompatActivity {
      *  (append "tab missing" hole ekhan theke daka hoy). */
     private void invalidateSharedLogCache() { sharedLogCacheAgent = null; sharedLogCacheId = null; }
 
-    private void updateMenuState(int active) { MaterialButton[] btns = new MaterialButton[]{(MaterialButton) findViewById(R.id.menuDashboardBtn), (MaterialButton) findViewById(R.id.menuHomeBtn), (MaterialButton) findViewById(R.id.menuReportBtn), (MaterialButton) findViewById(R.id.menuWebsiteBtn), (MaterialButton) findViewById(R.id.menuFtdBtn)}; int dim = Color.parseColor("#8a6a52"); for (int i = 0; i < btns.length; i++) { MaterialButton b = btns[i]; if (b == null) continue; boolean on = (i == active); b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field); b.setTextColor(on ? Color.WHITE : dim); b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL); b.setIconTint(ColorStateList.valueOf(on ? Color.WHITE : dim)); } } private void applySection(int sec) {
+    private void updateMenuState(int active) { MaterialButton[] btns = new MaterialButton[]{(MaterialButton) findViewById(R.id.menuDashboardBtn), (MaterialButton) findViewById(R.id.menuHomeBtn), (MaterialButton) findViewById(R.id.menuReportBtn), (MaterialButton) findViewById(R.id.menuWebsiteBtn), (MaterialButton) findViewById(R.id.menuFtdBtn)}; int dim = ContextCompat.getColor(this, R.color.d2_muted); int onTxt = ContextCompat.getColor(this, R.color.white); for (int i = 0; i < btns.length; i++) { MaterialButton b = btns[i]; if (b == null) continue; boolean on = (i == active); b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field); b.setTextColor(on ? onTxt : dim); b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL); b.setIconTint(ColorStateList.valueOf(on ? onTxt : dim)); } } private void applySection(int sec) {
         currentSection = sec;
         dashboardView.setVisibility(sec == 0 ? View.VISIBLE : View.GONE);
         listContent.setVisibility(sec == 1 ? View.VISIBLE : View.GONE); reportView.setVisibility(View.GONE); ftdView.setVisibility(View.GONE); websiteView.setVisibility(View.GONE); mainView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE);
@@ -940,13 +981,14 @@ public class MainActivity extends AppCompatActivity {
         if (adminSectionDashboard != null) adminSectionDashboard.setVisibility("DASHBOARD".equals(section) ? View.VISIBLE : View.GONE);
         MaterialButton[] tabs = new MaterialButton[]{(MaterialButton) findViewById(R.id.adminTabNumber), (MaterialButton) findViewById(R.id.adminTabTeam), (MaterialButton) findViewById(R.id.adminTabSheet), (MaterialButton) findViewById(R.id.adminTabAdmins), (MaterialButton) findViewById(R.id.adminTabDashboard)};
         String[] keys = new String[]{"NUMBER", "TEAM", "SHEET", "ADMINS", "DASHBOARD"};
-        int dim = Color.parseColor("#8a6a52");
+        int dim = ContextCompat.getColor(this, R.color.d2_muted);
+        int onTxt = ContextCompat.getColor(this, R.color.white);
         for (int i = 0; i < tabs.length; i++) {
             MaterialButton b = tabs[i];
             if (b == null) continue;
             boolean on = keys[i].equals(section);
             b.setBackgroundResource(on ? R.drawable.btn_gradient : R.drawable.glass_field);
-            b.setTextColor(on ? Color.WHITE : dim);
+            b.setTextColor(on ? onTxt : dim);
             b.setTypeface(null, on ? Typeface.BOLD : Typeface.NORMAL);
         }
     }
@@ -1023,7 +1065,7 @@ public class MainActivity extends AppCompatActivity {
                             TextView t = new TextView(MainActivity.this);
                             t.setText(ln);
                             t.setTextSize(13);
-                            t.setTextColor(Color.parseColor("#2e1c10"));
+                            t.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.d2_ink));
                             t.setPadding(0, 8, 0, 8);
                             list.addView(t);
                         }
@@ -1286,7 +1328,7 @@ public class MainActivity extends AppCompatActivity {
                 if (rows.isEmpty()) {
                     TextView empty = new TextView(this);
                     empty.setText("এখনো কোনো টিম শিট বানানো হয়নি");
-                    empty.setTextColor(Color.parseColor("#8a6a52"));
+                    empty.setTextColor(ContextCompat.getColor(this, R.color.d2_muted));
                     empty.setTextSize(13);
                     teamListContainer.addView(empty);
                     return;
@@ -1297,7 +1339,7 @@ public class MainActivity extends AppCompatActivity {
                     row.setPadding(0, 16, 0, 16);
                     TextView title = new TextView(this);
                     title.setText(t.name + " — " + ("Yes".equalsIgnoreCase(t.active) ? "সবার জন্য চালু" : "বন্ধ") + " (" + t.created + ")");
-                    title.setTextColor(Color.parseColor("#2e1c10"));
+                    title.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
                     title.setTextSize(15);
                     title.setTypeface(null, Typeface.BOLD);
                     row.addView(title);
@@ -1307,14 +1349,14 @@ public class MainActivity extends AppCompatActivity {
                     if (tb == null || tb.isEmpty()) tbText.append("kono tab pai ni");
                     else for (int k = 0; k < tb.size(); k++) { if (k > 0) tbText.append(", "); tbText.append(tb.get(k)); }
                     tabs.setText(tbText.toString());
-                    tabs.setTextColor(Color.parseColor("#8a6a52"));
+                    tabs.setTextColor(ContextCompat.getColor(this, R.color.d2_muted));
                     tabs.setTextSize(12);
                     row.addView(tabs);
                     LinearLayout btnRow = new LinearLayout(this);
                     btnRow.setOrientation(LinearLayout.HORIZONTAL);
                     MaterialButton toggle = new MaterialButton(this);
                     toggle.setText("Yes".equalsIgnoreCase(t.active) ? "বন্ধ করুন" : "সবার জন্য যোগ করুন");
-                    toggle.setTextColor("Yes".equalsIgnoreCase(t.active) ? Color.parseColor("#2e1c10") : Color.WHITE);
+                    toggle.setTextColor("Yes".equalsIgnoreCase(t.active) ? ContextCompat.getColor(this, R.color.d2_ink) : ContextCompat.getColor(this, R.color.white));
                     toggle.setBackgroundResource("Yes".equalsIgnoreCase(t.active) ? R.drawable.glass_field : R.drawable.btn_gradient);
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
                     toggle.setLayoutParams(lp);
@@ -1322,7 +1364,7 @@ public class MainActivity extends AppCompatActivity {
                     btnRow.addView(toggle);
                     MaterialButton nums = new MaterialButton(this);
                     nums.setText("নাম্বার বসান");
-                    nums.setTextColor(Color.parseColor("#2e1c10"));
+                    nums.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
                     nums.setBackgroundResource(R.drawable.glass_field);
                     LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
                     lp2.setMargins(10, 0, 0, 0);
@@ -1451,11 +1493,11 @@ public class MainActivity extends AppCompatActivity {
             tv.setLayoutParams(lp);
             tv.setText(fmtReminderTime(it.time) + " — " + it.number);
             tv.setTextSize(13);
-            tv.setTextColor(Color.parseColor("#2e1c10"));
+            tv.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
             TextView x = new TextView(this);
             x.setText("✕");
             x.setTextSize(18);
-            x.setTextColor(Color.parseColor("#2e1c10"));
+            x.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
             x.setPadding(24, 12, 24, 12);
             final String num = it.number;
             x.setOnClickListener(v -> {
@@ -1899,7 +1941,7 @@ public class MainActivity extends AppCompatActivity {
             seg.setLayoutParams(lp);
             android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
             d.setCornerRadius(3 * density);
-            d.setColor(0xFFFDEEDA);
+            d.setColor(ContextCompat.getColor(this, R.color.d2_surface2));
             seg.setBackground(d);
             bar.addView(seg);
             meterSegments.add(seg);
@@ -1913,10 +1955,12 @@ public class MainActivity extends AppCompatActivity {
         meterAnimator.setDuration(1600);
         meterAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
         meterAnimator.setRepeatMode(android.animation.ValueAnimator.RESTART);
+        final int meterLit = ContextCompat.getColor(this, R.color.d2_accent);
+        final int meterDim = ContextCompat.getColor(this, R.color.d2_surface2);
         meterAnimator.addUpdateListener(anim -> {
             int lit = (int) anim.getAnimatedValue();
             for (int i = 0; i < meterSegDrawables.size(); i++) {
-                meterSegDrawables.get(i).setColor(i < lit ? 0xFFF06414 : 0xFFFDEEDA);
+                meterSegDrawables.get(i).setColor(i < lit ? meterLit : meterDim);
             }
         });
         meterAnimator.start();
@@ -1945,20 +1989,20 @@ public class MainActivity extends AppCompatActivity {
             val.setLayoutParams(new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
             val.setTextSize(10);
             val.setTypeface(null, android.graphics.Typeface.BOLD);
-            val.setTextColor(0xFF2E1C10);
+            val.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
             val.setText("");
             col.addView(val);
             View bar = new View(this);
             bar.setLayoutParams(new LinearLayout.LayoutParams((int) (14 * density), (int) (2 * density)));
             android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
             d.setCornerRadius(3 * density);
-            d.setColor(0xFFFDEEDA);
+            d.setColor(ContextCompat.getColor(this, R.color.d2_surface2));
             bar.setBackground(d);
             col.addView(bar);
             TextView lab = new TextView(this);
             lab.setLayoutParams(new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
             lab.setTextSize(10);
-            lab.setTextColor(0xFF2E1C10);
+            lab.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
             lab.setText("");
             col.addView(lab);
             weekChartRow.addView(col);
@@ -1988,6 +2032,8 @@ public class MainActivity extends AppCompatActivity {
         float density = getResources().getDisplayMetrics().density;
         // Bar-er jonno jayga: row height theke value label + din label + gap bad.
         int maxBarH = rowHPx > 0 ? Math.max(24, (int) (rowHPx / density) - 34) : 40;
+        int barAccent = ContextCompat.getColor(this, R.color.d2_accent);
+        int barDim = ContextCompat.getColor(this, R.color.d2_surface2);
         for (int i = 0; i < 7 && i < weekChartBars.size(); i++) {
             int v = perDay[i];
             int h = max <= 0 ? 2 : 2 + (int) Math.round((double) v * (maxBarH - 2) / max);
@@ -1997,7 +2043,7 @@ public class MainActivity extends AppCompatActivity {
             bar.setLayoutParams(lp);
             String d = addDays(blockStart, i);
             boolean isDay = day != null && day.equals(d);
-            weekChartBarDrawables.get(i).setColor(isDay ? 0xFFF06414 : (v > 0 ? 0xFFF06414 : 0xFFFDEEDA));
+            weekChartBarDrawables.get(i).setColor(isDay ? barAccent : (v > 0 ? barAccent : barDim));
             String label = d.length() >= 10 ? d.substring(8) : "";
             if (label.startsWith("0")) label = label.substring(1);
             weekChartLabels.get(i).setText(label);
@@ -2518,7 +2564,7 @@ public class MainActivity extends AppCompatActivity {
         lp.topMargin = (int) (6 * dens);
         t.setLayoutParams(lp);
         t.setTextSize(13);
-        t.setTextColor(Color.parseColor("#8a6a52"));
+        t.setTextColor(ContextCompat.getColor(this, R.color.d2_muted));
         t.setText("");
         return t;
     }
@@ -2629,19 +2675,19 @@ public class MainActivity extends AppCompatActivity {
             name.setText(u.user);
             name.setTextSize(14);
             name.setTypeface(null, Typeface.BOLD);
-            name.setTextColor(Color.parseColor("#2e1c10"));
+            name.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
             name.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             TextView amt = new TextView(this);
             amt.setText(u.amt.isEmpty() ? "—" : "৳" + u.amt);
             amt.setTextSize(14);
             amt.setTypeface(null, Typeface.BOLD);
-            amt.setTextColor(Color.parseColor("#2e1c10"));
+            amt.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
             top.addView(name);
             top.addView(amt);
             TextView detail = new TextView(this);
             detail.setText("জমা: " + (u.depDate.isEmpty() ? "—" : u.depDate) + " • অ্যাকাউন্ট: " + (u.created.isEmpty() ? "—" : u.created) + " • লগইন: " + (u.login.isEmpty() ? "—" : u.login));
             detail.setTextSize(13);
-            detail.setTextColor(Color.parseColor("#8a6a52"));
+            detail.setTextColor(ContextCompat.getColor(this, R.color.d2_muted));
             row.addView(top);
             row.addView(detail);
             ftdUsersList.addView(row);
@@ -2651,7 +2697,7 @@ public class MainActivity extends AppCompatActivity {
             TextView more = new TextView(this);
             more.setText("আরো " + (users.size() - 100) + " জন আছে");
             more.setTextSize(13);
-            more.setTextColor(Color.parseColor("#8a6a52"));
+            more.setTextColor(ContextCompat.getColor(this, R.color.d2_muted));
             more.setPadding(0, (int) (6 * dens), 0, (int) (6 * dens));
             ftdUsersList.addView(more);
         }
@@ -3037,7 +3083,7 @@ public class MainActivity extends AppCompatActivity {
             TextView t = new TextView(this);
             t.setText("এখনো কিছু যোগ হয়নি");
             t.setTextSize(14);
-            t.setTextColor(Color.parseColor("#2e1c10"));
+            t.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
             parent.addView(t);
             return;
         }
@@ -3056,12 +3102,12 @@ public class MainActivity extends AppCompatActivity {
             TextView t = new TextView(this);
             t.setText(text);
             t.setTextSize(14);
-            t.setTextColor(Color.parseColor("#2e1c10"));
+            t.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
             t.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             Button del = new Button(this);
             del.setText("✕");
             del.setTextSize(14);
-            del.setTextColor(Color.parseColor("#2e1c10"));
+            del.setTextColor(ContextCompat.getColor(this, R.color.d2_ink));
             del.setBackgroundResource(R.drawable.glass_field);
             del.setMinWidth(0);
             del.setMinimumHeight(0);

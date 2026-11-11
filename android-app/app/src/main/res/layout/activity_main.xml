@@ -83,8 +83,16 @@
                     android:textColor="@color/white" />
                 <TextView android:id="@+id/agentSubtitle" android:layout_width="wrap_content" android:layout_height="wrap_content"
                     android:text="আজকের কল লিস্ট" android:textSize="13sp"
-                    android:textColor="#D9FFFFFF" />
+                    android:textColor="@color/white" />
             </LinearLayout>
+            <!-- v7.3: dark mode toggle — tap korle Auto -> Alo -> Ondhokar -> Auto. -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/themeToggleBtn"
+                android:layout_width="wrap_content" android:layout_height="44dp"
+                android:layout_marginStart="8dp" android:minWidth="0dp" android:minHeight="0dp"
+                android:paddingHorizontal="10dp" android:text="🔄 অটো" android:textSize="13sp" android:textStyle="bold"
+                android:gravity="center"
+                app:backgroundTint="@null" android:background="@drawable/glass_field"
+                android:textColor="@color/ink" />
             <TextView android:id="@+id/avatarView" android:layout_width="44dp" android:layout_height="44dp"
                 android:background="@drawable/avatar_gradient" android:gravity="center"
                 android:text="S" android:textSize="14sp" android:textStyle="bold"
@@ -133,18 +141,23 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="প্রথম জমা" android:textSize="13sp" android:textColor="#FFE7D6" android:layout_marginTop="2dp" />
             </LinearLayout>
         </LinearLayout>
-        <!-- lukano tile: Java (pulse array) khunje, kintu Design #2 Dashboard-e dekhay na.
+        <!-- lukano tile: Java (pulse array) khunje, kintu Dashboard-e dekhay na.
              tileNotConnDay / tileInvDay khali shell — oi dutor stat TextView ekhon FTD band-e.
-             tileRemainDay (Calls Remaining) + tileValidDay (Valid) spec-er Dashboard-e nei. -->
+             tileValidDay (Valid) spec-er Dashboard-e nei.
+             v7.3: tileRemainDay (মোট বাকি) ekhon niche boro card hisebe dekha jay. -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
-            <LinearLayout android:id="@+id/tileRemainDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                <TextView android:id="@+id/statTotalRemainDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" />
-            </LinearLayout>
             <LinearLayout android:id="@+id/tileNotConnDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" />
             <LinearLayout android:id="@+id/tileValidDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                 <TextView android:id="@+id/statValidDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" />
             </LinearLayout>
             <LinearLayout android:id="@+id/tileInvDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" />
+        </LinearLayout>
+        <!-- v7.3: মোট বাকি (Calls Remaining) — boro full-width card. Age lukano chilo;
+             ekhon Dashboard-e dekha jay. statTotalRemainDay Java (refreshRemainingHero) bosay. -->
+        <LinearLayout android:id="@+id/tileRemainDay" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="15dp" android:layout_marginHorizontal="16dp" android:layout_marginTop="14dp" android:gravity="center_horizontal">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="মোট বাকি" android:textSize="14sp" android:textColor="@color/muted_warm" />
+            <TextView android:id="@+id/statTotalRemainDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="38sp" android:textStyle="bold" android:textColor="@color/ink" android:layout_marginTop="2dp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="আজকের বাকি কল" android:textSize="13sp" android:textColor="@color/muted_warm" android:layout_marginTop="2dp" />
         </LinearLayout>
         <!-- Design #2: FTD band — 4 items (Registration, Not Connected, Total Deposit, Invalid).
              Phone-e 2x2 grid (spec-er band wrap kore — gap 12px 36px; 30sp number 4-ta ek row-e dhorbe na).

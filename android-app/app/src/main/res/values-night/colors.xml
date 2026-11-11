@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- v7.3: DARK MODE (Design #2 dark tokens).
+         Same semantic names as values/colors.xml, mapped to the dark values —
+         layouts / drawables / R.color references restyle automatically.
+         Light values stay untouched in values/colors.xml. -->
+    <!-- Design #2 dark tokens -->
+    <color name="d2_bg">#211308</color>
+    <color name="d2_surface">#2d1a0c</color>
+    <color name="d2_surface2">#3a2110</color>
+    <color name="d2_ink">#ffeeda</color>
+    <color name="d2_muted">#c9a582</color>
+    <color name="d2_line">#ffeeda</color>
+    <color name="d2_accent">#ff7d2a</color>
+    <color name="d2_accent2">#ffb03a</color>
+    <color name="d2_hard">#000000</color>
+    <!-- Design #2 status chips — dark (bg / text / border) -->
+    <color name="d2_chip_conn_bg">#123526</color>
+    <color name="d2_chip_conn_text">#5fd598</color>
+    <color name="d2_chip_conn_border">#1f5c3d</color>
+    <color name="d2_chip_notconn_bg">#3d1a18</color>
+    <color name="d2_chip_notconn_text">#ff9d94</color>
+    <color name="d2_chip_notconn_border">#6e2a26</color>
+    <color name="d2_chip_yes_bg">#16294d</color>
+    <color name="d2_chip_yes_text">#8db4f7</color>
+    <color name="d2_chip_yes_border">#2c4d8a</color>
+    <color name="d2_chip_no_bg">#232a2e</color>
+    <color name="d2_chip_no_text">#9fb3bd</color>
+    <color name="d2_chip_no_border">#3a464d</color>
+
+    <!-- Legacy semantic names, carrying the dark Design #2 values.
+         white: text on orange surfaces (header / hero / orange buttons) —
+         dark mode-e halka komola (#ff7d2a)-er upore sada porte na, tai
+         dark ink #2e1c10 (spec: header/hero dark text #2e1c10). -->
+    <color name="white">#2e1c10</color>
+    <color name="cream">#211308</color>
+    <color name="card_white">#2d1a0c</color>
+    <color name="field_cream">#2d1a0c</color>
+    <color name="ink">#ffeeda</color>
+    <color name="muted_warm">#c9a582</color>
+    <color name="orange_deep">#ff7d2a</color>
+    <color name="orange_dark">#ffeeda</color>
+    <color name="orange_light">#3a2110</color>
+    <color name="orange_border">#ffeeda</color>
+    <color name="glass_white">#2d1a0c</color>
+    <color name="glass_border">#ffeeda</color>
+    <color name="field_bg">#2d1a0c</color>
+    <color name="field_border">#ffeeda</color>
+    <color name="dropdown_bg">#2d1a0c</color>
+    <color name="orange">#ff7d2a</color>
+    <!-- Accent / brand hues — dark mode-eo eki (dark bg-er uporeo pore). -->
+    <color name="base_navy">#0B1026</color>
+    <color name="muted_light">#94A3B8</color>
+    <color name="lavender">#C4B5FD</color>
+    <color name="violet">#7C3AED</color>
+    <color name="blue">#2563EB</color>
+    <color name="cyan">#06B6D4</color>
+    <color name="pink">#EC4899</color>
+    <color name="green">#10B981</color>
+    <color name="rose">#F43F5E</color>
+    <color name="green_deep">#16A34A</color>
+    <color name="blue_deep">#2563EB</color>
+    <color name="rose_deep">#E11D48</color>
+    <color name="error">#DC2626</color>
+    <color name="error_light">#DC2626</color>
+</resources>
