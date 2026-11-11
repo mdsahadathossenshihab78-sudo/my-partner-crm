@@ -196,7 +196,6 @@ public class MainActivity extends AppCompatActivity {
     private android.app.Dialog loadingDialog;
     private android.view.animation.Animation pulseAnim;
     private LinearLayout ftdUsersList;
-    private volatile boolean commissionStatsShown = false;
     /** Batch feature #10: ajker target card-er obostha (duitar source-i load hole tobei dekhabe). */
     private View targetCard; private TextView targetCardText;
     private int lastTotalCallDay = 0, lastRemaining = 0;
@@ -2440,11 +2439,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Nirbachito diner + oi diner 7-diner block-er hisab (log + report file theke). */
-    /** v6.1: auto hisab boro tile-e boshe (FTD / FTD taka / Registration) —
-     *  Telesales Commission Stats sheet-er sorboshesh row (panel theke
-     *  ghontay-ghontay sync hoy). Sudhu ajker row ajker diner jonno; na hole
-     *  manual hisab-i thake. Sheet na thakle / read na hole "সিঙ্ক হয়নি"
-     *  dekhay, crash kore na. */
+    /** v6.1: auto hisab — Telesales Commission Stats sheet-er sorboshesh row
+     *  (panel theke ghontay-ghontay sync hoy). v7.5: ei function ar boro tile-e
+     *  AUTO bosay na — tile-e manual+auto jogfol loadDayStats bosay (na hole
+     *  Report-er manual FTD/Reg count hoto na). Ekhane sudhu "সর্বশেষ সিঙ্ক"
+     *  somoy-ta dekhano hoy. Sheet na thakle / read na hole "সিঙ্ক হয়নি". */
     private void loadCommissionStats() {
         if (token == null) return;
         new Thread(() -> {
@@ -2465,14 +2464,6 @@ public class MainActivity extends AppCompatActivity {
                 String reg = cell(last, 3).trim(), ftd = cell(last, 1).trim(), amt = cell(last, 2).trim(), when = cell(last, 16).trim(), date = cell(last, 0).trim();
                 runOnUiThread(() -> {
                     if (autoSyncTime != null) autoSyncTime.setText("সর্বশেষ সিঙ্ক: " + (when.isEmpty() ? date : when));
-                    // v6.1: auto hisab boro tile-e boshe — sudhu ajker diner jonno, ar
-                    // sync-er row ajker hole. Na hole manual hisab-i thake.
-                    if (!reg.isEmpty() && !ftd.isEmpty() && date.equals(dhakaDate()) && selectedDate != null && selectedDate.equals(dhakaDate())) {
-                        commissionStatsShown = true;
-                        if (statRegDay != null) animateStatNumberText(statRegDay, reg);
-                        if (statFtdDay != null) animateStatNumberText(statFtdDay, ftd);
-                        if (statFtdAmtDay != null) animateStatAmountText(statFtdAmtDay, amt);
-                    }
                 });
             } catch (Exception e) { postCommissionEmpty(); }
         }).start();
@@ -2705,7 +2696,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadDayStats() {
         if (token == null || agentId == null) return;
-        commissionStatsShown = false;
         String day = selectedDate;
         final int seq = ++statsSeq;
         new Thread(() -> {
@@ -2741,6 +2731,13 @@ public class MainActivity extends AppCompatActivity {
                 int ftdN = ftdTotalCount(ftdToday);
                 double ftdSum = 0;
                 for (REntry e : ftdToday) { try { ftdSum += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
+                // v7.5: Dashboard headline = manual (Report) + auto (Commission Stats).
+                // Age AUTO thakle manual bad jeto — ekhon manual jog hobe, tai Report-e
+                // submit kora FTD/Registration Dashboard-e count hobe.
+                ReportAuto autoDay = readCommissionStatsForDate(day);
+                int headReg = reg + (autoDay != null ? autoDay.reg : 0);
+                int headFtdN = ftdN + (autoDay != null ? autoDay.ftd : 0);
+                double headFtdSum = ftdSum + (autoDay != null ? autoDay.amt : 0);
                 String anchor = p.getString("log_anchor_date_" + agentId, null);
                 String min = null;
                 for (REntry e : logs) if (e.cells.length > 0 && (min == null || e.cells[0].compareTo(min) < 0)) min = e.cells[0];
@@ -2779,8 +2776,8 @@ public class MainActivity extends AppCompatActivity {
                 String finalBlockStart = blockStart, finalBlockEnd = blockEnd;
                 final boolean finalUsedLegacy = lastLogReadUsedLegacy;
                 final boolean finalPartialFail = lastLogPartialFail || lastReportPartialFail;
-                int finalConn = conn, finalValid = valid, finalInv = inv, finalReg = reg, finalFtdN = ftdN, finalConnW = connW, finalFtdNW = ftdNW, finalNotConn = notConn, finalNotConnW = notConnW, finalTotalCall = totalCall, finalValidW = validW, finalInvW = invW, finalRegW = regW;
-                double finalFtdSum = ftdSum, finalFtdSumW = ftdSumW;
+                int finalConn = conn, finalValid = valid, finalInv = inv, finalReg = headReg, finalFtdN = headFtdN, finalConnW = connW, finalFtdNW = ftdNW, finalNotConn = notConn, finalNotConnW = notConnW, finalTotalCall = totalCall, finalValidW = validW, finalInvW = invW, finalRegW = regW;
+                double finalFtdSum = headFtdSum, finalFtdSumW = ftdSumW;
                 final int[] finalHeadPerDay = headPerDay; final String finalTrailStart = trailStart; final String finalDay = day;
                 runOnUiThread(() -> {
                     if (seq != statsSeq) return; // purono hisab notun diner upor boshbe na
@@ -2789,11 +2786,11 @@ public class MainActivity extends AppCompatActivity {
                     animateStatNumber(statNotConnDay, finalNotConn);
                     animateStatNumber(statValidDay, finalValid);
                     animateStatNumber(statInvDay, finalInv);
-                    if (!commissionStatsShown) {
-                        animateStatNumber(statRegDay, finalReg);
-                        animateStatNumber(statFtdDay, finalFtdN);
-                        animateStatAmount(statFtdAmtDay, finalFtdSum);
-                    }
+                    // v7.5: tile-e sobsomoy manual+auto jogfol boshe — age AUTO
+                    // override korto bole Report-er manual FTD/Reg count hoto na.
+                    animateStatNumber(statRegDay, finalReg);
+                    animateStatNumber(statFtdDay, finalFtdN);
+                    animateStatAmount(statFtdAmtDay, finalFtdSum);
                     updateWeekChart(finalHeadPerDay, finalTrailStart, finalDay);
                     if (weekChartCard != null) weekChartCard.setVisibility(View.VISIBLE);
                     weekSummary.setText("এই ৭ দিন (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • এফটিডি " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • Valid " + finalValidW + " • Invalid " + finalInvW + " • রেজিস্ট্রেশন " + finalRegW + (finalUsedLegacy ? " • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)" : "") + (finalPartialFail ? " • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)" : ""));
