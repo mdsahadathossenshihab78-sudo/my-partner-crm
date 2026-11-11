@@ -103,7 +103,7 @@
         </com.google.android.material.appbar.AppBarLayout>
         <androidx.core.widget.NestedScrollView android:id="@+id/dashboardView" android:clipToPadding="false" android:paddingBottom="24dp"
             android:layout_width="match_parent" android:layout_height="match_parent"
-            android:orientation="vertical" android:layout_marginBottom="88dp"
+            android:orientation="vertical" android:layout_marginBottom="0dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"><LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
         <!-- Design #2 (Energy Orange): stat cards — Total -> Calls Done -> Connected -> HERO Today's FTD (2x2).
              statFtdDay age ftdBand-e chhilo; ekhon hero card-e (Today's FTD). tileRemainDay /

@@ -1434,6 +1434,7 @@ public class MainActivity extends AppCompatActivity {
         reminderListContainer.removeAllViews();
         if (reminderEmptyText != null) reminderEmptyText.setVisibility(future.isEmpty() ? View.VISIBLE : View.GONE);
         if (reminderSection != null) reminderSection.setVisibility(future.isEmpty() ? View.GONE : View.VISIBLE);
+        requestDashboardRelayout();
         for (ReminderStore.Item it : future) {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
@@ -3377,10 +3378,16 @@ public class MainActivity extends AppCompatActivity {
     private void refreshTargetCard() {
         if (targetCard == null || targetCardText == null) return;
         if (!targetStatsReady || !targetRemainReady) return;
-        if (selectedDate == null || !selectedDate.equals(dhakaDate())) { targetCard.setVisibility(View.GONE); return; }
+        if (selectedDate == null || !selectedDate.equals(dhakaDate())) { targetCard.setVisibility(View.GONE); requestDashboardRelayout(); return; }
         if (lastRemaining <= 0) targetCardText.setText("আজকের সব কল শেষ ✓ — মোট " + lastTotalCallDay + "টা কল হয়েছে");
         else targetCardText.setText("আজ: " + lastTotalCallDay + "টা কল হয়েছে • " + lastRemaining + "টা বাকি");
         targetCard.setVisibility(View.VISIBLE);
+        requestDashboardRelayout();
+    }
+    // Dashboard-er niche-er card (target / reminder) dekhano-lukano por NestedScrollView-ke
+    // abar mapte bola — na hole notun dekha card-er uporer ongsho kata pore (v7.1 bug).
+    private void requestDashboardRelayout() {
+        if (dashboardView != null) dashboardView.post(() -> dashboardView.requestLayout());
     }
     private void refreshRemainingHero() {
         if (adapter == null || statTotalRemainDay == null) return;
