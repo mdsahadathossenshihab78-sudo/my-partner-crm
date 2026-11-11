@@ -107,6 +107,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String SHEET_ID = "10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE";
     /** v4.29 admin gate: config file-er malik BA bortoman numbers sheet-er malik BA user-er bola admin Gmail BA Admins tab-er list — je kono ekta holei Admin Panel khulbe. Lookup fail hole fail-closed. */
     private static final String ADMIN_EMAIL = "shihabno.18@gmail.com";
+    /** v7.9: Agent Gmail ↔ Agent ID mapping sheet (Telesales Agent Gmails) —
+     *  Firestore roles-er mirror. Login-e typed Gmail + Agent ID ei sheet-er
+     *  sathe miliye dekha hoy; millei login hobe. Config-e AGENT_GMAILS row
+     *  thakle setai use hobe, na thakle ei fallback ID. */
+    private static final String AGENT_GMAILS_SHEET_ID = "1wRYjVliuE9rFXQiXI_7ZUZYWJ9o7trZRUuzR-MLwhtE";
 
     private GoogleSignInClient signInClient;
     private String token;
@@ -160,6 +165,10 @@ public class MainActivity extends AppCompatActivity {
     private View agentView;
     private TextView agentError, agentSubtitle;
     private TextInputEditText agentInput;
+    /** v7.9: login screen-er Gmail + Agent ID field; pendingLogin* = user ja type
+     *  koreche (Google sign-in-er por ei pair database-er sathe milano hoy). */
+    private TextInputEditText loginGmailInput, loginAgentInput;
+    private String pendingLoginEmail, pendingLoginAgentId;
     private View adminView;
     private TextView adminStatus;
     private TextInputEditText adminAgentInput, adminNumbersInput;
@@ -250,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
     private volatile Map<String, List<ConfigEntry>> sheetConfigCache = null;
     /** v6.4: SheetConfig cache-er somoy — 5 minuter moddhe abar pora lagbe na (429 komate). */
     private long lastConfigRefreshMs = 0;
-    private static Map<String, List<ConfigEntry>> defaultConfigMap() { Map<String, List<ConfigEntry>> m = new HashMap<>(); List<ConfigEntry> n = new ArrayList<>(); n.add(new ConfigEntry(SHEET_ID, "")); m.put("NUMBERS", n); List<ConfigEntry> l = new ArrayList<>(); l.add(new ConfigEntry(SHARED_STATUS_LOG_ID, "")); m.put("STATUS_LOG", l); List<ConfigEntry> r = new ArrayList<>(); r.add(new ConfigEntry(SHARED_REPORT_ID, "")); m.put("REPORTS", r); List<ConfigEntry> d = new ArrayList<>(); d.add(new ConfigEntry(DAILY_REPORTS_ID, "")); m.put("DAILY", d); return m; }
+    private static Map<String, List<ConfigEntry>> defaultConfigMap() { Map<String, List<ConfigEntry>> m = new HashMap<>(); List<ConfigEntry> n = new ArrayList<>(); n.add(new ConfigEntry(SHEET_ID, "")); m.put("NUMBERS", n); List<ConfigEntry> l = new ArrayList<>(); l.add(new ConfigEntry(SHARED_STATUS_LOG_ID, "")); m.put("STATUS_LOG", l); List<ConfigEntry> r = new ArrayList<>(); r.add(new ConfigEntry(SHARED_REPORT_ID, "")); m.put("REPORTS", r); List<ConfigEntry> d = new ArrayList<>(); d.add(new ConfigEntry(DAILY_REPORTS_ID, "")); m.put("DAILY", d); List<ConfigEntry> g = new ArrayList<>(); g.add(new ConfigEntry(AGENT_GMAILS_SHEET_ID, "")); m.put("AGENT_GMAILS", g); return m; }
     private Map<String, List<ConfigEntry>> currentConfig() { Map<String, List<ConfigEntry>> c = sheetConfigCache; return c != null ? c : defaultConfigMap(); }
     /** v4.28: kono date-er jonno write sheet — chain-er moddhe oi date-er age ba soman sobcheye notun FromDate-oyala entry; na thakle sobcheye ager entry. */
     private static String writeSheetFor(Map<String, List<ConfigEntry>> cfg, String store, String date) { if (cfg == null) cfg = defaultConfigMap(); List<ConfigEntry> chain = cfg.get(store); if (chain == null || chain.isEmpty()) return null; String best = null, bestFrom = null; for (ConfigEntry e : chain) { if (e.fromDate.isEmpty() || e.fromDate.compareTo(date) <= 0) { if (bestFrom == null || e.fromDate.compareTo(bestFrom) >= 0) { best = e.sheetId; bestFrom = e.fromDate; } } } if (best != null) return best; String early = null, earlyFrom = null; for (ConfigEntry e : chain) { if (earlyFrom == null || e.fromDate.compareTo(earlyFrom) < 0) { early = e.sheetId; earlyFrom = e.fromDate; } } return early; }
@@ -265,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
     private List<String> reportReadIds(String date) { return readSheetsFor(currentConfig(), "REPORTS", date); }
     /** v4.28: config tab theke chain pora — kokhono throw kore na, na pele ager map/default cholbe. */
     private void tryRefreshConfig() { try { if (token == null) return; if (sheetConfigCache != null && System.currentTimeMillis() - lastConfigRefreshMs < 300000) return; List<String[]> rows = SheetsClient.getConfigRows(token, CONFIG_FILE_ID); Map<String, List<ConfigEntry>> m = parseConfigRows(rows); if (m != null) { sheetConfigCache = m; reportSheetId = null; lastConfigRefreshMs = System.currentTimeMillis(); } } catch (Exception ignored) { /* config na pele ager map/default cholbe */ } }
-    private static Map<String, List<ConfigEntry>> parseConfigRows(List<String[]> rows) { if (rows == null) return null; Map<String, List<ConfigEntry>> m = defaultConfigMap(); java.util.Set<String> seenStores = new java.util.HashSet<>(); for (String[] r : rows) { if (r == null || r.length < 2) continue; String store = r[0] == null ? "" : r[0].trim(); String id = r[1] == null ? "" : r[1].trim(); if (id.isEmpty()) continue; if (!("NUMBERS".equals(store) || "STATUS_LOG".equals(store) || "REPORTS".equals(store) || "DAILY".equals(store) || "COMMISSION".equals(store) || "FTD_USERS".equals(store))) continue; if (!seenStores.contains(store)) { m.put(store, new ArrayList<>()); seenStores.add(store); } m.get(store).add(new ConfigEntry(id, r.length > 2 && r[2] != null ? r[2].trim() : "")); } for (List<ConfigEntry> chain : m.values()) java.util.Collections.sort(chain, (a, b) -> a.fromDate.compareTo(b.fromDate)); return m; }
+    private static Map<String, List<ConfigEntry>> parseConfigRows(List<String[]> rows) { if (rows == null) return null; Map<String, List<ConfigEntry>> m = defaultConfigMap(); java.util.Set<String> seenStores = new java.util.HashSet<>(); for (String[] r : rows) { if (r == null || r.length < 2) continue; String store = r[0] == null ? "" : r[0].trim(); String id = r[1] == null ? "" : r[1].trim(); if (id.isEmpty()) continue; if (!("NUMBERS".equals(store) || "STATUS_LOG".equals(store) || "REPORTS".equals(store) || "DAILY".equals(store) || "COMMISSION".equals(store) || "FTD_USERS".equals(store) || "AGENT_GMAILS".equals(store))) continue; if (!seenStores.contains(store)) { m.put(store, new ArrayList<>()); seenStores.add(store); } m.get(store).add(new ConfigEntry(id, r.length > 2 && r[2] != null ? r[2].trim() : "")); } for (List<ConfigEntry> chain : m.values()) java.util.Collections.sort(chain, (a, b) -> a.fromDate.compareTo(b.fromDate)); return m; }
     private boolean lastLogReadUsedLegacy = false;
     // v4.28 parent fix: read-er somoy write sheet-er tab ekbar ensure (notun agent / switch-er por
     // khali report na dekhiye ager motoi tab banano); chain-er kono sheet fail hole partial note.
@@ -378,6 +387,8 @@ public class MainActivity extends AppCompatActivity {
         ftdList = findViewById(R.id.ftdList);
         agentView = findViewById(R.id.agentView);
         agentInput = findViewById(R.id.agentInput);
+        loginGmailInput = findViewById(R.id.loginGmailInput);
+        loginAgentInput = findViewById(R.id.loginAgentInput);
         adminView = findViewById(R.id.adminView);
         adminAgentInput = findViewById(R.id.adminAgentInput);
         adminNumbersInput = findViewById(R.id.adminNumbersInput);
@@ -421,11 +432,28 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         signInClient = GoogleSignIn.getClient(this, gso);
 
-        MaterialButton googleBtn = findViewById(R.id.googleBtn);
-        googleBtn.setOnClickListener(v -> {
+        // v7.9: website-er moto Gmail + Agent ID type kore login. Google
+        // account picker ar nei — typed Gmail-tai sign-in-er account hobe
+        // (setAccountName: device-e thakle picker chhara-i sign-in hobe).
+        // Pair-ta pore fetchToken-e database (AGENT_GMAILS sheet) -er sathe
+        // milano hobe; na mille login hobe na.
+        MaterialButton loginBtn = findViewById(R.id.loginBtn);
+        loginBtn.setOnClickListener(v -> {
             loginError.setText("");
+            String g = txt(loginGmailInput).trim();
+            String a = txt(loginAgentInput).trim();
+            if (g.isEmpty() || !g.contains("@") || !g.contains(".")) { loginError.setText("সঠিক জিমেইল লিখুন"); return; }
+            if (a.isEmpty()) { loginError.setText("এজেন্ট আইডি লিখুন"); return; }
+            pendingLoginEmail = g;
+            pendingLoginAgentId = a;
             loginView.setVisibility(View.GONE);
             showLoading("লগইন হচ্ছে...");
+            GoogleSignInOptions gsoLogin = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestEmail()
+                    .setAccountName(g)
+                    .requestScopes(new Scope(SHEET_SCOPE), new Scope(DRIVE_SCOPE))
+                    .build();
+            signInClient = GoogleSignIn.getClient(this, gsoLogin);
             startActivityForResult(signInClient.getSignInIntent(), RC_SIGN_IN);
         });
         // Batch fix #2: avatar tap-e soja logout noy — age confirm.
@@ -2219,6 +2247,23 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /** v7.9: Gmail-er jonno database (AGENT_GMAILS sheet) theke Agent ID ber kora.
+     *  Na pele null; sheet pora na gele exception (fail-closed, caller thik korbe). */
+    private String lookupAgentIdForGmail(String email) throws Exception {
+        String gid = writeSheetFor(currentConfig(), "AGENT_GMAILS", dhakaDate());
+        if (gid == null || gid.isEmpty()) gid = AGENT_GMAILS_SHEET_ID;
+        List<String[]> rows = SheetsClient.getReportRows(token, gid, "Sheet1");
+        if (rows == null) return null;
+        String want = email == null ? "" : email.trim();
+        for (String[] r : rows) {
+            if (r == null || r.length < 2) continue;
+            String g = r[0] == null ? "" : r[0].trim();
+            String a = r[1] == null ? "" : r[1].trim();
+            if (!g.isEmpty() && g.equalsIgnoreCase(want) && !a.isEmpty()) return a;
+        }
+        return null;
+    }
+
     private void fetchToken(GoogleSignInAccount acct) {
         loginError.setText("লগইন হচ্ছে...");
         loginView.setVisibility(View.GONE);
@@ -2236,6 +2281,36 @@ public class MainActivity extends AppCompatActivity {
                     new Thread(() -> {
                         tryRefreshConfig();
                         refreshAdminsCacheSync();
+                        // v7.9: Gmail + Agent ID pair database-er sathe milano.
+                        // Fresh login: typed pair (pendingLogin*). Saved session: saved prefs pair.
+                        // Mil-le canonical Agent ID save hobe; na mille login hobe na.
+                        String vEmail = pendingLoginEmail != null ? pendingLoginEmail : prefs0.getString("agent_email", null);
+                        String vAgent = pendingLoginAgentId != null ? pendingLoginAgentId : prefs0.getString("agent_id", null);
+                        boolean freshLogin = pendingLoginEmail != null;
+                        if (vEmail != null && vAgent != null && !vEmail.trim().isEmpty() && !vAgent.trim().isEmpty()) {
+                            String signedEmail = acct.getEmail() == null ? "" : acct.getEmail().trim();
+                            if (!signedEmail.equalsIgnoreCase(vEmail.trim())) {
+                                runOnUiThread(() -> { hideLoading(); signInClient.signOut(); loginError.setText("এই Gmail দিয়ে লগইন করা যাবে না — টাইপ করা Gmail আর Google অ্যাকাউন্ট মিলছে না"); pendingLoginEmail = null; pendingLoginAgentId = null; showLogin(); });
+                                return;
+                            }
+                            String canonical = null;
+                            boolean readOk = false;
+                            try { canonical = lookupAgentIdForGmail(vEmail.trim()); readOk = true; } catch (Exception e) { readOk = false; }
+                            if (!readOk) {
+                                if (freshLogin) {
+                                    runOnUiThread(() -> { hideLoading(); signInClient.signOut(); loginError.setText("ডাটাবেস পড়া যায়নি — আবার চেষ্টা করুন"); pendingLoginEmail = null; pendingLoginAgentId = null; showLogin(); });
+                                    return;
+                                }
+                                // Saved session + read fail: purono flow-e jabe (transient error-e logout noy).
+                            } else if (canonical == null || !canonical.trim().equalsIgnoreCase(vAgent.trim())) {
+                                runOnUiThread(() -> { hideLoading(); signInClient.signOut(); getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").remove("agent_email").apply(); loginError.setText("এই Gmail এবং Agent ID ডাটাবেসে মিলছে না — শুধু ডাটাবেসের Gmail আর Agent ID দিয়ে লগইন করা যাবে"); pendingLoginEmail = null; pendingLoginAgentId = null; showLogin(); });
+                                return;
+                            } else {
+                                String canon = canonical.trim();
+                                prefs0.edit().putString("agent_id", canon).putString("agent_email", vEmail.trim()).apply();
+                                pendingLoginEmail = null; pendingLoginAgentId = null;
+                            }
+                        }
                         boolean owner = checkIsAdminWithEmail(acct.getEmail());
                         boolean isOwner = owner;
                         runOnUiThread(() -> {
