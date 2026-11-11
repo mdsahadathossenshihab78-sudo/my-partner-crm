@@ -173,10 +173,6 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 #loginHero .hero-eyebrow{position:relative;z-index:1;font-size:11px;font-weight:800;letter-spacing:.08em;color:#FEF9C3}
 #loginHero .hero-title{position:relative;z-index:1;font-size:21px;font-weight:800;line-height:1.3;margin-top:4px}
 #loginCard{margin-top:-46px;position:relative;z-index:2}
-/* --- dashboard greeting banner --- */
-.hero-greet{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#0284C7,#075985);color:#fff;border-radius:16px;padding:14px 16px;margin-top:12px;border-bottom:3px solid #F59E0B}
-.hero-greet-text{font-weight:800;font-size:17px}
-.hero-greet-sub{font-size:12px;color:#E0F2FE}
 /* --- 7-day FTD bar chart --- */
 .hero-week{background:#fff;border:1px solid #BAE6FD;border-radius:16px;padding:14px 16px;margin-top:14px}
 .hero-week-title{font-size:13px;font-weight:800;color:#075985;margin-bottom:10px}
@@ -226,35 +222,115 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 @keyframes digiSeg{0%,100%{opacity:.18}50%{opacity:1}}
 @keyframes digiOut{to{opacity:0;visibility:hidden}}
 /* --- digital dashboard animation (2026-11-10): stat numbers count up
-   (JS setStatNum, ~800ms), tiles glow-pulse softly, and a segmented
-   digital meter bar under the stat section lights up in sequence.
-   Subtle; no layout change, mobile fit untouched. --- */
+   (JS setStatNum, ~800ms) and tiles glow-pulse softly. The decorative
+   segmented meter is replaced by functional progress bars (2026-11-11). --- */
 .stat{animation:digiGlow 2.6s ease-in-out infinite}
 @keyframes digiGlow{0%,100%{box-shadow:0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 16px rgba(56,189,248,.30)}}
-.digi-meter{display:flex;gap:3px;margin-top:12px}
-.digi-meter i{flex:1;height:6px;border-radius:2px;background:#0284C7;opacity:.18;animation:digiSeg 2.4s ease-in-out infinite}
-.digi-meter i:nth-child(1){animation-delay:0s}
-.digi-meter i:nth-child(2){animation-delay:.2s}
-.digi-meter i:nth-child(3){animation-delay:.4s}
-.digi-meter i:nth-child(4){animation-delay:.6s}
-.digi-meter i:nth-child(5){animation-delay:.8s}
-.digi-meter i:nth-child(6){animation-delay:1s}
-.digi-meter i:nth-child(7){animation-delay:1.2s}
-.digi-meter i:nth-child(8){animation-delay:1.4s}
-.digi-meter i:nth-child(9){animation-delay:1.6s}
-.digi-meter i:nth-child(10){animation-delay:1.8s}
-.digi-meter i:nth-child(11){animation-delay:2s}
-.digi-meter i:nth-child(12){animation-delay:2.2s}
-.tod-noon .digi-meter i{background:#0284C7}
-.tod-afternoon .digi-meter i{background:#EA580C}
-.tod-evening .digi-meter i{background:#9333EA}
-.tod-night .digi-meter i{background:#38BDF8}
+/* ===== DIGITAL COMPACT DASHBOARD (2026-11-11) =====
+   Rebuild: the whole Dashboard fits one mobile screen (no scroll);
+   the date bar is sticky at the top; Total Numbers has a segmented
+   progress bar (called vs remaining); Connected and FTD are bar tiles;
+   the rest are compact digital tiles. Same layout on the app (v6.15).
+   The old .stats-grid hero/tiles and the decorative segmented meter are gone.
+   Numbers stay monospace (digital look) and keep the count-up
+   (setStatNum) + glow pulse (.stat). */
+#dashView{margin-top:6px}
+/* --- sticky date bar: pinned under the 64px site header, never scrolls away --- */
+.dash-datebar{position:sticky;top:64px;z-index:40;background:linear-gradient(135deg,#E0F2FE,#F0F9FF);border:1px solid #BAE6FD;border-radius:14px;padding:4px 8px;box-shadow:0 2px 10px rgba(2,132,199,.18)}
+.dash-date-row{display:flex;gap:6px;align-items:center}
+.dash-date-row .btn{min-height:34px;padding:6px 10px;font-size:14px}
+.dash-date-row .dash-date-btn{flex:1}
+.dash-greet{font-size:11px;font-weight:700;color:#0369A1;text-align:center;margin-top:4px;line-height:1.3}
+.dash-greet #heroGreetText{font-size:11px}
+/* --- Total Numbers hero card --- */
+.dash-hero{background:linear-gradient(135deg,#E0F2FE,#F0F9FF);border:1px solid #7DD3FC;border-radius:16px;padding:8px 14px;margin-top:5px}
+.dash-label{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0369A1;display:block}
+.dash-big{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:24px;font-weight:800;color:#075985;line-height:1.15;display:block}
+.dash-hero-sub{font-size:12px;color:#075985;margin-top:5px}
+.dash-hero-sub b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+/* --- segmented progress bar (functional: lit = done, track = remaining) --- */
+.progbar{display:flex;gap:2px;margin-top:7px}
+.progbar i{flex:1;height:8px;border-radius:2px;background:#BAE6FD}
+.progbar i.on{background:#0284C7}
+.progbar-mini{margin-top:6px}
+.progbar-mini i{height:6px}
+/* --- bar tiles: Connected + FTD --- */
+.dash-bars{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px}
+.dash-bar-tile{background:#fff;border:1px solid #BAE6FD;border-radius:14px;padding:10px 12px;min-width:0}
+.dash-bar-tile .dash-label{color:#475569}
+.dash-bar-tile .dash-num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:20px;font-weight:800;color:#075985;line-height:1.2;display:block}
+.dash-ftd-nums{display:flex;align-items:baseline;gap:8px}
+.dash-ftd-nums .dash-amt{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:15px;font-weight:800;color:#16A34A}
+.dash-bar-tile .dash-sub{font-size:11px;color:#475569;display:block;margin-top:5px}
+.dash-bar-tile .dash-sub b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#075985}
+.dash-man{font-size:10px;color:#64748B;display:block}
+.dash-man small{font-size:10px;color:#64748B}
+/* --- compact digital tiles: Registration / Valid / Invalid / জমা --- */
+.dash-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:5px}
+.dash-tile{background:#fff;border:1px solid #BAE6FD;border-radius:12px;padding:8px 4px;text-align:center;min-width:0}
+.dash-tile .dash-label{font-size:10px;color:#475569}
+.dash-tile .dash-num-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;font-weight:800;color:#075985;line-height:1.25;display:block}
+.dash-tile small{font-size:10px;color:#64748B;display:block}
+/* --- compact chart + quick links + summary lines --- */
+.hero-week{padding:10px 12px;margin-top:5px}
+.hero-week-title{font-size:12px;margin-bottom:4px}
+.hero-weekbars{height:34px}
+.hero-bar-count{font-size:10px;margin-bottom:2px}
+.hero-weekdays{font-size:10px;margin-top:4px}
+#dashView .quick-links{grid-template-columns:repeat(4,1fr);gap:6px;margin-top:5px}
+#dashView .quick-link{padding:6px 4px;border-radius:12px}
+#dashView .quick-link .ql-label{font-size:11px}
+#dashView .quick-link .ql-count{font-size:15px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin-top:1px}
+#dashView .quick-link .ql-sub{font-size:10px}
+#weekSummary{font-size:11px;margin:5px 0 0}
+#targetLine{font-size:11px;margin:5px 0 0}
+@media(max-width:480px){
+.wrap{margin-top:12px}
+#mainView>.card{padding:12px}
+#mainView .user-bar{padding:6px 10px;font-size:12px}
+#mainView .user-bar .btn{min-height:28px;padding:5px 10px;font-size:12px}
+}
+@media(max-width:360px){.dash-tile .dash-num-sm{font-size:14px}.dash-big{font-size:20px}}
+/* --- time-of-day accents for the new dashboard --- */
+.tod-noon .progbar i.on{background:#0284C7}
+.tod-noon .dash-hero{background:linear-gradient(135deg,#E0F2FE,#FEF9C3)}
+.tod-afternoon .progbar i{background:#FED7AA}
+.tod-afternoon .progbar i.on{background:#EA580C}
+.tod-afternoon .dash-hero{background:linear-gradient(135deg,#FFEDD5,#FEF3C7);border-color:#FDBA74}
+.tod-afternoon .dash-hero .dash-label{color:#9A3412}
+.tod-afternoon .dash-hero .dash-big{color:#9A3412}
+.tod-afternoon .dash-hero-sub{color:#7C2D12}
+.tod-afternoon .dash-datebar{background:linear-gradient(135deg,#FFEDD5,#FEF3C7);border-color:#FDBA74}
+.tod-afternoon .dash-greet{color:#9A3412}
+.tod-evening .progbar i{background:#E9D5FF}
+.tod-evening .progbar i.on{background:#9333EA}
+.tod-evening .dash-hero{background:linear-gradient(135deg,#F5F3FF,#FCE7F3);border-color:#DDD6FE}
+.tod-evening .dash-hero .dash-label{color:#6B21A8}
+.tod-evening .dash-hero .dash-big{color:#6B21A8}
+.tod-evening .dash-hero-sub{color:#581C87}
+.tod-evening .dash-datebar{background:linear-gradient(135deg,#F5F3FF,#FCE7F3);border-color:#DDD6FE}
+.tod-evening .dash-greet{color:#6B21A8}
+.tod-night .progbar i{background:#1E293B}
+.tod-night .progbar i.on{background:#38BDF8}
+.tod-night .dash-hero{background:#0F172A;border-color:#334155}
+.tod-night .dash-hero .dash-label{color:#BAE6FD}
+.tod-night .dash-hero .dash-big{color:#E0F2FE}
+.tod-night .dash-hero-sub{color:#CBD5E1}
+.tod-night .dash-hero-sub b{color:#E0F2FE}
+.tod-night .dash-datebar{background:linear-gradient(135deg,#1E3A5F,#0F172A);border-color:#334155}
+.tod-night .dash-greet{color:#BAE6FD}
+.tod-night .dash-bar-tile,.tod-night .dash-tile{background:#0F172A;border-color:#334155}
+.tod-night .dash-bar-tile .dash-label,.tod-night .dash-tile .dash-label{color:#94A3B8}
+.tod-night .dash-bar-tile .dash-num,.tod-night .dash-tile .dash-num-sm{color:#E0F2FE}
+.tod-night .dash-ftd-nums .dash-amt{color:#4ADE80}
+.tod-night .dash-bar-tile .dash-sub{color:#94A3B8}
+.tod-night .dash-bar-tile .dash-sub b{color:#E0F2FE}
+.tod-night .dash-man,.tod-night .dash-man small,.tod-night .dash-tile small{color:#94A3B8}
 @media(max-width:480px){
 #loginHero{padding:20px 16px 56px}
 #loginHero .hero-title{font-size:18px}
 #loginCard{margin-top:-40px}
 .stats-grid.tiles{grid-template-columns:1fr}
-.hero-greet-text{font-size:15px}
 }
 /* --- desktop full-height (2026-11-10): short pages fill the viewport, no gap below --- */
 /* Root cause: .wrap's height was content-driven, so on a tall desktop viewport the
@@ -331,7 +407,6 @@ html.tod-noon body,body.tod-noon{background:linear-gradient(180deg,#F0F9FF 0%,#E
 .tod-noon .top{background:linear-gradient(135deg,#0369A1,#0C4A6E);border-bottom:3px solid #FBBF24}
 .tod-noon #loginHero{background:linear-gradient(135deg,#7DD3FC 0%,#0284C7 55%,#075985 100%)}
 .tod-noon #loginHero::after{right:-10px;top:-70px;width:170px;height:170px;background:radial-gradient(circle,#FEF9C3 0%,#FDE047 45%,#FACC15 65%,rgba(250,204,21,0) 75%);opacity:1;box-shadow:0 0 60px 20px rgba(253,224,71,.5)}
-.tod-noon .hero-greet{background:linear-gradient(135deg,#0369A1,#0C4A6E);border-bottom:3px solid #FBBF24}
 .tod-noon #digiLoader{background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 55%,#FEF9C3 100%)}
 .tod-noon .digi-count{color:#075985}
 .tod-noon .btn-primary{background:linear-gradient(135deg,#0284C7,#0C4A6E)}
@@ -351,7 +426,6 @@ html.tod-afternoon body,body.tod-afternoon{background:linear-gradient(180deg,#FF
 .tod-afternoon .top{background:linear-gradient(135deg,#C2410C,#7C2D12);border-bottom:3px solid #FDBA74}
 .tod-afternoon #loginHero{background:linear-gradient(135deg,#FDBA74 0%,#F97316 55%,#9A3412 100%)}
 .tod-afternoon #loginHero::after{right:-20px;top:10px;width:150px;height:150px;background:radial-gradient(circle,#FEF3C7 0%,#FDBA74 45%,#F97316 65%,rgba(249,115,22,0) 75%);opacity:1}
-.tod-afternoon .hero-greet{background:linear-gradient(135deg,#EA580C,#9A3412);border-bottom:3px solid #FDBA74}
 .tod-afternoon #digiLoader{background:linear-gradient(180deg,#FFEDD5 0%,#FEF3C7 60%,#FDE68A 100%)}
 .tod-afternoon .digi-count{color:#9A3412}
 .tod-afternoon .digi-title{color:#9A3412}
@@ -375,7 +449,6 @@ html.tod-evening body,body.tod-evening{background:linear-gradient(180deg,#F5F3FF
 .tod-evening .top{background:linear-gradient(135deg,#7C3AED,#4C1D95);border-bottom:3px solid #FB7185}
 .tod-evening #loginHero{background:linear-gradient(135deg,#C084FC 0%,#9333EA 55%,#4C1D95 100%)}
 .tod-evening #loginHero::after{right:10px;top:70px;width:140px;height:140px;background:radial-gradient(circle,#FDE68A 0%,#FB923C 40%,#DC2626 65%,rgba(220,38,38,0) 75%);opacity:1}
-.tod-evening .hero-greet{background:linear-gradient(135deg,#9333EA,#4C1D95);border-bottom:3px solid #FB7185}
 .tod-evening #digiLoader{background:linear-gradient(180deg,#EDE9FE 0%,#FCE7F3 55%,#FED7AA 100%)}
 .tod-evening .digi-count{color:#6B21A8}
 .tod-evening .digi-title{color:#6B21A8}
@@ -400,8 +473,6 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 .tod-night #loginHero{background:linear-gradient(135deg,#1E3A5F 0%,#0F172A 70%,#020617 100%)}
 .tod-night #loginHero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 28% 68%,#fff,transparent),radial-gradient(1.5px 1.5px at 44% 30%,#fff,transparent),radial-gradient(1px 1px at 62% 55%,#fff,transparent),radial-gradient(1.5px 1.5px at 78% 20%,#fff,transparent),radial-gradient(1px 1px at 88% 60%,#fff,transparent),radial-gradient(1px 1px at 55% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 8% 55%,#fff,transparent);opacity:.9}
 .tod-night #loginHero::after{right:-20px;top:-30px;width:120px;height:120px;background:radial-gradient(circle at 35% 35%,#FFFFFF 0%,#E2E8F0 50%,#94A3B8 80%);box-shadow:0 0 40px 10px rgba(226,232,240,.35);opacity:1}
-.tod-night .hero-greet{background:linear-gradient(135deg,#1E3A5F,#0F172A);border-bottom:3px solid #38BDF8}
-.tod-night .hero-greet-sub{color:#BAE6FD}
 .tod-night #digiLoader{background:linear-gradient(180deg,#0F172A 0%,#1E293B 60%,#334155 100%)}
 .tod-night .digi-count{color:#E0F2FE}
 .tod-night .digi-title{color:#E0F2FE}
@@ -478,27 +549,14 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 <div id="mainView" style="display:none">
 <div class="card"><div class="row user-bar" style="justify-content:space-between"><span><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <b id="userEmail"></b> • <span id="agentLabel"></span></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
 <div id="dashView">
-<div class="hero-greet" id="heroGreet"><span class="hero-greet-text" id="heroGreetText">স্বাগতম 👋</span><span class="hero-greet-sub">আজকের হিসাব দেখে নিন</span></div>
-<div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>
-<div class="row stats-grid hero" style="margin-top:12px">
-<div class="stat s-blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><b id="heroCalls">0</b><span>মোট কল (এই দিন)</span></div>
-<div class="stat s-violet"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><b id="heroNums">0</b><span>মোট নাম্বার (লিস্ট)</span></div>
-<div class="stat s-rose"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><b id="heroRemain">0</b><span>মোট বাকি</span></div>
-</div>
-<div class="row stats-grid tiles" style="margin-top:12px">
-<div class="stat s-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14 9 11"/></svg><div><b id="stConn">0</b><span>Connected</span></div></div>
-<div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/><line x1="2" y1="2" x2="22" y2="22"/></svg><div><b id="stNotConn">0</b><span>Not Connected</span></div></div>
-<div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b id="stValid">0</b><span>Valid</span></div></div>
-<div class="stat s-rose"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><b id="stInv">0</b><span>Invalid</span></div></div>
-<div class="stat s-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg><div><b id="stFtd">0</b><span>এফটিডি</span><small id="stFtdMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
-<div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><div><b id="stFtdAmt">৳0</b><span>এফটিডি টাকা</span><small id="stFtdAmtMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
-<div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg><div><b id="stReg">0</b><span>রেজিস্ট্রেশন</span><small id="stRegMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
-</div>
-<div class="digi-meter" id="digiMeter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<div class="dash-datebar" id="dashDateBar"><div class="dash-date-row"><button class="btn btn-light" id="prevDayBtn" aria-label="আগের দিন"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light dash-date-btn" id="dateBtn"></button><button class="btn btn-light" id="nextDayBtn" aria-label="পরের দিন"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button><button class="btn btn-light btn-sm" id="dashTodayBtn">আজ</button></div><div class="dash-greet"><span id="heroGreetText">স্বাগতম 👋</span></div></div>
+<div class="dash-hero"><span class="dash-label">মোট নাম্বার</span><b class="dash-big" id="heroNums">0</b><div class="progbar" id="heroProgBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="dash-hero-sub"><b id="heroCalls">0</b> টা হয়েছে, <b id="heroRemain">0</b> টা বাকি আছে</div></div>
+<div class="dash-bars"><div class="stat dash-bar-tile"><span class="dash-label">কানেক্টেড</span><b class="dash-num" id="stConn">0</b><div class="progbar progbar-mini" id="connProgBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="dash-sub" id="ncTap"><b id="stNotConn">0</b> নট কানেক্টেড</span></div><div class="stat dash-bar-tile"><span class="dash-label">এফটিডি</span><div class="dash-ftd-nums"><b class="dash-num" id="stFtd">0</b><b class="dash-amt" id="stFtdAmt">৳0</b></div><div class="progbar progbar-mini" id="ftdProgBar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="dash-sub" id="ftdBarSub">0 FTD / 0 রেজিস্ট্রেশন</span><div class="dash-man"><small id="stFtdMan" style="display:none"></small><small id="stFtdAmtMan" style="display:none"></small></div></div></div>
+<div class="dash-tiles"><div class="stat dash-tile"><span class="dash-label">রেজিস্ট্রেশন</span><b class="dash-num-sm" id="stReg">0</b><small id="stRegMan" style="display:none"></small></div><div class="stat dash-tile"><span class="dash-label">Valid</span><b class="dash-num-sm" id="stValid">0</b></div><div class="stat dash-tile"><span class="dash-label">Invalid</span><b class="dash-num-sm" id="stInv">0</b></div><div class="stat dash-tile"><span class="dash-label">জমা</span><b class="dash-num-sm" id="stDepAmt">৳0</b></div></div>
+<div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
 <div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">বাকি আছে</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div></div>
 <p class="muted" id="weekSummary"></p>
-<div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
-<p class="muted" id="targetLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px"></p>
+<p class="muted" id="targetLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:6px 10px"></p>
 <div class="card" id="remindCard" style="display:none;margin-top:12px;padding:14px 16px"><b>মনে করিয়ে দেওয়া</b><div id="remindList" style="margin-top:8px"></div></div>
 </div>
 <div id="listView" style="display:none">
@@ -854,6 +912,7 @@ $('dateBtn').onclick=()=>{
   inp.onchange=()=>{if(inp.value){selectedDate=inp.value;updateDateBtn();loadDayStats();} inp.remove();};
   inp.showPicker?inp.showPicker():inp.click();
 };
+$('dashTodayBtn').onclick=()=>{selectedDate=dhakaToday();updateDateBtn();loadDayStats();};
 $('list').addEventListener('input',(e)=>{
   const id=e.target&&e.target.id||'';
   const m=id.match(/^(r1|r2|ot)-(\d+)$/);
@@ -884,8 +943,15 @@ window.clearTypeFilter=()=>{typeFilter='';updateFilterNote();render();};
       tab='done'; setTabUI(); showList(); updateFilterNote(); render();
     };
   };
-  bindTile('stConn','connected'); bindTile('stNotConn','notconnected'); bindTile('stValid','valid'); bindTile('stInv','invalid');
+  bindTile('stConn','connected'); bindTile('stValid','valid'); bindTile('stInv','invalid');
   bindTile('stFtd',null,true); bindTile('stFtdAmt',null,true); bindTile('stReg',null,true);
+  /* stNotConn lives inside the Connected bar tile as sub-text: its own tap
+     filters Not Connected (stopPropagation so the tile's Connected filter
+     does not also fire). */
+  const ncTap=$('ncTap');
+  if(ncTap){ ncTap.style.cursor='pointer';
+    ncTap.onclick=(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); typeFilter=(typeFilter==='notconnected')?'':'notconnected'; tab='done'; setTabUI(); showList(); updateFilterNote(); render(); };
+  }
 })();
 window.setFtdAmt=(v)=>{const i=$('ftdStepAmt'); if(i){i.value=String(v); i.focus();}};
 $('refreshBtn').onclick=loadRows;
@@ -1357,7 +1423,10 @@ async function loadDayStats(){
     ftdWeek.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))ftdSumW+=v;});
     setStatNum($('stConn'),conn); setStatNum($('stNotConn'),notConn); setStatNum($('stValid'),valid); setStatNum($('stInv'),inv); manReg=reg;
     var _rem=rows.filter(r=>!r.savedStatus).length;
-    setStatNum($('heroCalls'),logs.filter(e=>cellE(e,0)===day).length); setStatNum($('heroNums'),rows.length); setStatNum($('heroRemain'),_rem);
+    var _called=logs.filter(e=>cellE(e,0)===day).length;
+    setStatNum($('heroCalls'),_called); setStatNum($('heroNums'),rows.length); setStatNum($('heroRemain'),_rem);
+    setProgBar($('heroProgBar'),_called,rows.length);
+    setProgBar($('connProgBar'),conn,conn+notConn);
     const _qr=$('qlRemain'); if(_qr) setStatNum(_qr,_rem);
     const _blk=filterRangeE(logs,blockStart,blockEnd);
     const validW=_blk.filter(e=>cellE(e,3)==='Yes').length;
@@ -1468,7 +1537,7 @@ function renderWeekBars(byDate){
   let bh='', dh='';
   dates.forEach((d,i)=>{
     const v=vals[i];
-    const h=loading?40:(max>0?Math.max(5,Math.round(v/max*72)):(v>0?72:5));
+    const h=loading?14:(max>0?Math.max(4,Math.round(v/max*20)):(v>0?20:4));
     const isToday=d===today;
     bh+='<div class="hero-bar-col"><span class="hero-bar-count">'+(loading?'':v)+'</span><div class="hero-bar'+(isToday?' hero-bar-today':'')+'" style="height:'+h+'px;--d:'+(i*0.06).toFixed(2)+'s"></div></div>';
     dh+='<span>'+(isToday?'আজ':weekdayBn(d))+'</span>';
@@ -1479,7 +1548,7 @@ function applyCommission(byDate,lastSync){
   renderWeekBars(byDate);
   applyStatTiles();
 }
-function setTileSub(id,text){ const el=$(id); if(!el) return; if(text){ el.textContent=text; el.style.display='block'; } else { el.textContent=''; el.style.display='none'; } }
+function setTileSub(id,text){ const el=$(id); if(!el) return; if(text){ el.textContent=text; el.style.display='inline'; } else { el.textContent=''; el.style.display='none'; } }
 function applyStatTiles(){
   const d=selectedDate||dhakaToday();
   const auto=statsForDate(d);
@@ -1489,6 +1558,9 @@ function applyStatTiles(){
   setStatNum($('stFtd'),headFtd);
   setStatNum($('stFtdAmt'),headAmt,{prefix:'৳',fmt:fmtAmt});
   setStatNum($('stReg'),headReg);
+  setStatNum($('stDepAmt'),headAmt,{prefix:'৳',fmt:fmtAmt});
+  setProgBar($('ftdProgBar'),headFtd,headReg);
+  var _fbs=$('ftdBarSub'); if(_fbs) _fbs.textContent=headFtd+' FTD / '+headReg+' রেজিস্ট্রেশন';
   setTileSub('stFtdMan',auto?('ম্যানুয়াল: '+manFtd+'টা'):null);
   setTileSub('stFtdAmtMan',auto?('ম্যানুয়াল: ৳'+fmtAmt(manFtdAmt)):null);
   setTileSub('stRegMan',auto?('ম্যানুয়াল: '+manReg+'টা'):null);
@@ -1611,8 +1683,16 @@ $('repTodayBtn').onclick=()=>{reportDate=dhakaToday();updateRepDateBtn();$('repo
 $('repDateBtn').onclick=()=>{const inp=document.createElement('input');inp.type='date';inp.value=reportDate;inp.max=dhakaToday();inp.style.position='fixed';inp.style.opacity='0';document.body.appendChild(inp);inp.onchange=()=>{if(inp.value){reportDate=inp.value;updateRepDateBtn();$('reportOut').style.display='none';loadReportData();}inp.remove();};if(inp.showPicker)inp.showPicker();else inp.click();};
 setTabUI(); updateDateBtn();
 /* ---- Digital dashboard animation (2026-11-10): stat numbers count up
-   0 -> value in ~800ms (setStatNum); tiles glow-pulse and the segmented
-   meter lights in sequence (CSS). Loader % counter 0 -> 100. ---- */
+   0 -> value in ~800ms (setStatNum); tiles glow-pulse (CSS). The
+   segmented progress bars (setProgBar) show done vs remaining.
+   Loader % counter 0 -> 100. ---- */
+function setProgBar(el,done,total){
+  if(!el) return;
+  var n=el.children.length;
+  var lit=(total>0)?Math.round(done/total*n):0;
+  if(lit<0) lit=0; if(lit>n) lit=n;
+  for(var i=0;i<n;i++){ el.children[i].classList.toggle('on',i<lit); }
+}
 function setStatNum(el,target,opts){
   if(!el) return;
   var prefix=(opts&&opts.prefix)||'';
