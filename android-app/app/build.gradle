@@ -6,8 +6,8 @@ android {
         applicationId 'com.telesales.status'
         minSdk 24
         targetSdk 34
-        versionCode 98
-        versionName '7.9'
+        versionCode 99
+        versionName '7.9.1'
     }
     signingConfigs {
         debug {
