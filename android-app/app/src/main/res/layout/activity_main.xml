@@ -143,13 +143,13 @@
         </LinearLayout>
         <!-- lukano tile: Java (pulse array) khunje, kintu Dashboard-e dekhay na.
              tileNotConnDay / tileInvDay khali shell — oi dutor stat TextView ekhon FTD band-e.
-             tileValidDay (Valid) spec-er Dashboard-e nei.
+             v7.6: statValidDay age ekhane lukano chilo — ekhon FTD band-er 3rd row-e
+             dekha jay (Valid card firlo). tileValidDay shell-ta pulse array-er
+             jonno rakha ase (khali, gone).
              v7.3: tileRemainDay (মোট বাকি) ekhon niche boro card hisebe dekha jay. -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
             <LinearLayout android:id="@+id/tileNotConnDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" />
-            <LinearLayout android:id="@+id/tileValidDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                <TextView android:id="@+id/statValidDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" />
-            </LinearLayout>
+            <LinearLayout android:id="@+id/tileValidDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" />
             <LinearLayout android:id="@+id/tileInvDay" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" />
         </LinearLayout>
         <!-- v7.3: মোট বাকি (Calls Remaining) — boro full-width card. Age lukano chilo;
@@ -182,6 +182,12 @@
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center_horizontal">
                         <TextView android:id="@+id/statInvDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="30sp" android:textStyle="bold" android:textColor="@color/orange" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Invalid" android:textSize="14sp" android:textColor="@color/ink" />
+                    </LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center_horizontal">
+                        <TextView android:id="@+id/statValidDay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textSize="30sp" android:textStyle="bold" android:textColor="@color/orange" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Valid" android:textSize="14sp" android:textColor="@color/ink" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
