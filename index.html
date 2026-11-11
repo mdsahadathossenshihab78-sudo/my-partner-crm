@@ -173,21 +173,25 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 #loginHero .hero-eyebrow{position:relative;z-index:1;font-size:11px;font-weight:800;letter-spacing:.08em;color:#FEF9C3}
 #loginHero .hero-title{position:relative;z-index:1;font-size:21px;font-weight:800;line-height:1.3;margin-top:4px}
 #loginCard{margin-top:-46px;position:relative;z-index:2}
-/* --- 7-day FTD bar chart (Command Center: dark glass, accent bars) --- */
-.hero-week{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);border-radius:16px;padding:14px 16px;margin-top:14px}
-.hero-week-title{font-size:13px;font-weight:800;color:#E0F2FE;margin-bottom:10px}
+/* --- dashboard greeting banner --- */
+.hero-greet{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(135deg,#0284C7,#075985);color:#fff;border-radius:16px;padding:14px 16px;margin-top:12px;border-bottom:3px solid #F59E0B}
+.hero-greet-text{font-weight:800;font-size:17px}
+.hero-greet-sub{font-size:12px;color:#E0F2FE}
+/* --- 7-day FTD bar chart --- */
+.hero-week{background:#fff;border:1px solid #BAE6FD;border-radius:16px;padding:14px 16px;margin-top:14px}
+.hero-week-title{font-size:13px;font-weight:800;color:#075985;margin-bottom:10px}
 .hero-weekbars{display:flex;align-items:flex-end;gap:8px;height:92px}
-.hero-bar{flex:1;background:var(--dash-accent,#22D3EE);border-radius:6px 6px 0 0;min-height:5px;box-shadow:0 0 10px var(--dash-accent,#22D3EE)}
-.hero-bar-today{background:linear-gradient(180deg,#FDE68A,#F59E0B);box-shadow:0 0 10px rgba(251,191,36,.50)}
+.hero-bar{flex:1;background:#38BDF8;border-radius:6px 6px 0 0;min-height:5px}
+.hero-bar-today{background:#F59E0B}
 .hero-bar-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;min-width:0}
 .hero-bar-col .hero-bar{flex:0 0 auto}
-.hero-bar-count{font-size:11px;font-weight:800;color:#E0F2FE;text-align:center;margin-bottom:3px}
+.hero-bar-count{font-size:11px;font-weight:800;color:#075985;text-align:center;margin-bottom:3px}
 .hero-bar{transform-origin:bottom;animation:heroBarGrow .7s ease-out both;animation-delay:var(--d,0s)}
 @keyframes heroBarGrow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-.hero-week-loading .hero-bar{background:linear-gradient(90deg,rgba(148,197,255,.20),rgba(148,197,255,.06),rgba(148,197,255,.20));background-size:200% 100%;animation:heroShimmer 1.1s linear infinite;box-shadow:none}
-.hero-week-loading .hero-bar-count{color:rgba(148,197,255,.40)}
+.hero-week-loading .hero-bar{background:linear-gradient(90deg,#BAE6FD,#E0F2FE,#BAE6FD);background-size:200% 100%;animation:heroShimmer 1.1s linear infinite}
+.hero-week-loading .hero-bar-count{color:#BAE6FD}
 @keyframes heroShimmer{from{background-position:200% 0}to{background-position:-200% 0}}
-.hero-weekdays{display:flex;justify-content:space-between;font-size:11px;color:#94A3B8;margin-top:6px}
+.hero-weekdays{display:flex;justify-content:space-between;font-size:11px;color:#64748B;margin-top:6px}
 .hero-weekdays span{flex:1;text-align:center}
 /* --- dashboard quick links (2026-11-10): 4 small tiles above the 7-day summary — moved up so they show on the first screen --- */
 .quick-links{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
@@ -226,104 +230,39 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
    segmented meter is replaced by functional progress bars (2026-11-11). --- */
 .stat{animation:digiGlow 2.6s ease-in-out infinite}
 @keyframes digiGlow{0%,100%{box-shadow:0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 16px rgba(56,189,248,.30)}}
-/* ===== FUTURISTIC COMMAND CENTER DASHBOARD (2026-11-11) =====
-   The user rejected the light sky-blue "Digital Compact" look and asked
-   for a different, unique, professional futuristic style. This is a dark
-   glassy command-center: a deep-navy console panel, glass cards, ONE vivid
-   accent (electric cyan) that shifts subtly with the time-of-day band,
-   glowing monospace numerals, digital fraction readouts (no bars).
-   Clearly different from the old light look. Same data, ids, JS and
-   layout — VISUAL ONLY. The whole Dashboard still fits one mobile
-   screen; the date bar stays sticky; text stays high-contrast
-   (white/slate on dark glass).
-   Time-of-day (PR #61) is KEPT but re-scoped: the console stays dark in
-   every band; only the accent hue changes (morning cyan, noon sky,
-   afternoon amber, evening violet, night indigo).
-   (2026-11-11 no-bar: the user rejected the horizontal progress bars
-   and the remaining-count sentence, so the bars are gone. Each stat now
-   shows a large digital fraction (done / total), the % as a cyan pill
-   badge, and the remaining as a "পেন্ডিং" counter.) */
-#dashView{--dash-accent:#22D3EE;margin-top:6px;background:linear-gradient(180deg,#0A1128 0%,#0D1B3E 100%);border:1px solid rgba(56,189,248,.30);border-radius:20px;padding:10px 10px 12px;box-shadow:0 14px 34px rgba(2,6,23,.45),0 0 0 1px rgba(56,189,248,.06)}
-.tod-noon #dashView{--dash-accent:#38BDF8}
-.tod-afternoon #dashView{--dash-accent:#FBBF24}
-.tod-evening #dashView{--dash-accent:#A78BFA}
-.tod-night #dashView{--dash-accent:#818CF8}
-/* --- sticky date bar: dark glass, pinned under the 64px site header --- */
-.dash-datebar{position:sticky;top:64px;z-index:40;background:rgba(13,27,62,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(148,197,255,.22);border-radius:14px;padding:4px 8px;box-shadow:0 4px 16px rgba(2,6,23,.40)}
-.dash-date-row{display:flex;gap:6px;align-items:center}
-.dash-date-row .btn{min-height:34px;padding:6px 10px;font-size:14px}
-.dash-date-row .dash-date-btn{flex:1}
-.dash-datebar .btn-light{background:rgba(255,255,255,.08);color:#E0F2FE;border:1px solid rgba(148,197,255,.22)}
-.dash-datebar #dashTodayBtn{background:var(--dash-accent);color:#0B1226;border-color:transparent;font-weight:800}
-.dash-greet{font-size:11px;font-weight:700;color:#BAE6FD;text-align:center;margin-top:4px;line-height:1.3}
-.dash-greet #heroGreetText{font-size:11px}
-/* --- Total Numbers hero: glass console card, glowing accent numeral --- */
-.dash-hero{background:rgba(148,197,255,.07);border:1px solid rgba(148,197,255,.18);border-radius:16px;padding:10px 14px;margin-top:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-.dash-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94A3B8;display:block}
-/* --- digital fraction readout (2026-11-11): NO horizontal progress bars.
-   The user rejected the bars and the remaining-count sentence. Each stat now
-   shows a large digital fraction (done / total) in glowing monospace, the %
-   as a compact cyan pill badge, and the remaining as a "পেন্ডিং" counter.
-   Same numbers, same ids — a different, unique presentation. --- */
-.dash-pct{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;font-weight:800;color:#0B1226;background:var(--dash-accent);border-radius:999px;padding:2px 8px;line-height:1.4;white-space:nowrap;box-shadow:0 0 10px rgba(34,211,238,.35)}
-.dash-pct-mini{font-size:10px;padding:1px 7px}
-.dash-hero-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.dash-tile-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.dash-frac{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin-top:6px}
-.dash-frac-cell{display:flex;flex-direction:column;align-items:center;min-width:64px}
-.dash-frac-cell b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:30px;font-weight:800;line-height:1.1;color:var(--dash-accent);text-shadow:0 0 16px rgba(125,211,252,.35)}
-.dash-frac-cell:last-child b{color:#F0F9FF;text-shadow:none}
-.dash-frac-cell span{font-size:10px;font-weight:700;color:#94A3B8;margin-top:2px}
-.dash-frac-sep{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:24px;font-weight:800;color:#475569;line-height:1.1;padding-bottom:14px}
-.dash-pend{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(148,197,255,.16);margin-top:8px;padding-top:7px}
-.dash-pend-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94A3B8}
-.dash-pend b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;font-weight:800;color:#F0F9FF}
-/* --- bar tiles: Connected + FTD (dark glass) --- */
-.dash-bars{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-.dash-bar-tile{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);border-radius:14px;padding:10px 12px;min-width:0}
-.dash-bar-tile .dash-label{color:#94A3B8}
-.dash-bar-tile .dash-num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:20px;font-weight:800;color:#F0F9FF;line-height:1.2;display:block}
-.dash-ftd-nums{display:flex;align-items:baseline;gap:8px}
-.dash-ftd-nums .dash-amt{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:15px;font-weight:800;color:#34D399}
-.dash-bar-tile .dash-sub{font-size:11px;color:#94A3B8;display:block;margin-top:5px}
-.dash-bar-tile .dash-sub b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#F0F9FF}
-#dashView #ncTap b{color:#FB7185}
-.dash-man{font-size:10px;color:#94A3B8;display:block}
-.dash-man small{font-size:10px;color:#94A3B8}
-/* --- compact tiles: Registration / Valid / Invalid / জমা (dark glass) --- */
-.dash-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
-.dash-tile{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);border-radius:12px;padding:8px 4px;text-align:center;min-width:0}
-.dash-tile .dash-label{font-size:10px;color:#94A3B8}
-.dash-tile .dash-num-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:16px;font-weight:800;color:#F0F9FF;line-height:1.25;display:block}
-.dash-tile small{font-size:10px;color:#94A3B8;display:block}
-/* --- glow pulse on the stat tiles (cyan, Dashboard-scoped) --- */
-#dashView .stat{animation:digiGlowDash 2.6s ease-in-out infinite}
-@keyframes digiGlowDash{0%,100%{box-shadow:0 0 0 rgba(34,211,238,0)}50%{box-shadow:0 0 16px rgba(34,211,238,.28)}}
-/* --- compact chart + quick links + summary lines (dark glass) --- */
-#dashView .hero-week{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);padding:10px 12px;margin-top:6px}
-#dashView .hero-week-title{font-size:12px;margin-bottom:4px;color:#E0F2FE}
-.hero-weekbars{height:34px}
-.hero-bar-count{font-size:10px;margin-bottom:2px}
-.hero-weekdays{font-size:10px;margin-top:4px}
-#dashView .quick-links{grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
-#dashView .quick-link{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);padding:6px 4px;border-radius:12px}
-#dashView .quick-link .ql-label{font-size:11px;color:#94A3B8}
-#dashView .quick-link .ql-count{font-size:15px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin-top:1px;color:var(--dash-accent)}
-#dashView .quick-link .ql-sub{font-size:10px;color:#94A3B8}
-#dashView #weekSummary{background:rgba(148,197,255,.06);border:1px solid rgba(148,197,255,.16);color:#CBD5E1;font-size:11px;margin:6px 0 0}
-#dashView #targetLine{background:rgba(251,191,36,.12)!important;border:1px solid rgba(251,191,36,.28);color:#FDE68A;font-size:11px;margin:6px 0 0}
-@media(max-width:480px){
-.wrap{margin-top:12px}
-#mainView>.card{padding:12px}
-#mainView .user-bar{padding:6px 10px;font-size:12px}
-#mainView .user-bar .btn{min-height:28px;padding:5px 10px;font-size:12px}
-}
-@media(max-width:360px){.dash-tile .dash-num-sm{font-size:14px}.dash-frac-cell b{font-size:26px}}
+/* --- digital dashboard animation (2026-11-10): stat numbers count up
+   (JS setStatNum, ~800ms), tiles glow-pulse softly, and a segmented
+   digital meter bar under the stat section lights up in sequence.
+   Subtle; no layout change, mobile fit untouched. --- */
+.stat{animation:digiGlow 2.6s ease-in-out infinite}
+@keyframes digiGlow{0%,100%{box-shadow:0 0 0 rgba(56,189,248,0)}50%{box-shadow:0 0 16px rgba(56,189,248,.30)}}
+.digi-meter{display:flex;gap:3px;margin-top:12px}
+.digi-meter i{flex:1;height:6px;border-radius:2px;background:#0284C7;opacity:.18;animation:digiSeg 2.4s ease-in-out infinite}
+.digi-meter i:nth-child(1){animation-delay:0s}
+.digi-meter i:nth-child(2){animation-delay:.2s}
+.digi-meter i:nth-child(3){animation-delay:.4s}
+.digi-meter i:nth-child(4){animation-delay:.6s}
+.digi-meter i:nth-child(5){animation-delay:.8s}
+.digi-meter i:nth-child(6){animation-delay:1s}
+.digi-meter i:nth-child(7){animation-delay:1.2s}
+.digi-meter i:nth-child(8){animation-delay:1.4s}
+.digi-meter i:nth-child(9){animation-delay:1.6s}
+.digi-meter i:nth-child(10){animation-delay:1.8s}
+.digi-meter i:nth-child(11){animation-delay:2s}
+.digi-meter i:nth-child(12){animation-delay:2.2s}
+.tod-noon .digi-meter i{background:#0284C7}
+.tod-afternoon .digi-meter i{background:#EA580C}
+.tod-evening .digi-meter i{background:#9333EA}
+.tod-night .digi-meter i{background:#38BDF8}
+/* --- % figures on the big stat cards (kept from the % labels, PR #68): small figures under the card labels, NOT progress bars --- */
+.stat-pct{display:block;font-size:11px;font-weight:800;color:#0284C7;margin-top:4px}
+.stats-grid .stat-pct span{font-size:11px;font-weight:800;color:#0284C7}
 @media(max-width:480px){
 #loginHero{padding:20px 16px 56px}
 #loginHero .hero-title{font-size:18px}
 #loginCard{margin-top:-40px}
 .stats-grid.tiles{grid-template-columns:1fr}
+.hero-greet-text{font-size:15px}
 }
 /* --- desktop full-height (2026-11-10): short pages fill the viewport, no gap below --- */
 /* Root cause: .wrap's height was content-driven, so on a tall desktop viewport the
@@ -400,6 +339,7 @@ html.tod-noon body,body.tod-noon{background:linear-gradient(180deg,#F0F9FF 0%,#E
 .tod-noon .top{background:linear-gradient(135deg,#0369A1,#0C4A6E);border-bottom:3px solid #FBBF24}
 .tod-noon #loginHero{background:linear-gradient(135deg,#7DD3FC 0%,#0284C7 55%,#075985 100%)}
 .tod-noon #loginHero::after{right:-10px;top:-70px;width:170px;height:170px;background:radial-gradient(circle,#FEF9C3 0%,#FDE047 45%,#FACC15 65%,rgba(250,204,21,0) 75%);opacity:1;box-shadow:0 0 60px 20px rgba(253,224,71,.5)}
+.tod-noon .hero-greet{background:linear-gradient(135deg,#0369A1,#0C4A6E);border-bottom:3px solid #FBBF24}
 .tod-noon #digiLoader{background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 55%,#FEF9C3 100%)}
 .tod-noon .digi-count{color:#075985}
 .tod-noon .btn-primary{background:linear-gradient(135deg,#0284C7,#0C4A6E)}
@@ -419,6 +359,7 @@ html.tod-afternoon body,body.tod-afternoon{background:linear-gradient(180deg,#FF
 .tod-afternoon .top{background:linear-gradient(135deg,#C2410C,#7C2D12);border-bottom:3px solid #FDBA74}
 .tod-afternoon #loginHero{background:linear-gradient(135deg,#FDBA74 0%,#F97316 55%,#9A3412 100%)}
 .tod-afternoon #loginHero::after{right:-20px;top:10px;width:150px;height:150px;background:radial-gradient(circle,#FEF3C7 0%,#FDBA74 45%,#F97316 65%,rgba(249,115,22,0) 75%);opacity:1}
+.tod-afternoon .hero-greet{background:linear-gradient(135deg,#EA580C,#9A3412);border-bottom:3px solid #FDBA74}
 .tod-afternoon #digiLoader{background:linear-gradient(180deg,#FFEDD5 0%,#FEF3C7 60%,#FDE68A 100%)}
 .tod-afternoon .digi-count{color:#9A3412}
 .tod-afternoon .digi-title{color:#9A3412}
@@ -442,6 +383,7 @@ html.tod-evening body,body.tod-evening{background:linear-gradient(180deg,#F5F3FF
 .tod-evening .top{background:linear-gradient(135deg,#7C3AED,#4C1D95);border-bottom:3px solid #FB7185}
 .tod-evening #loginHero{background:linear-gradient(135deg,#C084FC 0%,#9333EA 55%,#4C1D95 100%)}
 .tod-evening #loginHero::after{right:10px;top:70px;width:140px;height:140px;background:radial-gradient(circle,#FDE68A 0%,#FB923C 40%,#DC2626 65%,rgba(220,38,38,0) 75%);opacity:1}
+.tod-evening .hero-greet{background:linear-gradient(135deg,#9333EA,#4C1D95);border-bottom:3px solid #FB7185}
 .tod-evening #digiLoader{background:linear-gradient(180deg,#EDE9FE 0%,#FCE7F3 55%,#FED7AA 100%)}
 .tod-evening .digi-count{color:#6B21A8}
 .tod-evening .digi-title{color:#6B21A8}
@@ -466,6 +408,8 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 .tod-night #loginHero{background:linear-gradient(135deg,#1E3A5F 0%,#0F172A 70%,#020617 100%)}
 .tod-night #loginHero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 28% 68%,#fff,transparent),radial-gradient(1.5px 1.5px at 44% 30%,#fff,transparent),radial-gradient(1px 1px at 62% 55%,#fff,transparent),radial-gradient(1.5px 1.5px at 78% 20%,#fff,transparent),radial-gradient(1px 1px at 88% 60%,#fff,transparent),radial-gradient(1px 1px at 55% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 8% 55%,#fff,transparent);opacity:.9}
 .tod-night #loginHero::after{right:-20px;top:-30px;width:120px;height:120px;background:radial-gradient(circle at 35% 35%,#FFFFFF 0%,#E2E8F0 50%,#94A3B8 80%);box-shadow:0 0 40px 10px rgba(226,232,240,.35);opacity:1}
+.tod-night .hero-greet{background:linear-gradient(135deg,#1E3A5F,#0F172A);border-bottom:3px solid #38BDF8}
+.tod-night .hero-greet-sub{color:#BAE6FD}
 .tod-night #digiLoader{background:linear-gradient(180deg,#0F172A 0%,#1E293B 60%,#334155 100%)}
 .tod-night .digi-count{color:#E0F2FE}
 .tod-night .digi-title{color:#E0F2FE}
@@ -504,6 +448,7 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 .tod-night .stats-grid.tiles .stat{background:#0F172A;border:1px solid #334155}
 .tod-night .stat b{color:#E0F2FE}
 .tod-night .stat span{color:#CBD5E1}
+.tod-night .stats-grid .stat-pct,.tod-night .stats-grid .stat-pct span{color:#7DD3FC}
 .tod-night .stats-grid.hero .stat svg,.tod-night .stats-grid.tiles .stat svg{stroke:#38BDF8}
 .tod-night .s-blue{background:rgba(56,189,248,.16)!important;border:1px solid rgba(56,189,248,.35)!important}
 .tod-night .s-green{background:rgba(74,222,128,.14)!important;border:1px solid rgba(74,222,128,.35)!important}
@@ -542,14 +487,27 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 <div id="mainView" style="display:none">
 <div class="card"><div class="row user-bar" style="justify-content:space-between"><span><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <b id="userEmail"></b> • <span id="agentLabel"></span></span><button class="btn btn-light btn-sm" id="logoutBtn">লগআউট</button></div>
 <div id="dashView">
-<div class="dash-datebar" id="dashDateBar"><div class="dash-date-row"><button class="btn btn-light" id="prevDayBtn" aria-label="আগের দিন"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light dash-date-btn" id="dateBtn"></button><button class="btn btn-light" id="nextDayBtn" aria-label="পরের দিন"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button><button class="btn btn-light btn-sm" id="dashTodayBtn">আজ</button></div><div class="dash-greet"><span id="heroGreetText">স্বাগতম 👋</span></div></div>
-<div class="dash-hero"><div class="dash-hero-head"><span class="dash-label">মোট নাম্বার</span><b class="dash-pct" id="heroPct">০%</b></div><div class="dash-frac"><div class="dash-frac-cell"><b id="heroCalls">0</b><span>কল হয়েছে</span></div><span class="dash-frac-sep">/</span><div class="dash-frac-cell"><b id="heroNums">0</b><span>মোট</span></div></div><div class="dash-pend"><span class="dash-pend-label">পেন্ডিং</span><b id="heroRemain">0</b></div></div>
-<div class="dash-bars"><div class="stat dash-bar-tile"><div class="dash-tile-head"><span class="dash-label">কানেক্টেড</span><b class="dash-pct dash-pct-mini" id="connPct">০%</b></div><b class="dash-num" id="stConn">0</b><span class="dash-sub" id="ncTap"><b id="stNotConn">0</b> নট কানেক্টেড</span></div><div class="stat dash-bar-tile"><div class="dash-tile-head"><span class="dash-label">এফটিডি</span><b class="dash-pct dash-pct-mini" id="ftdPct">০%</b></div><div class="dash-ftd-nums"><b class="dash-num" id="stFtd">0</b><b class="dash-amt" id="stFtdAmt">৳0</b></div><span class="dash-sub" id="ftdBarSub">0 FTD / 0 রেজিস্ট্রেশন</span><div class="dash-man"><small id="stFtdMan" style="display:none"></small><small id="stFtdAmtMan" style="display:none"></small></div></div></div>
-<div class="dash-tiles"><div class="stat dash-tile"><span class="dash-label">রেজিস্ট্রেশন</span><b class="dash-num-sm" id="stReg">0</b><small id="stRegMan" style="display:none"></small></div><div class="stat dash-tile"><span class="dash-label">Valid</span><b class="dash-num-sm" id="stValid">0</b></div><div class="stat dash-tile"><span class="dash-label">Invalid</span><b class="dash-num-sm" id="stInv">0</b></div><div class="stat dash-tile"><span class="dash-label">জমা</span><b class="dash-num-sm" id="stDepAmt">৳0</b></div></div>
-<div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
+<div class="hero-greet" id="heroGreet"><span class="hero-greet-text" id="heroGreetText">স্বাগতম 👋</span><span class="hero-greet-sub">আজকের হিসাব দেখে নিন</span></div>
+<div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button><button class="btn btn-light btn-sm" id="dashTodayBtn">আজ</button></div>
+<div class="row stats-grid hero" style="margin-top:12px">
+<div class="stat s-blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><b id="heroCalls">0</b><span>মোট কল (এই দিন)</span></div>
+<div class="stat s-violet"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><b id="heroNums">0</b><span>মোট নাম্বার (লিস্ট)</span><small class="stat-pct"><span id="heroPct">০%</span> কল হয়েছে</small></div>
+<div class="stat s-rose"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><b id="heroRemain">0</b><span>মোট বাকি</span></div>
+</div>
+<div class="row stats-grid tiles" style="margin-top:12px">
+<div class="stat s-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14 9 11"/></svg><div><b id="stConn">0</b><span>Connected</span><small class="stat-pct"><span id="connPct">০%</span> কানেক্টেড</small></div></div>
+<div class="stat s-violet" id="ncTap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/><line x1="2" y1="2" x2="22" y2="22"/></svg><div><b id="stNotConn">0</b><span>Not Connected</span></div></div>
+<div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b id="stValid">0</b><span>Valid</span></div></div>
+<div class="stat s-rose"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><b id="stInv">0</b><span>Invalid</span></div></div>
+<div class="stat s-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg><div><b id="stFtd">0</b><span>এফটিডি</span><small class="stat-pct"><span id="ftdPct">০%</span> এফটিডি</small><small id="stFtdMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
+<div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><div><b id="stFtdAmt">৳0</b><span>এফটিডি টাকা</span><small id="stFtdAmtMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
+<div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg><div><b id="stReg">0</b><span>রেজিস্ট্রেশন</span><small id="stRegMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
+</div>
+<div class="digi-meter" id="digiMeter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">পেন্ডিং</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div></div>
 <p class="muted" id="weekSummary"></p>
-<p class="muted" id="targetLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:6px 10px"></p>
+<div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
+<p class="muted" id="targetLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px"></p>
 <div class="card" id="remindCard" style="display:none;margin-top:12px;padding:14px 16px"><b>মনে করিয়ে দেওয়া</b><div id="remindList" style="margin-top:8px"></div></div>
 </div>
 <div id="listView" style="display:none">
