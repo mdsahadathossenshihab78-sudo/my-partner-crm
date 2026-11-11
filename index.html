@@ -1563,9 +1563,12 @@ function setTileSub(id,text){ const el=$(id); if(!el) return; if(text){ el.textC
 function applyStatTiles(){
   const d=selectedDate||dhakaToday();
   const auto=statsForDate(d);
-  const headFtd=auto?auto.ftd:manFtd;
-  const headAmt=auto?auto.amt:manFtdAmt;
-  const headReg=auto?auto.reg:manReg;
+  // v7.5: Dashboard headline = manual (Report) + auto (Commission Stats).
+  // Age AUTO thakle manual bad jeto — ekhon manual jog hobe, tai Report-e
+  // submit kora FTD/Registration Dashboard-e count hobe.
+  const headFtd=manFtd+(auto?auto.ftd:0);
+  const headAmt=manFtdAmt+(auto?auto.amt:0);
+  const headReg=manReg+(auto?auto.reg:0);
   setStatNum($('stFtd'),headFtd);
   setStatNum($('stFtdAmt'),headAmt,{prefix:'৳',fmt:fmtAmt});
   setStatNum($('stReg'),headReg);
