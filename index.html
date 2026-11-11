@@ -4,6 +4,7 @@
 <title>Telesales Agent CRM</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
 html,body{overflow-x:clip}
@@ -250,10 +251,6 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 .digi-meter i:nth-child(10){animation-delay:1.8s}
 .digi-meter i:nth-child(11){animation-delay:2s}
 .digi-meter i:nth-child(12){animation-delay:2.2s}
-.tod-noon .digi-meter i{background:#0284C7}
-.tod-afternoon .digi-meter i{background:#EA580C}
-.tod-evening .digi-meter i{background:#9333EA}
-.tod-night .digi-meter i{background:#38BDF8}
 /* --- % figures on the big stat cards (kept from the % labels, PR #68): small figures under the card labels, NOT progress bars --- */
 .stat-pct{display:block;font-size:11px;font-weight:800;color:#0284C7;margin-top:4px}
 .stats-grid .stat-pct span{font-size:11px;font-weight:800;color:#0284C7}
@@ -322,141 +319,180 @@ button:focus-visible,a:focus-visible{outline:2px solid #38BDF8;outline-offset:2p
 .stats-grid.hero .stat span{font-size:11px}
 }
 
-/* ===== TIME-OF-DAY THEME (2026-11-10) =====
-   The site follows Dhaka time automatically: the sun/moon, greeting, loading
-   screen and colours change with the time of day. Bands (Asia/Dhaka):
-   morning 05:00–11:00 (the base sky-blue look IS morning — no overrides),
-   noon 11:00–15:00, afternoon 15:00–17:30, evening 17:30–19:30,
-   night 19:30–05:00. The tod-* class lives on <html> (set by a tiny head
-   script before first paint, and by applyTimeTheme(), which re-checks every
-   5 minutes so a page left open follows the time without a reload).
-   The call list keeps its Energy Sales (cream + orange) look in every band:
-   its rules are scoped to #listView (ID specificity) and none of the rules
-   below touch #listView, .chip, .btn-light or the
-   row buttons. */
-/* --- noon (11:00–15:00): brightest sky, high sun --- */
-html.tod-noon body,body.tod-noon{background:linear-gradient(180deg,#F0F9FF 0%,#E0F2FE 40%,#FEF9C3 100%)}
-.tod-noon .top{background:linear-gradient(135deg,#0369A1,#0C4A6E);border-bottom:3px solid #FBBF24}
-.tod-noon #loginHero{background:linear-gradient(135deg,#7DD3FC 0%,#0284C7 55%,#075985 100%)}
-.tod-noon #loginHero::after{right:-10px;top:-70px;width:170px;height:170px;background:radial-gradient(circle,#FEF9C3 0%,#FDE047 45%,#FACC15 65%,rgba(250,204,21,0) 75%);opacity:1;box-shadow:0 0 60px 20px rgba(253,224,71,.5)}
-.tod-noon .hero-greet{background:linear-gradient(135deg,#0369A1,#0C4A6E);border-bottom:3px solid #FBBF24}
-.tod-noon #digiLoader{background:linear-gradient(180deg,#E0F2FE 0%,#F0F9FF 55%,#FEF9C3 100%)}
-.tod-noon .digi-count{color:#075985}
-.tod-noon .btn-primary{background:linear-gradient(135deg,#0284C7,#0C4A6E)}
-.tod-noon .btn-grad{background:linear-gradient(135deg,#FBBF24,#EA580C)}
-.tod-noon .bottom-menu button.on{background:linear-gradient(135deg,#0284C7,#0C4A6E)}
-.tod-noon .card h2,.tod-noon .card h3{color:#0C4A6E}
-.tod-noon label{color:#0C4A6E}
-.tod-noon .stats-grid.hero .stat{border-top:4px solid #0284C7}
-.tod-noon .stats-grid.hero .stat svg,.tod-noon .stats-grid.tiles .stat svg{stroke:#0284C7}
-.tod-noon .hero-week-title{color:#0C4A6E}
-.tod-noon .quick-link .ql-label{color:#0C4A6E}
-.tod-noon .quick-link .ql-count{color:#0284C7}
-.tod-noon .footer-card{border-color:#FBBF24}
-.tod-noon input:focus,.tod-noon select:focus,.tod-noon textarea:focus{outline:2px solid #0284C7;border-color:#0284C7}
-/* --- afternoon (15:00–17:30): warm golden, sun lower --- */
-html.tod-afternoon body,body.tod-afternoon{background:linear-gradient(180deg,#FFFBEB 0%,#FEF3C7 45%,#FFEDD5 100%)}
-.tod-afternoon .top{background:linear-gradient(135deg,#C2410C,#7C2D12);border-bottom:3px solid #FDBA74}
-.tod-afternoon #loginHero{background:linear-gradient(135deg,#FDBA74 0%,#F97316 55%,#9A3412 100%)}
-.tod-afternoon #loginHero::after{right:-20px;top:10px;width:150px;height:150px;background:radial-gradient(circle,#FEF3C7 0%,#FDBA74 45%,#F97316 65%,rgba(249,115,22,0) 75%);opacity:1}
-.tod-afternoon .hero-greet{background:linear-gradient(135deg,#EA580C,#9A3412);border-bottom:3px solid #FDBA74}
-.tod-afternoon #digiLoader{background:linear-gradient(180deg,#FFEDD5 0%,#FEF3C7 60%,#FDE68A 100%)}
-.tod-afternoon .digi-count{color:#9A3412}
-.tod-afternoon .digi-title{color:#9A3412}
-.tod-afternoon .digi-sub{color:#9A3412}
-.tod-afternoon .digi-bar i{background:#EA580C}
-.tod-afternoon .btn-primary{background:linear-gradient(135deg,#EA580C,#9A3412)}
-.tod-afternoon .btn-grad{background:linear-gradient(135deg,#F97316,#DC2626)}
-.tod-afternoon .bottom-menu button.on{background:linear-gradient(135deg,#EA580C,#9A3412)}
-.tod-afternoon .card h2,.tod-afternoon .card h3{color:#9A3412}
-.tod-afternoon label{color:#9A3412}
-.tod-afternoon .stats-grid.hero .stat{border-top:4px solid #F97316}
-.tod-afternoon .stats-grid.hero .stat svg,.tod-afternoon .stats-grid.tiles .stat svg{stroke:#EA580C}
-.tod-afternoon .hero-week-title{color:#9A3412}
-.tod-afternoon .quick-link .ql-label{color:#9A3412}
-.tod-afternoon .quick-link .ql-count{color:#EA580C}
-.tod-afternoon .hero-bar{background:#FB923C}
-.tod-afternoon .footer-card{border-color:#F97316}
-.tod-afternoon input:focus,.tod-afternoon select:focus,.tod-afternoon textarea:focus{outline:2px solid #EA580C;border-color:#EA580C}
-/* --- evening (17:30–19:30): dusk purple-orange, setting sun --- */
-html.tod-evening body,body.tod-evening{background:linear-gradient(180deg,#F5F3FF 0%,#FCE7F3 45%,#FDE68A 100%)}
-.tod-evening .top{background:linear-gradient(135deg,#7C3AED,#4C1D95);border-bottom:3px solid #FB7185}
-.tod-evening #loginHero{background:linear-gradient(135deg,#C084FC 0%,#9333EA 55%,#4C1D95 100%)}
-.tod-evening #loginHero::after{right:10px;top:70px;width:140px;height:140px;background:radial-gradient(circle,#FDE68A 0%,#FB923C 40%,#DC2626 65%,rgba(220,38,38,0) 75%);opacity:1}
-.tod-evening .hero-greet{background:linear-gradient(135deg,#9333EA,#4C1D95);border-bottom:3px solid #FB7185}
-.tod-evening #digiLoader{background:linear-gradient(180deg,#EDE9FE 0%,#FCE7F3 55%,#FED7AA 100%)}
-.tod-evening .digi-count{color:#6B21A8}
-.tod-evening .digi-title{color:#6B21A8}
-.tod-evening .digi-sub{color:#7E22CE}
-.tod-evening .digi-bar i{background:#9333EA}
-.tod-evening .btn-primary{background:linear-gradient(135deg,#7C3AED,#4C1D95)}
-.tod-evening .btn-grad{background:linear-gradient(135deg,#EC4899,#7C3AED)}
-.tod-evening .bottom-menu button.on{background:linear-gradient(135deg,#7C3AED,#4C1D95)}
-.tod-evening .card h2,.tod-evening .card h3{color:#6B21A8}
-.tod-evening label{color:#6B21A8}
-.tod-evening .stats-grid.hero .stat{border-top:4px solid #9333EA}
-.tod-evening .stats-grid.hero .stat svg,.tod-evening .stats-grid.tiles .stat svg{stroke:#9333EA}
-.tod-evening .hero-week-title{color:#6B21A8}
-.tod-evening .quick-link .ql-label{color:#6B21A8}
-.tod-evening .quick-link .ql-count{color:#9333EA}
-.tod-evening .hero-bar{background:#C084FC}
-.tod-evening .footer-card{border-color:#9333EA}
-.tod-evening input:focus,.tod-evening select:focus,.tod-evening textarea:focus{outline:2px solid #9333EA;border-color:#9333EA}
-/* --- night (19:30–05:00): dark sky, moon + stars --- */
-html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,#1E293B 45%,#0F172A 100%);color:#E2E8F0}
-.tod-night .top{background:linear-gradient(135deg,#1E293B,#0F172A);border-bottom:3px solid #38BDF8}
-.tod-night #loginHero{background:linear-gradient(135deg,#1E3A5F 0%,#0F172A 70%,#020617 100%)}
-.tod-night #loginHero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 28% 68%,#fff,transparent),radial-gradient(1.5px 1.5px at 44% 30%,#fff,transparent),radial-gradient(1px 1px at 62% 55%,#fff,transparent),radial-gradient(1.5px 1.5px at 78% 20%,#fff,transparent),radial-gradient(1px 1px at 88% 60%,#fff,transparent),radial-gradient(1px 1px at 55% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 8% 55%,#fff,transparent);opacity:.9}
-.tod-night #loginHero::after{right:-20px;top:-30px;width:120px;height:120px;background:radial-gradient(circle at 35% 35%,#FFFFFF 0%,#E2E8F0 50%,#94A3B8 80%);box-shadow:0 0 40px 10px rgba(226,232,240,.35);opacity:1}
-.tod-night .hero-greet{background:linear-gradient(135deg,#1E3A5F,#0F172A);border-bottom:3px solid #38BDF8}
-.tod-night .hero-greet-sub{color:#BAE6FD}
-.tod-night #digiLoader{background:linear-gradient(180deg,#0F172A 0%,#1E293B 60%,#334155 100%)}
-.tod-night .digi-count{color:#E0F2FE}
-.tod-night .digi-title{color:#E0F2FE}
-.tod-night .digi-sub{color:#94A3B8}
-.tod-night .digi-bar{background:rgba(56,189,248,.25)}
-.tod-night .digi-bar i{background:#38BDF8}
-.tod-night .btn-primary{background:linear-gradient(135deg,#0EA5E9,#0369A1)}
-.tod-night .btn-grad{background:linear-gradient(135deg,#38BDF8,#0284C7)}
-.tod-night .bottom-menu button.on{background:linear-gradient(135deg,#0EA5E9,#0369A1)}
-.tod-night .bottom-menu{background:rgba(15,23,42,.97);border-top:1px solid #334155}
-.tod-night .bottom-menu button{color:#94A3B8}
-.tod-night .card{background:#1E293B;border:1px solid #334155;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-.tod-night .card h2,.tod-night .card h3{color:#BAE6FD}
-.tod-night .muted{color:#94A3B8}
-.tod-night label{color:#BAE6FD}
-.tod-night input,.tod-night select,.tod-night textarea{background:#0F172A;border:1px solid #334155;color:#F1F5F9}
-.tod-night input::placeholder,.tod-night textarea::placeholder{color:#64748B}
-.tod-night input:focus,.tod-night select:focus,.tod-night textarea:focus{outline:2px solid #38BDF8;border-color:#38BDF8}
-.tod-night .report{border:1px solid #334155;background:#0F172A}
-.tod-night pre.out{background:#0F172A;border:1px solid #334155;color:#E2E8F0}
-.tod-night .entry{border-bottom:1px solid #334155}
-.tod-night .guide-sec p{color:#CBD5E1}
-.tod-night .user-bar{background:#0F172A;border:1px solid #334155}
-.tod-night #agentLabel{background:#334155;color:#FDE68A}
-.tod-night #weekSummary{background:#0F172A;border:1px solid #334155;color:#CBD5E1}
-.tod-night .hero-week{background:#0F172A;border:1px solid #334155}
-.tod-night .hero-week-title{color:#BAE6FD}
-.tod-night .hero-bar{background:#38BDF8}
-.tod-night .hero-bar-count{color:#CBD5E1}
-.tod-night .hero-weekdays{color:#94A3B8}
-.tod-night .quick-link{background:#0F172A;border:1px solid #334155}
-.tod-night .quick-link .ql-label{color:#BAE6FD}
-.tod-night .quick-link .ql-count{color:#38BDF8}
-.tod-night .quick-link .ql-sub{color:#94A3B8}
-.tod-night .stats-grid.hero .stat{background:#0F172A;border:1px solid #334155;border-top:4px solid #38BDF8}
-.tod-night .stats-grid.tiles .stat{background:#0F172A;border:1px solid #334155}
-.tod-night .stat b{color:#E0F2FE}
-.tod-night .stat span{color:#CBD5E1}
-.tod-night .stats-grid .stat-pct,.tod-night .stats-grid .stat-pct span{color:#7DD3FC}
-.tod-night .stats-grid.hero .stat svg,.tod-night .stats-grid.tiles .stat svg{stroke:#38BDF8}
-.tod-night .s-blue{background:rgba(56,189,248,.16)!important;border:1px solid rgba(56,189,248,.35)!important}
-.tod-night .s-green{background:rgba(74,222,128,.14)!important;border:1px solid rgba(74,222,128,.35)!important}
-.tod-night .s-rose{background:rgba(251,113,133,.14)!important;border:1px solid rgba(251,113,133,.35)!important}
-.tod-night .s-violet{background:rgba(250,204,21,.14)!important;border:1px solid rgba(250,204,21,.35)!important}
-.tod-night .xbtn{background:#334155;color:#E0F2FE}
-.tod-night .footer-card{border-color:#38BDF8}
-.tod-night .toast{background:#0F172A}
+/* ===== DESIGN #2 — ENERGY ORANGE (2026-11-11) =====
+   Same-to-same reskin per DESIGN2_SPEC.md (board .d2).
+   Replaces the time-of-day colour theme: every band uses the Design #2
+   light tokens; night (tod-night, 19:30–05:00 Dhaka) uses the Design #2
+   dark tokens. The greeting TEXT still changes by time (JS applyTimeTheme);
+   only the colours are Design #2. No JS changed. */
+:root{
+  --d2-bg:#f6ead3; --d2-surface:#fffaf0; --d2-surface2:#fdeeda;
+  --d2-ink:#2e1c10; --d2-muted:#8a6a52; --d2-line:#2e1c10;
+  --d2-accent:#f06414; --d2-accent2:#ffb03a; --d2-hard:#2e1c10;
+  --d2-on-accent:#ffffff;
+  --d2-shadow:5px 5px 0 rgba(46,28,16,.85);
+  --d2-shadow-sm:3px 3px 0 rgba(46,28,16,.85);
+  --d2-shadow-lg:10px 10px 0 rgba(46,28,16,.85);
+  --d2-shadow-row:4px 4px 0 rgba(46,28,16,.85);
+}
+html.tod-night,body.tod-night{
+  --d2-bg:#211308; --d2-surface:#2d1a0c; --d2-surface2:#3a2110;
+  --d2-ink:#ffeeda; --d2-muted:#c9a582; --d2-line:#ffeeda;
+  --d2-accent:#ff7d2a; --d2-accent2:#ffb03a; --d2-hard:#000000;
+  --d2-on-accent:#2e1c10;
+  --d2-shadow:5px 5px 0 rgba(0,0,0,.9);
+  --d2-shadow-sm:3px 3px 0 rgba(0,0,0,.9);
+  --d2-shadow-lg:10px 10px 0 rgba(0,0,0,.9);
+  --d2-shadow-row:4px 4px 0 rgba(0,0,0,.9);
+}
+/* --- page --- */
+body{background:var(--d2-bg);color:var(--d2-ink);font-family:'Hind Siliguri',system-ui,-apple-system,'Noto Sans Bengali',sans-serif}
+/* --- header --- */
+.top{background:var(--d2-accent);border-bottom:2.5px solid var(--d2-line);-webkit-backdrop-filter:none;backdrop-filter:none}
+.top h1{color:var(--d2-on-accent);font-size:21px;font-weight:700;letter-spacing:.01em}
+.top p{color:var(--d2-on-accent);opacity:.85;font-size:13px;font-weight:500}
+.top .logo-badge svg{width:44px;height:44px}
+.top .logo-badge rect{fill:var(--d2-hard);stroke:none}
+.top .logo-badge text{fill:var(--d2-accent2)}
+.top .logo-badge path{stroke:var(--d2-accent2)}
+/* --- cards --- */
+.card{background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:12px;box-shadow:var(--d2-shadow)}
+.card h2,.card h3{color:var(--d2-ink);font-size:17px;font-weight:700}
+.muted{color:var(--d2-muted);font-size:13px}
+/* --- buttons --- */
+.btn{border:2px solid var(--d2-line);border-radius:12px;box-shadow:var(--d2-shadow-sm);background:var(--d2-surface);color:var(--d2-ink);font-family:inherit}
+.btn-primary{background:var(--d2-accent);color:var(--d2-on-accent)}
+.btn-light{background:var(--d2-surface);color:var(--d2-ink)}
+.btn-grad{background:var(--d2-accent);color:var(--d2-on-accent)}
+/* --- inputs --- */
+input,select,textarea{background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:12px;color:var(--d2-ink);font-family:inherit}
+input::placeholder,textarea::placeholder{color:var(--d2-muted)}
+label{color:var(--d2-ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--d2-accent);outline-offset:1px;border-color:var(--d2-accent)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--d2-accent);outline-offset:2px}
+/* --- chips --- */
+.chip{background:var(--d2-surface);border:1.5px solid var(--d2-line);color:var(--d2-ink);border-radius:8px;min-height:36px;padding:5px 12px;font-size:13px;font-weight:600;box-shadow:var(--d2-shadow-sm)}
+.chip-off{background:var(--d2-surface);border-color:var(--d2-line);color:var(--d2-ink)}
+.chip.chip-on-green{background:#e2f4e8;border:1.5px solid #9fd8b4;color:#0d7a3f;box-shadow:var(--d2-shadow-sm)}
+.chip.chip-on-rose{background:#fdeaea;border:1.5px solid #f2b8b5;color:#b3261e;box-shadow:var(--d2-shadow-sm)}
+.chip.chip-on-blue{background:#e3edfd;border:1.5px solid #aecbf5;color:#1757c2;box-shadow:var(--d2-shadow-sm)}
+.chip.chip-on-grey{background:#eceff1;border:1.5px solid #c3ced4;color:#546e7a;box-shadow:var(--d2-shadow-sm)}
+html.tod-night .chip.chip-on-green{background:#123526;border-color:#1f5c3d;color:#5fd598}
+html.tod-night .chip.chip-on-rose{background:#3d1a18;border-color:#6e2a26;color:#ff9d94}
+html.tod-night .chip.chip-on-blue{background:#16294d;border-color:#2c4d8a;color:#8db4f7}
+html.tod-night .chip.chip-on-grey{background:#232a2e;border-color:#3a464d;color:#9fb3bd}
+/* --- badges --- */
+.badge{background:var(--d2-surface2);color:var(--d2-ink);border:1.5px solid var(--d2-line);border-radius:8px}
+.badge-ok{background:#0d7a3f;color:#fff}
+.badge-no{background:#b3261e;color:#fff}
+.badge-blank{background:#8a6a52;color:#fff}
+html.tod-night .badge-ok{background:#1f5c3d}
+html.tod-night .badge-no{background:#6e2a26}
+html.tod-night .badge-blank{background:#3a464d}
+/* --- stat cards (Dashboard) --- */
+.stats-grid.hero{grid-template-columns:repeat(4,1fr);gap:14px}
+.stat{animation:none}
+.stats-grid.hero .stat{background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:12px;box-shadow:var(--d2-shadow);padding:15px 16px;text-align:left}
+.stats-grid.hero .stat b{font-size:38px;font-weight:700;line-height:1.05;color:var(--d2-ink);display:block}
+.stats-grid.hero .stat span{font-size:14px;font-weight:600;color:var(--d2-muted);display:block}
+.stats-grid.hero .stat small{font-size:13px;color:var(--d2-muted);display:block}
+.stats-grid.hero .stat.stat-hero{background:var(--d2-accent)}
+.stats-grid.hero .stat.stat-hero b{color:var(--d2-on-accent)}
+.stats-grid.hero .stat.stat-hero span{color:var(--d2-on-accent);opacity:.9}
+.stats-grid.hero .stat.stat-hero small{color:var(--d2-on-accent);opacity:.85}
+/* --- FTD band --- */
+.ftd-band{display:flex;flex-wrap:wrap;gap:12px 36px;background:var(--d2-surface2);border:2px solid var(--d2-line);border-radius:12px;box-shadow:var(--d2-shadow);padding:16px 18px;margin-top:16px}
+.ftd-item{min-width:120px;padding:0;border:0;border-radius:0;box-shadow:none;background:none;animation:none}
+.ftd-item b{display:block;font-size:30px;font-weight:700;line-height:1;color:var(--d2-accent)}
+.ftd-item span{display:block;font-size:14px;font-weight:600;color:var(--d2-ink);margin-top:4px}
+.ftd-item small{display:block;font-size:13px;color:var(--d2-muted)}
+/* --- greeting (plain text, no banner) --- */
+.hero-greet{display:block;background:none;border:0;border-bottom:0;border-radius:0;box-shadow:none;padding:0;margin-top:0}
+.hero-greet-text{display:block;font-size:27px;font-weight:700;color:var(--d2-ink);line-height:1.2}
+.hero-greet-sub{display:block;font-size:15px;color:var(--d2-muted);margin-top:2px}
+/* --- chart --- */
+.hero-week{background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:12px;box-shadow:var(--d2-shadow);padding:17px 18px;margin-top:16px}
+.hero-week-title{font-size:17px;font-weight:700;color:var(--d2-ink)}
+.hero-bar{background:var(--d2-accent);border:2px solid var(--d2-line);border-radius:5px 5px 0 0;max-width:44px;margin:0 auto}
+.hero-bar-today{background:var(--d2-accent)}
+.hero-bar-count{font-size:13.5px;font-weight:600;color:var(--d2-ink)}
+.hero-weekdays{font-size:12.5px;color:var(--d2-muted)}
+.hero-week-loading .hero-bar{background:var(--d2-surface2)}
+.hero-week-loading .hero-bar-count{color:var(--d2-muted)}
+/* --- quick links --- */
+.quick-link{background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:12px;box-shadow:var(--d2-shadow);padding:12px 10px}
+.quick-link .ql-label{font-size:13px;font-weight:800;color:var(--d2-ink)}
+.quick-link .ql-count{font-size:20px;font-weight:800;color:var(--d2-accent)}
+.quick-link .ql-sub{font-size:11px;color:var(--d2-muted)}
+/* --- week summary / target / outbox / fail box --- */
+#weekSummary{background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:12px;padding:10px 12px;color:var(--d2-muted)}
+#targetLine{background:var(--d2-surface2)!important;color:var(--d2-ink);border:2px solid var(--d2-line);border-radius:10px}
+#outboxLine{background:var(--d2-surface2)!important;color:var(--d2-ink);border:2px solid var(--d2-line);border-radius:10px}
+#saveFailBox{background:#fdeaea!important;border:2px solid #b3261e!important;color:#b3261e;border-radius:10px}
+html.tod-night #saveFailBox{background:#3d1a18!important;border-color:#6e2a26!important;color:#ff9d94}
+/* --- call list --- */
+#listView .tab-on{background:var(--d2-accent)!important;color:var(--d2-on-accent)!important;border:2px solid var(--d2-line);border-radius:10px;box-shadow:var(--d2-shadow-sm);font-size:14.5px;font-weight:700;min-height:42px;padding:7px 16px}
+#listView #tabPendingBtn,#listView #tabDoneBtn{font-size:14.5px;font-weight:700;min-height:42px;padding:7px 16px;border:2px solid var(--d2-line);border-radius:10px;box-shadow:var(--d2-shadow-sm)}
+#listView #list .report{background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:12px;box-shadow:var(--d2-shadow-row);padding:12px 15px;margin-top:12px}
+#listView #list .report b{color:var(--d2-ink);font-size:18px;font-weight:700}
+#listView #list .report label{color:var(--d2-muted)}
+#listView #list .report input{background:var(--d2-surface);border:2px solid var(--d2-line);color:var(--d2-ink)}
+#listView #list .report input::placeholder{color:var(--d2-muted)}
+#listView #list .report input:focus{outline:2px solid var(--d2-accent);border-color:var(--d2-accent)}
+#listView #list .report input:disabled{background:var(--d2-surface2);color:var(--d2-muted)}
+#listView .call-btn{background:var(--d2-accent);border:2px solid var(--d2-line);color:var(--d2-on-accent);font-weight:800;width:46px;height:46px;min-width:46px;min-height:46px;padding:0;border-radius:12px;box-shadow:var(--d2-shadow-sm);display:inline-flex;align-items:center;justify-content:center;font-size:0}
+#listView .call-btn svg{width:20px;height:20px}
+#listView #list .report .btn-primary{background:var(--d2-accent);color:var(--d2-on-accent)}
+#listView #search{background:var(--d2-surface);border:2px solid var(--d2-line);color:var(--d2-ink)}
+#listView #search:focus{outline:2px solid var(--d2-accent);border-color:var(--d2-accent)}
+#listView #refreshBtn{background:var(--d2-surface);border:2px solid var(--d2-line);color:var(--d2-ink)}
+/* --- report + FTD entries --- */
+.entry{padding:10px 2px;border-bottom:2px dotted var(--d2-muted);font-size:15.5px}
+#ftdStepSummary{background:var(--d2-accent);color:var(--d2-on-accent);border:2px solid var(--d2-line);border-radius:10px;padding:11px 14px;margin-top:13px;font-size:16px;font-weight:700}
+#ftdUsersSummary{display:inline-block;background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:10px;box-shadow:var(--d2-shadow-sm);padding:7px 14px;font-size:14.5px;font-weight:700;color:var(--d2-ink)}
+#ftdUsersList .entry span{color:var(--d2-accent);font-size:17px;font-weight:700}
+#ftdUsersList .entry span b{color:var(--d2-ink)}
+#ftdUsersList .entry span small{color:var(--d2-muted);font-size:13px;font-weight:400}
+/* --- report output / misc --- */
+pre.out{background:var(--d2-surface);border:2px solid var(--d2-line);color:var(--d2-ink);border-radius:12px}
+.xbtn{background:var(--d2-surface2);color:var(--d2-ink);border:2px solid var(--d2-line)}
+.footer-card{border-color:var(--d2-accent)}
+.guide-sec p{color:var(--d2-ink)}
+/* --- login hero --- */
+#loginHero{background:var(--d2-accent);border-radius:18px 18px 0 0;border:2px solid var(--d2-line);border-bottom:0;color:var(--d2-on-accent)}
+#loginHero::after{background:radial-gradient(circle,#ffeeda 0%,#ffb03a 55%,rgba(255,176,58,0) 72%)}
+#loginHero .hero-eyebrow{color:var(--d2-accent2)}
+#loginHero .hero-title{color:var(--d2-on-accent)}
+/* --- user bar / sync / agent --- */
+.user-bar{background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:12px}
+#agentLabel{background:var(--d2-surface2);color:var(--d2-ink)}
+#syncStatus{background:var(--d2-surface2);color:var(--d2-ink);border:2px solid var(--d2-line);border-radius:10px}
+/* --- bottom menu --- */
+.bottom-menu{background:var(--d2-bg);border-top:2px solid var(--d2-line);-webkit-backdrop-filter:none;backdrop-filter:none}
+.bottom-menu button{color:var(--d2-muted);font-size:12px;font-weight:600;background:var(--d2-surface);border:2px solid var(--d2-line);border-radius:10px;box-shadow:var(--d2-shadow-sm);margin:2px}
+.bottom-menu button.on{background:var(--d2-ink);color:var(--d2-bg)}
+html.tod-night .bottom-menu button.on{background:var(--d2-accent);color:var(--d2-on-accent)}
+/* --- toast / loader --- */
+.toast{background:var(--d2-ink);color:var(--d2-bg)}
+#digiLoader{background:var(--d2-bg)}
+.digi-count{font-family:'Hind Siliguri',system-ui,sans-serif;color:var(--d2-ink)}
+.digi-count::after{content:"";font-size:20px}
+.digi-title{color:var(--d2-ink)}
+.digi-sub{color:var(--d2-muted)}
+.digi-bar i{background:var(--d2-accent)}
+/* --- removed Dashboard % / meter leftovers (elements are gone; hide any stray) --- */
+.stat-pct{display:none!important}
+.digi-meter{display:none!important}
+/* --- mobile (<=720px) --- */
+@media(max-width:720px){
+.stats-grid.hero{grid-template-columns:repeat(2,1fr)}
+.wrap{padding:0 14px}
+.top-inner{padding:0 14px}
+}
+@media(max-width:480px){
+.stats-grid.hero .stat b{font-size:38px}
+.top h1{font-size:21px}
+}
 </style></head><body>
 <div id="digiLoader"><div class="digi-count" id="digiCount">0</div><div class="digi-title">Telesales Status</div><div class="digi-sub" id="loaderSub">নতুন দিনের হিসাব উঠছে…</div><div class="digi-bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
@@ -490,20 +526,17 @@ html.tod-night body,body.tod-night{background:linear-gradient(180deg,#0F172A 0%,
 <div class="hero-greet" id="heroGreet"><span class="hero-greet-text" id="heroGreetText">স্বাগতম 👋</span><span class="hero-greet-sub">আজকের হিসাব দেখে নিন</span></div>
 <div class="row date-nav" style="margin-top:12px"><button class="btn btn-light" id="prevDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><button class="btn btn-light" id="dateBtn" style="flex:1"></button><button class="btn btn-light" id="nextDayBtn"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button><button class="btn btn-light btn-sm" id="dashTodayBtn">আজ</button></div>
 <div class="row stats-grid hero" style="margin-top:12px">
-<div class="stat s-blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><b id="heroCalls">0</b><span>মোট কল (এই দিন)</span></div>
-<div class="stat s-violet"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><b id="heroNums">0</b><span>মোট নাম্বার (লিস্ট)</span><small class="stat-pct"><span id="heroPct">০%</span> কল হয়েছে</small></div>
-<div class="stat s-rose"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><b id="heroRemain">0</b><span>মোট বাকি</span></div>
+<div class="stat"><b id="heroNums">0</b><span>মোট নাম্বার</span></div>
+<div class="stat"><b id="heroCalls">0</b><span>মোট কল</span></div>
+<div class="stat"><b id="stConn">0</b><span>Connected</span></div>
+<div class="stat stat-hero"><b id="stFtd">0</b><span>আজকের FTD</span><small id="stFtdMan" style="display:none;font-size:11px;opacity:.85"></small></div>
 </div>
-<div class="row stats-grid tiles" style="margin-top:12px">
-<div class="stat s-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14 9 11"/></svg><div><b id="stConn">0</b><span>Connected</span><small class="stat-pct"><span id="connPct">০%</span> কানেক্টেড</small></div></div>
-<div class="stat s-violet" id="ncTap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/><line x1="2" y1="2" x2="22" y2="22"/></svg><div><b id="stNotConn">0</b><span>Not Connected</span></div></div>
-<div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><div><b id="stValid">0</b><span>Valid</span></div></div>
-<div class="stat s-rose"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><b id="stInv">0</b><span>Invalid</span></div></div>
-<div class="stat s-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg><div><b id="stFtd">0</b><span>এফটিডি</span><small class="stat-pct"><span id="ftdPct">০%</span> এফটিডি</small><small id="stFtdMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
-<div class="stat s-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><div><b id="stFtdAmt">৳0</b><span>এফটিডি টাকা</span><small id="stFtdAmtMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
-<div class="stat s-violet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg><div><b id="stReg">0</b><span>রেজিস্ট্রেশন</span><small id="stRegMan" style="display:none;font-size:11px;opacity:.85"></small></div></div>
+<div class="ftd-band" style="margin-top:16px">
+<div class="stat ftd-item"><b id="stReg">0</b><span>রেজিস্ট্রেশন</span><small id="stRegMan" style="display:none;font-size:11px;opacity:.85"></small></div>
+<div class="stat ftd-item" id="ncTap"><b id="stNotConn">0</b><span>Not Connected</span></div>
+<div class="stat ftd-item"><b id="stFtdAmt">৳0</b><span>এফটিডি টাকা</span><small id="stFtdAmtMan" style="display:none;font-size:11px;opacity:.85"></small></div>
+<div class="stat ftd-item"><b id="stInv">0</b><span>Invalid</span></div>
 </div>
-<div class="digi-meter" id="digiMeter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">পেন্ডিং</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div></div>
 <p class="muted" id="weekSummary"></p>
 <div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
