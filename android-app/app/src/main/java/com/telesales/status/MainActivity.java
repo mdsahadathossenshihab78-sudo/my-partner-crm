@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, VerifiedSheet> verifiedSheets = new HashMap<>();
     private TextView loginError, avatarView, statusText, weekSummary, queuedCountText;
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
-    private TextView heroProgressText, ftdTileSub, jomaAmtNum, weekChartRange;
+    private TextView heroProgressText, ftdTileSub, jomaAmtNum, weekChartRange, heroPctText, connPctText, ftdPctText;
     private TextView autoSyncTime;
     private TextView ftdUsersCount, ftdUsersSyncTime, ftdUsersEmpty;
     private TextView ftdTodayCount, ftdTotalCount, regTodayCount, regTotalCount;
@@ -272,6 +272,7 @@ public class MainActivity extends AppCompatActivity {
         statRegDay = findViewById(R.id.statRegDay);
         statFtdDay = findViewById(R.id.statFtdDay);
         statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); heroProgressBar = findViewById(R.id.heroProgressBar); heroProgressText = findViewById(R.id.heroProgressText); connBar = findViewById(R.id.connBar); ftdBar = findViewById(R.id.ftdBar); ftdTileSub = findViewById(R.id.ftdTileSub); jomaAmtNum = findViewById(R.id.jomaAmtNum); weekChartRow = findViewById(R.id.weekChartRow); weekChartRange = findViewById(R.id.weekChartRange); weekChartCard = findViewById(R.id.weekChartCard);
+        heroPctText = findViewById(R.id.heroPctText); connPctText = findViewById(R.id.connPctText); ftdPctText = findViewById(R.id.ftdPctText);
         autoSyncTime = findViewById(R.id.autoSyncTime);
         ftdUsersCount = findViewById(R.id.ftdUsersCount); ftdUsersSyncTime = findViewById(R.id.ftdUsersSyncTime); ftdUsersEmpty = findViewById(R.id.ftdUsersEmpty); ftdUsersList = findViewById(R.id.ftdUsersList);
         ftdTodayCount = findViewById(R.id.ftdTodayCount); ftdTotalCount = findViewById(R.id.ftdTotalCount); regTodayCount = findViewById(R.id.regTodayCount); regTotalCount = findViewById(R.id.regTotalCount);
@@ -386,6 +387,7 @@ public class MainActivity extends AppCompatActivity {
         MaterialButton googleBtn = findViewById(R.id.googleBtn);
         googleBtn.setOnClickListener(v -> {
             loginError.setText("");
+            loginView.setVisibility(View.GONE);
             showLoading("লগইন হচ্ছে...");
             startActivityForResult(signInClient.getSignInIntent(), RC_SIGN_IN);
         });
@@ -1930,6 +1932,7 @@ public class MainActivity extends AppCompatActivity {
         if (total <= 0) {
             heroProgressText.setText("হিসাব লোড হচ্ছে…");
             setSegBar(heroSegDrawables, 0);
+            if (heroPctText != null) heroPctText.setText("০%");
             return;
         }
         if (called < 0) called = 0;
@@ -1938,22 +1941,25 @@ public class MainActivity extends AppCompatActivity {
         heroProgressText.setText(called + " টা হয়েছে, " + remain + " টা বাকি আছে");
         int lit = (int) Math.round((double) called * HERO_SEGMENTS / total);
         setSegBar(heroSegDrawables, lit);
+        if (heroPctText != null) heroPctText.setText(toBnPct(called, total));
     }
 
     // v6.15: Connected bar — call-er moddhe koto-ta Connected.
     private void updateConnBar(int conn, int notConn) {
         int total = conn + notConn;
-        if (total <= 0) { setSegBar(connSegDrawables, 0); return; }
+        if (total <= 0) { setSegBar(connSegDrawables, 0); if (connPctText != null) connPctText.setText("০%"); return; }
         int lit = (int) Math.round((double) conn * MINI_SEGMENTS / total);
         setSegBar(connSegDrawables, lit);
+        if (connPctText != null) connPctText.setText(toBnPct(conn, total));
     }
 
     // v6.15: FTD bar — Registration-er moddhe koto-ta FTD holo.
     private void updateFtdBar(int ftd, int reg) {
         if (ftdTileSub != null) ftdTileSub.setText(ftd + " FTD / " + reg + " রেজিস্ট্রেশন");
-        if (reg <= 0) { setSegBar(ftdSegDrawables, 0); return; }
+        if (reg <= 0) { setSegBar(ftdSegDrawables, 0); if (ftdPctText != null) ftdPctText.setText("০%"); return; }
         int lit = (int) Math.round((double) ftd * MINI_SEGMENTS / reg);
         setSegBar(ftdSegDrawables, lit);
+        if (ftdPctText != null) ftdPctText.setText(toBnPct(ftd, reg));
     }
 
     // v6.15: 7-din FTD chart — 7 ta column (bar + din-er tarikh). Bar-er height
@@ -1991,7 +1997,7 @@ public class MainActivity extends AppCompatActivity {
             TextView lab = new TextView(this);
             lab.setLayoutParams(new LinearLayout.LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
             lab.setTextSize(10);
-            lab.setTextColor(0xFF78716C);
+            lab.setTextColor(0xFF1F2937);
             lab.setText("");
             col.addView(lab);
             weekChartRow.addView(col);
@@ -2206,6 +2212,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchToken(GoogleSignInAccount acct) {
         loginError.setText("লগইন হচ্ছে...");
+        loginView.setVisibility(View.GONE);
         showLoading("লগইন হচ্ছে...");
         new Thread(() -> {
             try {
@@ -2255,6 +2262,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 hideLoading();
                 loginError.setText(loginFailText(e));
+                showLogin();
             }
         } else if (requestCode == RC_AUTH) {
             GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(this);
@@ -2921,6 +2929,15 @@ public class MainActivity extends AppCompatActivity {
             else b.append(c);
         }
         return b.toString();
+    }
+    // v6.17: bar-er percentage label — Bengali digit + % (e.g. "৪৭%").
+    // whole<=0 ba part<=0 hole "০%" — kokhono NaN/Infinity/crash noy.
+    private static String toBnPct(int part, int whole) {
+        if (whole <= 0 || part <= 0) return "০%";
+        int pct = (int) Math.round((double) part * 100 / whole);
+        if (pct < 0) pct = 0;
+        if (pct > 100) pct = 100;
+        return toBnDigits(String.valueOf(pct)) + "%";
     }
     private static String fmtAmount(double v) {
         if (v == Math.floor(v)) return String.valueOf((long) v);
