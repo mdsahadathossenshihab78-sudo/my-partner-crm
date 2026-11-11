@@ -116,12 +116,11 @@ public class MainActivity extends AppCompatActivity {
     private java.util.Map<TextView, android.animation.ValueAnimator> statAnimators = new java.util.HashMap<>();
     // v6.15: dashboard progress bar — segment-gulo code-e toiri (hero 20, mini 12).
     // Segment-er rong bodle bhora/khali dekhano hoy (kono layout pass noy).
-    private static final int HERO_SEGMENTS = 20;
-    private static final int MINI_SEGMENTS = 12;
-    private java.util.List<android.graphics.drawable.GradientDrawable> heroSegDrawables = new java.util.ArrayList<>();
-    private java.util.List<android.graphics.drawable.GradientDrawable> connSegDrawables = new java.util.ArrayList<>();
-    private java.util.List<android.graphics.drawable.GradientDrawable> ftdSegDrawables = new java.util.ArrayList<>();
-    private boolean heroBarBuilt = false, connBarBuilt = false, ftdBarBuilt = false;
+    private java.util.List<android.view.View> meterSegments = new java.util.ArrayList<>();
+    private java.util.List<android.graphics.drawable.GradientDrawable> meterSegDrawables = new java.util.ArrayList<>();
+    private android.animation.ValueAnimator meterAnimator = null;
+    private boolean meterBuilt = false;
+    private static final int METER_SEGMENTS = 12;
     private java.util.List<android.view.View> weekChartBars = new java.util.ArrayList<>();
     private java.util.List<android.graphics.drawable.GradientDrawable> weekChartBarDrawables = new java.util.ArrayList<>();
     private java.util.List<TextView> weekChartLabels = new java.util.ArrayList<>();
@@ -161,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, VerifiedSheet> verifiedSheets = new HashMap<>();
     private TextView loginError, avatarView, statusText, weekSummary, queuedCountText;
     private TextView statConnDay, statNotConnDay, statValidDay, statInvDay, statRegDay, statFtdDay, statFtdAmtDay;
-    private TextView heroProgressText, ftdTileSub, jomaAmtNum, weekChartRange, heroPctText, connPctText, ftdPctText;
+    private TextView weekChartRange, heroPctText, connPctText, ftdPctText;
     private TextView autoSyncTime;
     private TextView ftdUsersCount, ftdUsersSyncTime, ftdUsersEmpty;
     private TextView ftdTodayCount, ftdTotalCount, regTodayCount, regTotalCount;
@@ -178,8 +177,8 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText searchBox;
     private View reportView, reportOutputCard;
     private View ftdView;
-    private View dashboardView, listContent; private TextView statTotalNumDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
-    private LinearLayout heroProgressBar, connBar, ftdBar, weekChartRow; private View weekChartCard;
+    private View dashboardView, listContent; private TextView statTotalCallDay, statTotalNumDay, statTotalRemainDay; private View bottomMenuBar, websiteView; private WebView websiteWeb; private boolean websiteLoaded = false;
+    private LinearLayout weekChartRow; private View weekChartCard;
     private int currentSection = 0;
     private static final String DAILY_REPORTS_ID = "1BPaQrV6Znqcs45pNEUib8AOHnxzz93Z8Y8vEMAAHOzg";
     // v4.19 cache/guards: shared log ID + tab ekbar confirm hole protibar Drive search noy;
@@ -271,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
         statInvDay = findViewById(R.id.statInvDay);
         statRegDay = findViewById(R.id.statRegDay);
         statFtdDay = findViewById(R.id.statFtdDay);
-        statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); heroProgressBar = findViewById(R.id.heroProgressBar); heroProgressText = findViewById(R.id.heroProgressText); connBar = findViewById(R.id.connBar); ftdBar = findViewById(R.id.ftdBar); ftdTileSub = findViewById(R.id.ftdTileSub); jomaAmtNum = findViewById(R.id.jomaAmtNum); weekChartRow = findViewById(R.id.weekChartRow); weekChartRange = findViewById(R.id.weekChartRange); weekChartCard = findViewById(R.id.weekChartCard);
+        statFtdAmtDay = findViewById(R.id.statFtdAmtDay); statTotalNumDay = findViewById(R.id.statTotalNumDay); statTotalCallDay = findViewById(R.id.statTotalCallDay); statTotalRemainDay = findViewById(R.id.statTotalRemainDay); weekChartRow = findViewById(R.id.weekChartRow); weekChartRange = findViewById(R.id.weekChartRange); weekChartCard = findViewById(R.id.weekChartCard);
         heroPctText = findViewById(R.id.heroPctText); connPctText = findViewById(R.id.connPctText); ftdPctText = findViewById(R.id.ftdPctText);
         autoSyncTime = findViewById(R.id.autoSyncTime);
         ftdUsersCount = findViewById(R.id.ftdUsersCount); ftdUsersSyncTime = findViewById(R.id.ftdUsersSyncTime); ftdUsersEmpty = findViewById(R.id.ftdUsersEmpty); ftdUsersList = findViewById(R.id.ftdUsersList);
@@ -285,7 +284,6 @@ public class MainActivity extends AppCompatActivity {
         statFtdDay.setOnClickListener(v -> showReport());
         statFtdAmtDay.setOnClickListener(v -> showReport());
         statRegDay.setOnClickListener(v -> showReport());
-        jomaAmtNum.setOnClickListener(v -> showReport());
         weekSummary = findViewById(R.id.weekSummary);
         targetCard = findViewById(R.id.targetCard);
         targetCardText = findViewById(R.id.targetCardText);
@@ -715,7 +713,7 @@ public class MainActivity extends AppCompatActivity {
         };
         adapter = new RowAdapter(rowOnSave);
         recycler.setAdapter(adapter);
-        buildDashboardBars();
+        buildDigitalMeterBar(); buildWeekChart();
         adapter.setOnRemind(row -> showReminderDialog(row));
         setTabUI();
 
@@ -1887,78 +1885,56 @@ public class MainActivity extends AppCompatActivity {
     // v6.15: dashboard progress bar — hero (20 segment) + 2 mini bar (12 segment)
     // + 7-din chart-er 7 ta column, sob code-e toiri. Segment/bar-er rong bodle
     // bhora/khali dekhano hoy — kono layout pass noy, kono notun XML drawable noy.
-    private void buildDashboardBars() {
-        buildSegBar(heroProgressBar, heroSegDrawables, HERO_SEGMENTS);
-        heroBarBuilt = true;
-        buildSegBar(connBar, connSegDrawables, MINI_SEGMENTS);
-        connBarBuilt = true;
-        buildSegBar(ftdBar, ftdSegDrawables, MINI_SEGMENTS);
-        ftdBarBuilt = true;
-        buildWeekChart();
-    }
-
-    private void buildSegBar(LinearLayout bar, java.util.List<android.graphics.drawable.GradientDrawable> drawables, int count) {
-        if (bar == null) return;
-        bar.removeAllViews();
-        drawables.clear();
+    private void buildDigitalMeterBar() {
+        LinearLayout bar = findViewById(R.id.digitalMeterBar);
+        if (bar == null || meterBuilt) return;
+        meterBuilt = true;
+        meterSegments.clear();
+        meterSegDrawables.clear();
         float density = getResources().getDisplayMetrics().density;
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < METER_SEGMENTS; i++) {
             View seg = new View(this);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-            if (i > 0) lp.setMarginStart((int) (3 * density));
+            if (i > 0) lp.setMarginStart((int) (4 * density));
             seg.setLayoutParams(lp);
             android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
             d.setCornerRadius(3 * density);
             d.setColor(0xFFFED7AA);
             seg.setBackground(d);
             bar.addView(seg);
-            drawables.add(d);
+            meterSegments.add(seg);
+            meterSegDrawables.add(d);
         }
     }
 
-    private void setSegBar(java.util.List<android.graphics.drawable.GradientDrawable> drawables, int lit) {
-        if (drawables == null) return;
-        if (lit < 0) lit = 0;
-        if (lit > drawables.size()) lit = drawables.size();
-        for (int i = 0; i < drawables.size(); i++) {
-            drawables.get(i).setColor(i < lit ? 0xFFF97316 : 0xFFFED7AA);
-        }
+    private void startMeterSweep() {
+        if (meterSegments.isEmpty()) return;
+        meterAnimator = android.animation.ValueAnimator.ofInt(0, METER_SEGMENTS);
+        meterAnimator.setDuration(1600);
+        meterAnimator.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        meterAnimator.setRepeatMode(android.animation.ValueAnimator.RESTART);
+        meterAnimator.addUpdateListener(anim -> {
+            int lit = (int) anim.getAnimatedValue();
+            for (int i = 0; i < meterSegDrawables.size(); i++) {
+                meterSegDrawables.get(i).setColor(i < lit ? 0xFFF97316 : 0xFFFED7AA);
+            }
+        });
+        meterAnimator.start();
+        digitalAnimators.add(meterAnimator);
     }
 
-    // v6.15: hero progress — mot number-er moddhe koto-ta call hoyeche / baki.
-    // total<=0 hole (lode hoyni) bar khali + "হিসাব লোড হচ্ছে…" thakbe.
-    private void updateHeroProgress(int called, int remain, int total) {
-        if (heroProgressText == null) return;
-        if (total <= 0) {
-            heroProgressText.setText("হিসাব লোড হচ্ছে…");
-            setSegBar(heroSegDrawables, 0);
-            if (heroPctText != null) heroPctText.setText("০%");
-            return;
-        }
-        if (called < 0) called = 0;
-        if (called > total) called = total;
-        if (remain < 0) remain = 0;
-        heroProgressText.setText(called + " টা হয়েছে, " + remain + " টা বাকি আছে");
-        int lit = (int) Math.round((double) called * HERO_SEGMENTS / total);
-        setSegBar(heroSegDrawables, lit);
-        if (heroPctText != null) heroPctText.setText(toBnPct(called, total));
+    // v6.19: % labels — big-card design-e chhoto figure hisebe (kono bar noy).
+    // heroPct = Called/Total, connPct = Connected/(Connected+Not Connected),
+    // ftdPct = FTD/Registration. toBnPct (v6.17) Bangla % dey.
+    private void updateHeroPct(int called, int remain, int total) {
+        if (heroPctText != null) heroPctText.setText(total > 0 ? toBnPct(called, total) : "০%");
     }
 
-    // v6.15: Connected bar — call-er moddhe koto-ta Connected.
-    private void updateConnBar(int conn, int notConn) {
-        int total = conn + notConn;
-        if (total <= 0) { setSegBar(connSegDrawables, 0); if (connPctText != null) connPctText.setText("০%"); return; }
-        int lit = (int) Math.round((double) conn * MINI_SEGMENTS / total);
-        setSegBar(connSegDrawables, lit);
-        if (connPctText != null) connPctText.setText(toBnPct(conn, total));
+    private void updateConnPct(int conn, int notConn) {
+        if (connPctText != null) connPctText.setText(toBnPct(conn, conn + notConn));
     }
 
-    // v6.15: FTD bar — Registration-er moddhe koto-ta FTD holo.
-    private void updateFtdBar(int ftd, int reg) {
-        if (ftdTileSub != null) ftdTileSub.setText(ftd + " FTD / " + reg + " রেজিস্ট্রেশন");
-        if (reg <= 0) { setSegBar(ftdSegDrawables, 0); if (ftdPctText != null) ftdPctText.setText("০%"); return; }
-        int lit = (int) Math.round((double) ftd * MINI_SEGMENTS / reg);
-        setSegBar(ftdSegDrawables, lit);
+    private void updateFtdPct(int ftd, int reg) {
         if (ftdPctText != null) ftdPctText.setText(toBnPct(ftd, reg));
     }
 
@@ -2050,8 +2026,8 @@ public class MainActivity extends AppCompatActivity {
         // (b) glow pulse — prottek stat tile-er background halka jolbe-nivbe.
         // Drawable mutate() kore alada instance — na korle eki drawable
         // byabohar kora sob tile ek sathe jolto.
-        int[] tileIds = {R.id.heroCard, R.id.connBarTile, R.id.ftdBarTile,
-                R.id.tileRegDay, R.id.tileValidDay, R.id.tileInvDay, R.id.tileJomaDay, R.id.weekChartCard};
+        int[] tileIds = {R.id.heroCard, R.id.tileCallDay, R.id.tileRemainDay,
+                R.id.tileConnDay, R.id.tileNotConnDay, R.id.tileValidDay, R.id.tileInvDay, R.id.ftdBand};
         for (int i = 0; i < tileIds.length; i++) {
             View tile = findViewById(tileIds[i]);
             if (tile == null || tile.getBackground() == null) continue;
@@ -2065,6 +2041,8 @@ public class MainActivity extends AppCompatActivity {
             pulse.start();
             digitalAnimators.add(pulse);
         }
+        // (c) segmented meter — segment-gulo ek-er por ek jolbe, tarpor abar.
+        startMeterSweep();
     }
 
     private void stopDigitalAnimations() {
@@ -2072,6 +2050,7 @@ public class MainActivity extends AppCompatActivity {
             try { a.cancel(); } catch (Exception ignored) {}
         }
         digitalAnimators.clear();
+        meterAnimator = null;
     }
 
     /** v6.14: digital count-up — stat number purono value theke notun
@@ -2462,8 +2441,7 @@ public class MainActivity extends AppCompatActivity {
                         if (statRegDay != null) animateStatNumberText(statRegDay, reg);
                         if (statFtdDay != null) animateStatNumberText(statFtdDay, ftd);
                         if (statFtdAmtDay != null) animateStatAmountText(statFtdAmtDay, amt);
-                        if (jomaAmtNum != null) animateStatAmountText(jomaAmtNum, amt);
-                        try { updateFtdBar(Integer.parseInt(ftd.trim()), Integer.parseInt(reg.trim())); } catch (Exception ignored) {}
+                        try { updateFtdPct(Integer.parseInt(ftd.trim()), Integer.parseInt(reg.trim())); } catch (Exception ignored) {}
                     }
                 });
             } catch (Exception e) { postCommissionEmpty(); }
@@ -2776,7 +2754,7 @@ public class MainActivity extends AppCompatActivity {
                 final int[] finalHeadPerDay = headPerDay; final String finalTrailStart = trailStart; final String finalDay = day;
                 runOnUiThread(() -> {
                     if (seq != statsSeq) return; // purono hisab notun diner upor boshbe na
-                    animateStatNumber(statConnDay, finalConn);
+                    animateStatNumber(statConnDay, finalConn); animateStatNumber(statTotalCallDay, finalTotalCall);
                     lastTotalCallDay = finalTotalCall; targetStatsReady = true; refreshTargetCard();
                     animateStatNumber(statNotConnDay, finalNotConn);
                     animateStatNumber(statValidDay, finalValid);
@@ -2785,11 +2763,10 @@ public class MainActivity extends AppCompatActivity {
                         animateStatNumber(statRegDay, finalReg);
                         animateStatNumber(statFtdDay, finalFtdN);
                         animateStatAmount(statFtdAmtDay, finalFtdSum);
-                        animateStatAmount(jomaAmtNum, finalFtdSum);
-                        updateFtdBar(finalFtdN, finalReg);
+                        updateFtdPct(finalFtdN, finalReg);
                     }
-                    updateHeroProgress(finalTotalCall, lastRemaining, lastTotalNumDay);
-                    updateConnBar(finalConn, finalNotConn);
+                    updateHeroPct(finalTotalCall, lastRemaining, lastTotalNumDay);
+                    updateConnPct(finalConn, finalNotConn);
                     updateWeekChart(finalHeadPerDay, finalTrailStart, finalDay);
                     if (weekChartCard != null) weekChartCard.setVisibility(View.VISIBLE);
                     weekSummary.setText("এই ৭ দিন (" + displayDay(finalBlockStart) + " – " + displayDay(finalBlockEnd) + "): Connected " + finalConnW + " • Not Connected " + finalNotConnW + " • এফটিডি " + finalFtdNW + " (৳" + fmtAmount(finalFtdSumW) + ")" + " • Valid " + finalValidW + " • Invalid " + finalInvW + " • রেজিস্ট্রেশন " + finalRegW + (finalUsedLegacy ? " • পুরোনো লগ ফাইল ব্যবহার হচ্ছে (শেয়ার করা ফাইল পাইনি)" : "") + (finalPartialFail ? " • একটা শিট পড়তে পারিনি (হিসাব অসম্পূর্ণ হতে পারে)" : ""));
@@ -3435,14 +3412,15 @@ public class MainActivity extends AppCompatActivity {
         targetCard.setVisibility(View.VISIBLE);
     }
     private void refreshRemainingHero() {
-        if (adapter == null) return;
+        if (adapter == null || statTotalRemainDay == null) return;
         try {
             int remain = 0;
             for (Row r : adapter.getAll()) {
                 if (r != null && (r.status == null || r.status.isEmpty())) remain++;
             }
+            animateStatNumber(statTotalRemainDay, remain);
             lastRemaining = remain; targetRemainReady = true; refreshTargetCard();
-            updateHeroProgress(lastTotalCallDay, lastRemaining, lastTotalNumDay);
+            updateHeroPct(lastTotalCallDay, lastRemaining, lastTotalNumDay);
         } catch (Exception ignored) { /* hero ager value-i thakbe — bhul sonkha dekhano noy */ }
     }
 
@@ -3452,12 +3430,13 @@ public class MainActivity extends AppCompatActivity {
     private void applyLocalSaveToTiles(String newStatus, String newValid) {
         if (selectedDate == null || !selectedDate.equals(dhakaDate())) return;
         try {
+            statTotalCallDay.setText(String.valueOf(Integer.parseInt(statTotalCallDay.getText().toString()) + 1));
             lastTotalCallDay++; refreshTargetCard();
             if ("call connected".equals(newStatus)) statConnDay.setText(String.valueOf(Integer.parseInt(statConnDay.getText().toString()) + 1));
             if ("not connected".equals(newStatus)) statNotConnDay.setText(String.valueOf(Integer.parseInt(statNotConnDay.getText().toString()) + 1));
             if ("Yes".equals(newValid)) statValidDay.setText(String.valueOf(Integer.parseInt(statValidDay.getText().toString()) + 1));
-            updateConnBar(parseStatInt(statConnDay), parseStatInt(statNotConnDay));
-            updateHeroProgress(lastTotalCallDay, lastRemaining, lastTotalNumDay);
+            updateConnPct(parseStatInt(statConnDay), parseStatInt(statNotConnDay));
+            updateHeroPct(lastTotalCallDay, lastRemaining, lastTotalNumDay);
         } catch (Exception ignored) { /* tile-e number na thakle porer loadDayStats thik kore debe */ }
     }
 
