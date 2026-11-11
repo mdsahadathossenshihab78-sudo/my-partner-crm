@@ -2731,19 +2731,17 @@ public class MainActivity extends AppCompatActivity {
                 int ftdN = ftdTotalCount(ftdToday);
                 double ftdSum = 0;
                 for (REntry e : ftdToday) { try { ftdSum += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
-                // v7.7: Dashboard headline = MAX(manual, auto) — jog NOY.
-                // v7.5-te jog kortam, kintu manual FTD ar auto (panel) FTD
-                // EKI FTD (panel pore sync hoy) — jog korle double-count hoy
-                // (2 manual + 2 auto = 4 dekhay, asol 2). MAX nile jeta boro
-                // seta-i dekhay; kom thakle barti-ta jog hoy, thik thakle ar
-                // bare na. Amount-ta boro count-er sathe milano hoy.
+                // v7.8: Amount-tao MAX — count-er winner-er sathe badha NOY.
+                // v7.7-te amount count-er winner-er ta nitam; count soman
+                // hole (3 = 3) manual-er 600 nitam, auto-er 700 bad jeto.
+                // Ekhon amount alada MAX: jeta boro seta-i dekhay.
                 ReportAuto autoDay = readCommissionStatsForDate(day);
                 int autoReg = autoDay != null ? autoDay.reg : 0;
                 int autoFtd = autoDay != null ? autoDay.ftd : 0;
                 double autoAmt = autoDay != null ? autoDay.amt : 0;
                 int headReg = Math.max(reg, autoReg);
                 int headFtdN = Math.max(ftdN, autoFtd);
-                double headFtdSum = (ftdN >= autoFtd) ? ftdSum : autoAmt;
+                double headFtdSum = Math.max(ftdSum, autoAmt);
                 String anchor = p.getString("log_anchor_date_" + agentId, null);
                 String min = null;
                 for (REntry e : logs) if (e.cells.length > 0 && (min == null || e.cells[0].compareTo(min) < 0)) min = e.cells[0];
