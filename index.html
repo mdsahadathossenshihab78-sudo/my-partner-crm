@@ -501,7 +501,7 @@ html.tod-night .bottom-menu button.on{background:var(--d2-accent);color:var(--d2
 <div class="wrap">
 
 <div class="hero-cover" id="loginHero"><div class="hero-eyebrow">TELESALES STATUS</div><div class="hero-title" id="heroTitle">সুপ্রভাত! আজকের<br>হিসাব দেখে নিন ☀️</div></div>
-<div class="card" id="loginCard"><label for="loginEmail">📧 Gmail ঠিকানা</label><input id="loginEmail" type="email" placeholder="agent@gmail.com" autocomplete="email"><label for="loginAgentId" style="margin-top:12px">🪪 Agent ID</label><input id="loginAgentId" placeholder="Agent ID লিখুন (যেমন bdxsukuna03)"><div class="row" style="margin-top:14px"><button class="btn btn-primary" id="loginBtn" style="flex:1">লগইন করুন →</button></div><p class="muted">লগইন চাপলে Google আপনার Gmail-এর অনুমতির পাতা খুলবে — শিটে লেখার জন্য এই অনুমতি দরকার। পাসওয়ার্ড এই সাইটে কখনো চাওয়া হবে না।</p><p class="muted" id="loginMsg"></p></div>
+<div class="card" id="loginCard"><label for="loginEmail">📧 Gmail ঠিকানা</label><input id="loginEmail" type="email" placeholder="agent@gmail.com" autocomplete="email"><label for="loginAgentId" style="margin-top:12px">🪪 Agent ID</label><input id="loginAgentId" placeholder="Agent ID লিখুন (যেমন bdxsukuna03)"><div class="row" style="margin-top:14px"><button class="btn btn-primary" id="loginBtn" style="flex:1">লগইন করুন</button></div><p class="muted">লগইন চাপলে Google আপনার Gmail-এর অনুমতির পাতা খুলবে — শিটে লেখার জন্য এই অনুমতি দরকার। পাসওয়ার্ড এই সাইটে কখনো চাওয়া হবে না।</p><p class="muted" id="loginMsg"></p></div>
 
 <div class="card" id="agentCard" style="display:none"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M5.8 16.5c.5-1.6 1.5-2.3 2.7-2.3s2.2.7 2.7 2.3"/><line x1="15" y1="9" x2="19" y2="9"/><line x1="15" y1="13" x2="19" y2="13"/></svg> Agent ID দিন</h2><p class="muted">আপনার Agent ID (আপনার ট্যাবের নাম, যেমন bdxsukuna30) লিখুন — শুধু আপনার লিস্ট দেখাবে।</p>
 <label for="agentInput">Agent ID</label><input id="agentInput" placeholder="Agent ID লিখুন">
@@ -610,6 +610,7 @@ const SHARED_REPORT_ID='1jYB5KeGw1LDH4FnjbwBr9qL-IHgmzPIhWU7GNeb5uhk';
 const DAILY_REPORTS_ID='1BPaQrV6Znqcs45pNEUib8AOHnxzz93Z8Y8vEMAAHOzg';
 const FTD_USERS_ID='1hINLwYxPnvc9Rel9H4H3qtemRjQKCEm0QSe7SislnDQ';
 const COMMISSION_STATS_ID='1NeR60FB-mfb1_xMM626q0x3QAZ36IdsfGzO6hXz6pJY';
+const AGENT_GMAILS_ID='1wRYjVliuE9rFXQiXI_7ZUZYWJ9o7trZRUuzR-MLwhtE';
 const CONFIG_FILE_ID=SHARED_STATUS_LOG_ID;
 const firebaseConfig={apiKey:"AIzaSyB03sx0s65ycG3MYcSbB2HfGMigs9DI-r4",authDomain:"fir-a-topup-bazar.firebaseapp.com",databaseURL:"https://fir-a-topup-bazar-default-rtdb.firebaseio.com",projectId:"fir-a-topup-bazar",storageBucket:"fir-a-topup-bazar.firebasestorage.app",messagingSenderId:"928168996366",appId:"1:928168996366:web:fd879d795202891ee9965f",measurementId:"G-9QBLYHR817"};
 let auth=null, token=null, agentId=null, userEmail=null, rows=[], tab='pending', lastStatusMap={};
@@ -730,6 +731,8 @@ async function afterLogin(res){
         const titles=await getTabsFor(currentNumbersId());
         const match=titles.find(t=>t===pendingAgent)||titles.find(t=>t.toLowerCase()===pendingAgent.toLowerCase());
         if(!match){$('loginMsg').textContent='এই Agent ID-তে কোনো লিস্ট পাইনি।';return;}
+        const dbAgent=await lookupAgentIdForGmail(email);
+        if(!dbAgent||dbAgent.toLowerCase()!==match.toLowerCase()){$('loginMsg').textContent='এই Gmail আর Agent ID আমাদের ডাটাবেসে মিলছে না — সঠিক Gmail আর Agent ID দিয়ে আবার চেষ্টা করুন।';try{localStorage.removeItem('pending_login_email');localStorage.removeItem('pending_login_agent');}catch(e){}if(auth)auth.signOut();return;}
         agentId=match; localStorage.setItem('agent_id',match); if(userEmail) localStorage.setItem('agent_email',userEmail);
         try{localStorage.removeItem('pending_login_email');localStorage.removeItem('pending_login_agent');}catch(e){}
         showMain(); loadRows(); return;
@@ -742,7 +745,7 @@ async function afterLogin(res){
 }
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 // auto-restore: ager login-er token thakle ar meyad thakle sorasori dashboard (abar login lagbe na)
-(function(){try{var t=localStorage.getItem('g_token'),ex=parseInt(localStorage.getItem('g_token_exp')||'0',10),sv=localStorage.getItem('agent_id'),se=localStorage.getItem('agent_email');if(t&&ex>Date.now()&&sv&&se){token=t;userEmail=se;agentId=sv;$('userEmail').textContent=se;showMain();loadRows();}}catch(e){}})();
+(async function(){try{var t=localStorage.getItem('g_token'),ex=parseInt(localStorage.getItem('g_token_exp')||'0',10),sv=localStorage.getItem('agent_id'),se=localStorage.getItem('agent_email');if(t&&ex>Date.now()&&sv&&se){token=t;userEmail=se;agentId=sv;$('userEmail').textContent=se;try{var db=await lookupAgentIdForGmail(se);if(db&&db.toLowerCase()!==sv.toLowerCase()){token=null;try{localStorage.removeItem('g_token');localStorage.removeItem('g_token_exp');localStorage.removeItem('agent_id');localStorage.removeItem('agent_email');}catch(e2){}showLogin();return;}}catch(e){if(!token)return;}showMain();loadRows();}}catch(e){}})();
 if(auth){auth.getRedirectResult().then(res=>{if(res&&res.user)afterLogin(res);}).catch(()=>{$('loginMsg').textContent='লগইন হয়নি, আবার চেষ্টা করুন।';});}
 $('loginBtn').onclick=async()=>{
   const em=$('loginEmail').value.trim();
@@ -772,6 +775,8 @@ $('agentBtn').onclick=async()=>{
     const titles=await getTabsFor(currentNumbersId());
     let match=titles.find(t=>t===id)||titles.find(t=>t.toLowerCase()===id.toLowerCase());
     if(!match){$('agentMsg').textContent='এই Agent ID-তে কোনো লিস্ট পাইনি।';return;}
+    const dbAgent=await lookupAgentIdForGmail(userEmail||'');
+    if(!dbAgent||dbAgent.toLowerCase()!==match.toLowerCase()){$('agentMsg').textContent='এই Gmail আর Agent ID আমাদের ডাটাবেসে মিলছে না — সঠিক Agent ID দিন।';return;}
     agentId=match; localStorage.setItem('agent_id',match); if(userEmail) localStorage.setItem('agent_email',userEmail); showMain(); loadRows();
   }catch(e){$('agentMsg').textContent='যাচাই হয়নি, আবার চেষ্টা করুন।';}
 };
@@ -1348,15 +1353,17 @@ window.saveRow=async (rowNum)=>{
     return false;
   }
 };
-function defaultConfigMap(){ return {NUMBERS:[{sheetId:SHEET_ID,fromDate:''}],STATUS_LOG:[{sheetId:SHARED_STATUS_LOG_ID,fromDate:''}],REPORTS:[{sheetId:SHARED_REPORT_ID,fromDate:''}],DAILY:[{sheetId:DAILY_REPORTS_ID,fromDate:''}],FTD_USERS:[{sheetId:FTD_USERS_ID,fromDate:''}],COMMISSION:[{sheetId:COMMISSION_STATS_ID,fromDate:''}]}; }
+function defaultConfigMap(){ return {NUMBERS:[{sheetId:SHEET_ID,fromDate:''}],STATUS_LOG:[{sheetId:SHARED_STATUS_LOG_ID,fromDate:''}],REPORTS:[{sheetId:SHARED_REPORT_ID,fromDate:''}],DAILY:[{sheetId:DAILY_REPORTS_ID,fromDate:''}],FTD_USERS:[{sheetId:FTD_USERS_ID,fromDate:''}],COMMISSION:[{sheetId:COMMISSION_STATS_ID,fromDate:''}],AGENT_GMAILS:[{sheetId:AGENT_GMAILS_ID,fromDate:''}]}; }
 function currentConfig(){ return sheetConfigCache||defaultConfigMap(); }
 function writeSheetFor(cfg,store,date){ const chain=(cfg&&cfg[store])||[]; if(!chain.length) return null; let best=null,bestFrom=null; for(const e of chain){ if(e.fromDate===''||e.fromDate<=date){ if(bestFrom===null||e.fromDate>=bestFrom){best=e.sheetId;bestFrom=e.fromDate;} } } if(best!==null) return best; let early=null,earlyFrom=null; for(const e of chain){ if(earlyFrom===null||e.fromDate<earlyFrom){early=e.sheetId;earlyFrom=e.fromDate;} } return early; }
 function readSheetsFor(cfg,store,date){ const out=[]; const chain=(cfg&&cfg[store])||[]; if(chain.length){ const w=writeSheetFor(cfg,store,date); const isSwitchDay=chain.some(e=>e.fromDate===date); let prev=null,prevFrom=null; if(isSwitchDay){ for(const e of chain){ if(e.fromDate<date){ if(prevFrom===null||e.fromDate>=prevFrom){prev=e.sheetId;prevFrom=e.fromDate;} } } } for(const e of chain){ if(e.sheetId===w||e.fromDate===date||(isSwitchDay&&e.sheetId===prev)){ if(!out.includes(e.sheetId)) out.push(e.sheetId); } } } if(!out.length){ const d=writeSheetFor(defaultConfigMap(),store,date); if(d) out.push(d); } return out; }
 function currentNumbersId(){ return writeSheetFor(currentConfig(),'NUMBERS',dhakaToday()); }
 function logReadIds(date){ return readSheetsFor(currentConfig(),'STATUS_LOG',date); }
 function reportReadIds(date){ return readSheetsFor(currentConfig(),'REPORTS',date); }
-function parseConfigRows(rows){ if(!rows) return null; const m=defaultConfigMap(); const seenStores=new Set(); for(const r of rows){ if(!r||r.length<2) continue; const store=(r[0]||'').trim(); const id=(r[1]||'').trim(); if(!id) continue; if(store!=='NUMBERS'&&store!=='STATUS_LOG'&&store!=='REPORTS'&&store!=='DAILY'&&store!=='FTD_USERS'&&store!=='COMMISSION') continue; if(!seenStores.has(store)){ m[store]=[]; seenStores.add(store); } m[store].push({sheetId:id,fromDate:r.length>2?(r[2]||'').trim():''}); } for(const k in m) m[k].sort((a,b)=>a.fromDate<b.fromDate?-1:a.fromDate>b.fromDate?1:0); return m; }
+function parseConfigRows(rows){ if(!rows) return null; const m=defaultConfigMap(); const seenStores=new Set(); for(const r of rows){ if(!r||r.length<2) continue; const store=(r[0]||'').trim(); const id=(r[1]||'').trim(); if(!id) continue; if(store!=='NUMBERS'&&store!=='STATUS_LOG'&&store!=='REPORTS'&&store!=='DAILY'&&store!=='FTD_USERS'&&store!=='COMMISSION'&&store!=='AGENT_GMAILS') continue; if(!seenStores.has(store)){ m[store]=[]; seenStores.add(store); } m[store].push({sheetId:id,fromDate:r.length>2?(r[2]||'').trim():''}); } for(const k in m) m[k].sort((a,b)=>a.fromDate<b.fromDate?-1:a.fromDate>b.fromDate?1:0); return m; }
 async function tryRefreshConfig(){ try{ if(!token) return; const rows=await getConfigRows(CONFIG_FILE_ID); const m=parseConfigRows(rows); if(m) sheetConfigCache=m; }catch(e){} }
+// database check: AGENT_GMAILS sheet (Sheet1: Gmail | Agent ID | Role) theke Gmail-er Agent ID ber kore; na pele null
+async function lookupAgentIdForGmail(gmail){ await tryRefreshConfig(); const gid=writeSheetFor(currentConfig(),'AGENT_GMAILS',dhakaToday())||AGENT_GMAILS_ID; const rows=await getTabRows(gid,'Sheet1'); const g=(gmail||'').toLowerCase(); for(const r of rows){ if((cellE(r,0)||'').trim().toLowerCase()===g) return (cellE(r,1)||'').trim(); } return null; }
 async function readLogRowsForDate(date){ lastLogReadUsedLegacy=false; lastLogPartialFail=false; const ids=logReadIds(date); if(agentId){ const w=writeSheetFor(currentConfig(),'STATUS_LOG',date); if(w&&!ensuredLogSheets[w]){ try{ await ensureSheetTab(w,agentId); ensuredLogSheets[w]=true; }catch(e){} } } const out=[]; let first=null; for(let si=0;si<ids.length;si++){ const id=ids[si]; try{ const rs=await getTabRows(id,agentId); rs.forEach(e=>out.push({cells:e.cells,sheetRow:e.sheetRow,sourceSheet:id,sourceOrder:si})); }catch(e){ lastLogPartialFail=true; if(!first) first=e; } } if(out.length||!first) return out; const legacy=await resolveLegacyLogTarget(); if(legacy){ try{ await migrateMissingLogRows(writeSheetFor(currentConfig(),'STATUS_LOG',date)); }catch(e){} const lrows=await getTabRows(legacy.id,legacy.tab); lastLogReadUsedLegacy=true; return lrows.map(e=>({cells:e.cells,sheetRow:e.sheetRow,sourceSheet:legacy.id,sourceOrder:0})); } throw first; }
 async function readReportRowsForDate(date){ lastReportPartialFail=false; const ids=reportReadIds(date); if(agentId){ const w=writeSheetFor(currentConfig(),'REPORTS',date); if(w&&!ensuredReportSheets[w]){ try{ await ensureReportTab(w,agentId); ensuredReportSheets[w]=true; }catch(e){} } } const out=[]; let first=null; for(let si=0;si<ids.length;si++){ const id=ids[si]; try{ const rs=await getTabRows(id,agentId); rs.forEach(e=>out.push({cells:e.cells,sheetRow:e.sheetRow,sourceSheet:id,sourceOrder:si})); }catch(e){ lastReportPartialFail=true; if(!first) first=e; } } if(out.length||!first) return out; throw first; }
 async function logWriteTarget(date){ const w=writeSheetFor(currentConfig(),'STATUS_LOG',date); try{ await ensureSheetTab(w,agentId); return {id:w,tab:agentId}; }catch(e){ const legacy=await resolveLegacyLogTarget(); if(legacy) return legacy; throw e; } }
