@@ -1678,7 +1678,7 @@ $('genBtn').onclick=async()=>{
   out+='\nRegistration: '+headReg;
   out+='\nFTD: '+headFtd;
   out+='\nTotal Amount Recharged: '+fmtAmt(headAmt);
-  out+='\nInvalid Number ('+(r.autoInv?r.autoInv.length:0)+'): '+(r.autoInv||[]).join(', ');
+  out+='\nInvalid Number: '+(r.autoInv?r.autoInv.length:0);
   out+='\nProblems ('+r.probs.length+'): '+r.probs.map(e=>cellE(e,1)).join(', ');
   $('reportText').textContent=out; $('reportOut').style.display='block';
   $('dailyNote').textContent='';
