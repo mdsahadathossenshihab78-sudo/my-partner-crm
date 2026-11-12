@@ -107,11 +107,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String SHEET_ID = "10Lp_BOTSk-HNdNt-lyMuD57V0oW8qP4zhGNDi9KLgDE";
     /** v4.29 admin gate: config file-er malik BA bortoman numbers sheet-er malik BA user-er bola admin Gmail BA Admins tab-er list — je kono ekta holei Admin Panel khulbe. Lookup fail hole fail-closed. */
     private static final String ADMIN_EMAIL = "shihabno.18@gmail.com";
-    /** v7.9: Agent Gmail ↔ Agent ID mapping sheet (Telesales Agent Gmails) —
-     *  Firestore roles-er mirror. Login-e typed Gmail + Agent ID ei sheet-er
-     *  sathe miliye dekha hoy; millei login hobe. Config-e AGENT_GMAILS row
-     *  thakle setai use hobe, na thakle ei fallback ID. */
-    private static final String AGENT_GMAILS_SHEET_ID = "1wRYjVliuE9rFXQiXI_7ZUZYWJ9o7trZRUuzR-MLwhtE";
+    /** v7.9.2: Agent Gmail ↔ Agent ID database — agent-database.json (public file,
+     *  kono sheet access lage na). Login-e typed Gmail + Agent ID ei file-er
+     *  sathe miliye dekha hoy; millei login hobe. */
 
     private GoogleSignInClient signInClient;
     private String token;
@@ -259,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
     private volatile Map<String, List<ConfigEntry>> sheetConfigCache = null;
     /** v6.4: SheetConfig cache-er somoy — 5 minuter moddhe abar pora lagbe na (429 komate). */
     private long lastConfigRefreshMs = 0;
-    private static Map<String, List<ConfigEntry>> defaultConfigMap() { Map<String, List<ConfigEntry>> m = new HashMap<>(); List<ConfigEntry> n = new ArrayList<>(); n.add(new ConfigEntry(SHEET_ID, "")); m.put("NUMBERS", n); List<ConfigEntry> l = new ArrayList<>(); l.add(new ConfigEntry(SHARED_STATUS_LOG_ID, "")); m.put("STATUS_LOG", l); List<ConfigEntry> r = new ArrayList<>(); r.add(new ConfigEntry(SHARED_REPORT_ID, "")); m.put("REPORTS", r); List<ConfigEntry> d = new ArrayList<>(); d.add(new ConfigEntry(DAILY_REPORTS_ID, "")); m.put("DAILY", d); List<ConfigEntry> g = new ArrayList<>(); g.add(new ConfigEntry(AGENT_GMAILS_SHEET_ID, "")); m.put("AGENT_GMAILS", g); return m; }
+    private static Map<String, List<ConfigEntry>> defaultConfigMap() { Map<String, List<ConfigEntry>> m = new HashMap<>(); List<ConfigEntry> n = new ArrayList<>(); n.add(new ConfigEntry(SHEET_ID, "")); m.put("NUMBERS", n); List<ConfigEntry> l = new ArrayList<>(); l.add(new ConfigEntry(SHARED_STATUS_LOG_ID, "")); m.put("STATUS_LOG", l); List<ConfigEntry> r = new ArrayList<>(); r.add(new ConfigEntry(SHARED_REPORT_ID, "")); m.put("REPORTS", r); List<ConfigEntry> d = new ArrayList<>(); d.add(new ConfigEntry(DAILY_REPORTS_ID, "")); m.put("DAILY", d); return m; }
     private Map<String, List<ConfigEntry>> currentConfig() { Map<String, List<ConfigEntry>> c = sheetConfigCache; return c != null ? c : defaultConfigMap(); }
     /** v4.28: kono date-er jonno write sheet — chain-er moddhe oi date-er age ba soman sobcheye notun FromDate-oyala entry; na thakle sobcheye ager entry. */
     private static String writeSheetFor(Map<String, List<ConfigEntry>> cfg, String store, String date) { if (cfg == null) cfg = defaultConfigMap(); List<ConfigEntry> chain = cfg.get(store); if (chain == null || chain.isEmpty()) return null; String best = null, bestFrom = null; for (ConfigEntry e : chain) { if (e.fromDate.isEmpty() || e.fromDate.compareTo(date) <= 0) { if (bestFrom == null || e.fromDate.compareTo(bestFrom) >= 0) { best = e.sheetId; bestFrom = e.fromDate; } } } if (best != null) return best; String early = null, earlyFrom = null; for (ConfigEntry e : chain) { if (earlyFrom == null || e.fromDate.compareTo(earlyFrom) < 0) { early = e.sheetId; earlyFrom = e.fromDate; } } return early; }
@@ -274,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
     private List<String> reportReadIds(String date) { return readSheetsFor(currentConfig(), "REPORTS", date); }
     /** v4.28: config tab theke chain pora — kokhono throw kore na, na pele ager map/default cholbe. */
     private void tryRefreshConfig() { try { if (token == null) return; if (sheetConfigCache != null && System.currentTimeMillis() - lastConfigRefreshMs < 300000) return; List<String[]> rows = SheetsClient.getConfigRows(token, CONFIG_FILE_ID); Map<String, List<ConfigEntry>> m = parseConfigRows(rows); if (m != null) { sheetConfigCache = m; reportSheetId = null; lastConfigRefreshMs = System.currentTimeMillis(); } } catch (Exception ignored) { /* config na pele ager map/default cholbe */ } }
-    private static Map<String, List<ConfigEntry>> parseConfigRows(List<String[]> rows) { if (rows == null) return null; Map<String, List<ConfigEntry>> m = defaultConfigMap(); java.util.Set<String> seenStores = new java.util.HashSet<>(); for (String[] r : rows) { if (r == null || r.length < 2) continue; String store = r[0] == null ? "" : r[0].trim(); String id = r[1] == null ? "" : r[1].trim(); if (id.isEmpty()) continue; if (!("NUMBERS".equals(store) || "STATUS_LOG".equals(store) || "REPORTS".equals(store) || "DAILY".equals(store) || "COMMISSION".equals(store) || "FTD_USERS".equals(store) || "AGENT_GMAILS".equals(store))) continue; if (!seenStores.contains(store)) { m.put(store, new ArrayList<>()); seenStores.add(store); } m.get(store).add(new ConfigEntry(id, r.length > 2 && r[2] != null ? r[2].trim() : "")); } for (List<ConfigEntry> chain : m.values()) java.util.Collections.sort(chain, (a, b) -> a.fromDate.compareTo(b.fromDate)); return m; }
+    private static Map<String, List<ConfigEntry>> parseConfigRows(List<String[]> rows) { if (rows == null) return null; Map<String, List<ConfigEntry>> m = defaultConfigMap(); java.util.Set<String> seenStores = new java.util.HashSet<>(); for (String[] r : rows) { if (r == null || r.length < 2) continue; String store = r[0] == null ? "" : r[0].trim(); String id = r[1] == null ? "" : r[1].trim(); if (id.isEmpty()) continue; if (!("NUMBERS".equals(store) || "STATUS_LOG".equals(store) || "REPORTS".equals(store) || "DAILY".equals(store) || "COMMISSION".equals(store) || "FTD_USERS".equals(store))) continue; if (!seenStores.contains(store)) { m.put(store, new ArrayList<>()); seenStores.add(store); } m.get(store).add(new ConfigEntry(id, r.length > 2 && r[2] != null ? r[2].trim() : "")); } for (List<ConfigEntry> chain : m.values()) java.util.Collections.sort(chain, (a, b) -> a.fromDate.compareTo(b.fromDate)); return m; }
     private boolean lastLogReadUsedLegacy = false;
     // v4.28 parent fix: read-er somoy write sheet-er tab ekbar ensure (notun agent / switch-er por
     // khali report na dekhiye ager motoi tab banano); chain-er kono sheet fail hole partial note.
@@ -435,7 +433,7 @@ public class MainActivity extends AppCompatActivity {
         // v7.9: website-er moto Gmail + Agent ID type kore login. Google
         // account picker ar nei — typed Gmail-tai sign-in-er account hobe
         // (setAccountName: device-e thakle picker chhara-i sign-in hobe).
-        // Pair-ta pore fetchToken-e database (AGENT_GMAILS sheet) -er sathe
+        // Pair-ta pore fetchToken-e database (agent-database.json) -er sathe
         // milano hobe; na mille login hobe na.
         MaterialButton loginBtn = findViewById(R.id.loginBtn);
         loginBtn.setOnClickListener(v -> {
@@ -2247,21 +2245,40 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /** v7.9: Gmail-er jonno database (AGENT_GMAILS sheet) theke Agent ID ber kora.
-     *  Na pele null; sheet pora na gele exception (fail-closed, caller thik korbe). */
+    /** v7.9.2: Gmail-er jonno database (agent-database.json — public file, kono sheet
+     *  access lage na, kono token-o lage na) theke Agent ID ber kora. Na pele null;
+     *  file pora na gele exception (fail-closed, caller thik korbe). */
     private String lookupAgentIdForGmail(String email) throws Exception {
-        String gid = writeSheetFor(currentConfig(), "AGENT_GMAILS", dhakaDate());
-        if (gid == null || gid.isEmpty()) gid = AGENT_GMAILS_SHEET_ID;
-        List<String[]> rows = SheetsClient.getReportRows(token, gid, "Sheet1");
-        if (rows == null) return null;
-        String want = email == null ? "" : email.trim();
-        for (String[] r : rows) {
-            if (r == null || r.length < 2) continue;
-            String g = r[0] == null ? "" : r[0].trim();
-            String a = r[1] == null ? "" : r[1].trim();
-            if (!g.isEmpty() && g.equalsIgnoreCase(want) && !a.isEmpty()) return a;
+        String cb = "?t=" + (System.currentTimeMillis() / 60000);
+        String[] urls = { "https://telesales-status-app.vercel.app/agent-database.json" + cb, "https://telesales.asf.sale/agent-database.json" + cb };
+        Exception lastError = null;
+        for (String urlString : urls) {
+            try {
+                java.net.URL url = new java.net.URL(urlString);
+                java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection();
+                c.setConnectTimeout(15000);
+                c.setReadTimeout(15000);
+                java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream()));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) sb.append(line);
+                br.close();
+                JSONObject db = new JSONObject(sb.toString());
+                JSONArray agents = db.optJSONArray("agents");
+                if (agents == null) return null;
+                String want = email == null ? "" : email.trim();
+                for (int i = 0; i < agents.length(); i++) {
+                    JSONObject a = agents.optJSONObject(i);
+                    if (a == null) continue;
+                    String g = a.optString("gmail", "").trim();
+                    String aid = a.optString("agentId", "").trim();
+                    if (!g.isEmpty() && g.equalsIgnoreCase(want) && !aid.isEmpty()) return aid;
+                }
+                return null;
+            } catch (Exception e) { lastError = e; }
         }
-        return null;
+        if (lastError != null) throw lastError;
+        throw new Exception("agent database fetch failed");
     }
 
     private void fetchToken(GoogleSignInAccount acct) {
