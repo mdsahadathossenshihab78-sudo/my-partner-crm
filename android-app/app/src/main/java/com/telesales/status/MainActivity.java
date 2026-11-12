@@ -49,7 +49,20 @@ import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.UserRecoverableAuthException;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -166,6 +179,8 @@ public class MainActivity extends AppCompatActivity {
     /** v7.9: login screen-er Gmail + Agent ID field; pendingLogin* = user ja type
      *  koreche (Google sign-in-er por ei pair database-er sathe milano hoy). */
     private TextInputEditText loginGmailInput, loginAgentInput;
+    /** Piece 3: email+password agent login-er password field (typed Gmail reuse kore). */
+    private TextInputEditText loginPasswordInput;
     private String pendingLoginEmail, pendingLoginAgentId;
     private View adminView;
     private TextView adminStatus;
@@ -387,6 +402,7 @@ public class MainActivity extends AppCompatActivity {
         agentInput = findViewById(R.id.agentInput);
         loginGmailInput = findViewById(R.id.loginGmailInput);
         loginAgentInput = findViewById(R.id.loginAgentInput);
+        loginPasswordInput = findViewById(R.id.loginPasswordInput);
         adminView = findViewById(R.id.adminView);
         adminAgentInput = findViewById(R.id.adminAgentInput);
         adminNumbersInput = findViewById(R.id.adminNumbersInput);
@@ -426,6 +442,7 @@ public class MainActivity extends AppCompatActivity {
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
+                .requestIdToken(FIRESTORE_WEB_CLIENT_ID)
                 .requestScopes(new Scope(SHEET_SCOPE), new Scope(DRIVE_SCOPE))
                 .build();
         signInClient = GoogleSignIn.getClient(this, gso);
@@ -448,12 +465,18 @@ public class MainActivity extends AppCompatActivity {
             showLoading("লগইন হচ্ছে...");
             GoogleSignInOptions gsoLogin = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestEmail()
+                    .requestIdToken(FIRESTORE_WEB_CLIENT_ID)
                     .setAccountName(g)
                     .requestScopes(new Scope(SHEET_SCOPE), new Scope(DRIVE_SCOPE))
                     .build();
             signInClient = GoogleSignIn.getClient(this, gsoLogin);
             startActivityForResult(signInClient.getSignInIntent(), RC_SIGN_IN);
         });
+        // Piece 3: email+password agent login — typed Gmail + password diye
+        // FirebaseAuth-e sign-in, tarpor roles/{gmail} theke Agent ID newa hoy.
+        // Typed Agent ID ekhane bebohar hoy na (roles-i ekmatro source).
+        MaterialButton loginPasswordBtn = findViewById(R.id.loginPasswordBtn);
+        if (loginPasswordBtn != null) loginPasswordBtn.setOnClickListener(v -> submitEmailPasswordLogin());
         // Batch fix #2: avatar tap-e soja logout noy — age confirm.
         avatarView.setOnClickListener(v -> {
             new AlertDialog.Builder(MainActivity.this)
@@ -461,6 +484,7 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("আপনার অ্যাকাউন্ট থেকে বের হয়ে যাবেন।")
                 .setPositiveButton("হ্যাঁ, লগআউট", (d, w) -> {
                     signInClient.signOut().addOnCompleteListener(t -> {
+                        FirebaseAuth.getInstance().signOut();
                         token = null; agentId = null; reportSheetId = null; statusLogSheetId = null;
                         getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").remove("agent_email").apply();
                         showLogin();
@@ -545,6 +569,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.testSheetAddBtn).setOnClickListener(v -> submitTestSheetNumbers());
         findViewById(R.id.adminLogoutBtn).setOnClickListener(v -> {
             signInClient.signOut().addOnCompleteListener(t -> {
+                FirebaseAuth.getInstance().signOut();
                 token = null; agentId = null; reportSheetId = null; statusLogSheetId = null;
                 getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").remove("agent_email").apply();
                 showLogin();
@@ -647,15 +672,13 @@ public class MainActivity extends AppCompatActivity {
             // v4.32 + v4.41: exit-proof save — network thread shuru howar AGEI save intent-ti
             // disk-e commit() diye joma (apply async — kill hole harate pare). Thread safal hole
             // ei entry sorbe; fail hole drain/worker pathabe; majhpothe app morleo joma thakbe.
-            // v4.41: tap-er sathei load-er somoy resolve kora numbers sheet ID stamp kora hoy —
-            // thread na cholleo (tap-er pori app bondho hole) worker ei entry pathate parbe.
-            // Thread pore nijer fresh resolve diye abar stamp korbe. Stamp na howa entry
-            // (load kokhono hoyni) worker skip korbe, in-app drain pathabe.
+            // Firestore: outbox entry-te ar numbers sheet ID stamp lage na —
+            // worker/drain number (doc ID) diyei Firestore-e pathabe.
             final long saveTs = System.currentTimeMillis();
             final String saveDate = dhakaDate();
             // v5.8: just-save guard — tap-er somoyei bosano hoy, jate save cholakalin
             // ba save-er porer kono reload-ei stale read notun status muchhe na fele.
-            String guardNum = SheetsClient.normLogNumber(row.number);
+            String guardNum = FirestoreStore.normLogNumber(row.number);
             if (!guardNum.isEmpty()) {
                 if (optClear) { justSavedStatus.remove(guardNum); justSavedTs.remove(guardNum); justClearedTs.put(guardNum, saveTs); }
                 else if (optChanged) { justSavedStatus.put(guardNum, optNow); justSavedTs.put(guardNum, saveTs); justClearedTs.remove(guardNum); }
@@ -663,8 +686,6 @@ public class MainActivity extends AppCompatActivity {
             final boolean preQueuedLog = optChanged;
             final String preDialNum = RowAdapter.dialNumber(row.number);
             queueOutboxWithTs(row, saveTs, true);
-            if (lastResolvedNumbersId != null && !lastResolvedNumbersId.isEmpty())
-                stampOutboxNumbersId(agentId, row.number, saveTs, lastResolvedNumbersId);
             if (optChanged) {
                 if (optClear) queuePendingWithTs("clear", saveDate, preDialNum, "", "", saveTs, true);
                 else queuePendingWithTs("log", saveDate, preDialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid, saveTs, true);
@@ -678,89 +699,19 @@ public class MainActivity extends AppCompatActivity {
                 boolean changed = !now.equals(old) || (isPrevDay && !isClear);
                 String dialNum = RowAdapter.dialNumber(row.number);
                 try {
-                    tryRefreshConfig();
-                    String numbersIdForSave = resolveNumbersIdForAgent(agentId);
-                    if (numbersIdForSave != null && !numbersIdForSave.isEmpty()) lastResolvedNumbersId = numbersIdForSave;
-                    stampOutboxNumbersId(agentId, row.number, saveTs, numbersIdForSave);
-                    SheetsClient.updateRow(token, numbersIdForSave, agentId, row);
-                    // v4.32: main update land koreche — pre-queue kora outbox entry-ti sorbe.
-                    removeOutboxEntry(agentId, row.number, saveTs);
-                    String logError = null;
-                    boolean logAppended = false;
-                    boolean logCleared = false;
-                    if (changed) {
-                        try {
-                            ensureStatusLogSheet();
-                            // v4.32: log target stamp — worker sudhu stored ID-tei pathabe, andaj noy.
-                            // Clear entry-te stamp noy (chain-wide delete worker-er kaj noy — in-app drain korbe).
-                            if (!isClear) stampPendingLogTarget(agentId, row.number, saveTs, statusLogSheetId, statusLogTab);
-                            if (isClear) {
-                                // v4.20 clear-undo + v4.28: switch diner sob chain sheet theke muchbe.
-                                if (agentId.equals(statusLogTab)) deleteLogRowsEverywhere(dhakaDate(), dialNum, statusLogSheetId);
-                                else SheetsClient.deleteLogRowsForDateNumber(token, statusLogSheetId, statusLogTab, dhakaDate(), dialNum);
-                                purgePendingFor(dhakaDate(), dialNum, "log");
-                                // v4.32: ei save-er pre-queue clear entry-ti sudhu ts-match-e sorbe
-                                // (purge "clear" ager failed save-er entry-o muchto).
-                                removePendingEntry(agentId, row.number, saveTs);
-                                lastStatusMap.put(key, now);
-                                logCleared = true;
-                            } else {
-                                SheetsClient.appendReportRow(token, statusLogSheetId, statusLogTab, new String[]{dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid, dhakaTimeFrom(saveTs)});
-                                lastStatusMap.put(key, now);
-                                logAppended = true;
-                                purgePendingFor(dhakaDate(), dialNum, "clear");
-                                // v4.32: ei save-er pre-queue log entry-ti sudhu ts-match-e sorbe
-                                // (purge "log" ager failed save-er entry-o muchto).
-                                removePendingEntry(agentId, row.number, saveTs);
-                                SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
-                                if (p.getString("log_anchor_date_" + agentId, null) == null)
-                                    p.edit().putString("log_anchor_date_" + agentId, dhakaDate()).apply();
-                            }
-                        } catch (Exception le) {
-                            logError = le.getMessage(); maybeInvalidateLogCache(le);
-                            // v4.32: log entry tap-er somoyei pre-queue kora ache — abar queue
-                            // korle duplicate hobe. Drain/worker pre-queue kora entry pathabe.
-                            lastStatusMap.put(key, now);
-                        }
-                    } else if (preQueuedLog) {
-                        // v4.32: UI-te changed mone holeo thread-e changed noy (sheet-e age thekei
-                        // ei value) — pre-queue kora entry jhule thakle pore bhul row append hoto.
-                        // Sudhu ei save-er entry sorbe (ts-match); ager pending entry drain-e jabe.
-                        removePendingEntry(agentId, row.number, saveTs);
+                    ensureFirestoreSignedInSync();
+                    FirestoreSaveResult fsResult = attemptFirestoreSave(row, saveTs, changed, isClear, key, now, dialNum);
+                    if (fsResult == null) {
+                        saveViaSheets(row, saveTs, key, now, changed, isClear, isPrevDay, dialNum, preQueuedLog, btn, optKey);
+                        return;
                     }
-                    String finalLogError = logError;
-                    boolean finalLogAppended = logAppended;
-                    boolean finalLogCleared = logCleared;
-                    runOnUiThread(() -> {
-                        authRetryUsed = false;
-                        savingRows.remove(optKey); optimisticTileKeys.remove(optKey);
-                        markRowCleanInSnapshot(row); DraftStore.clear(MainActivity.this, row.number); refreshQueuedCounter();
-                        btn.setEnabled(true); btn.setText("সেভ করুন");
-                        Toast.makeText(MainActivity.this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (লগ পরে সিঙ্ক হবে)" : (finalLogCleared ? " (আজকের লগ রো মুছে গেছে)" : "")), Toast.LENGTH_LONG).show();
-                        adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
-                        refreshRemainingHero();
-                        if (finalLogAppended) { refreshInvalidTileAfterSave(); }
-                        else if (finalLogCleared) loadDayStats();
-                        drainOutboxAsync(); drainPendingLogsAsync();
-                        // v5.8: Save-er por reload 3s pore — sheet-e write uthte ektu
-                        // somoy lage; 400ms-e reload korle stale read row-ke abar
-                        // pending-e ferat pathato. Guard (justSavedStatus) thakleo
-                        // reload-e notun status-i asbe.
-                        if (changed) debouncedLoadRows(3000);
-                    });
+                    onSaveSucceeded(row, btn, optKey, fsResult.logAppended, fsResult.logCleared, null, changed);
                 } catch (Exception e) {
-                    if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) {
-                        authRetryUsed = true;
-                        runOnUiThread(() -> { savingRows.remove(optKey); btn.setEnabled(true); btn.setText("সেভ করুন"); btn.performClick(); });
-                    } else {
-                        // v4.32: tap-er somoyei outbox + pending-log commit() diye joma ache —
-                        // abar queue korle duplicate hobe. Worker + drain pore pathabe.
-                        runOnUiThread(() -> {
-                            savingRows.remove(optKey);
-                            btn.setEnabled(true); btn.setText("সেভ করুন");
-                            Toast.makeText(MainActivity.this, "সেভ হয়নি — পরে আবার চেষ্টা হবে (জমা আছে): " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        });
-                    }
+                    runOnUiThread(() -> {
+                        savingRows.remove(optKey);
+                        btn.setEnabled(true); btn.setText("সেভ করুন");
+                        Toast.makeText(MainActivity.this, "সেভ হয়নি — পরে আবার চেষ্টা হবে (জমা আছে): " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
                 }
             }).start();
             }
@@ -795,6 +746,25 @@ public class MainActivity extends AppCompatActivity {
         if (acct != null) {
             setAvatar(acct.getEmail());
             fetchToken(acct);
+        } else if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            // Piece 3: email+password session (FirebaseAuth persists) — Google
+            // account nei, kintu Firebase user + save kora agent pair thakle
+            // abar login chhara-i dhoka jabe (pair na mille login screen).
+            SharedPreferences prefs = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+            String savedAgent = prefs.getString("agent_id", null);
+            String savedEmail = prefs.getString("agent_email", null);
+            String fbEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+            if (fbEmail != null && ADMIN_EMAIL.equalsIgnoreCase(fbEmail)) {
+                setAvatar(fbEmail);
+                showAdmin();
+            } else if (savedAgent != null && !savedAgent.isEmpty() && savedEmail != null && fbEmail != null && savedEmail.equalsIgnoreCase(fbEmail)) {
+                agentId = savedAgent;
+                setAvatar(fbEmail);
+                showMain();
+                loadRows();
+            } else {
+                showLogin();
+            }
         } else {
             showLogin();
         }
@@ -1650,8 +1620,7 @@ public class MainActivity extends AppCompatActivity {
         String main = RowAdapter.dialNumber(number);
         if (main.isEmpty()) return;
         Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + main));
-        Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
-        startActivity(chooser);
+        startActivity(dial);
     }
     private void showReminderDialog(Row row) {
         if (row == null) return;
@@ -2182,7 +2151,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showReport() {
-        if (token == null) { showLogin(); return; }
+        if (!hasLoginSession()) { showLogin(); return; }
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.GONE);
         updateMenuState(2); reportView.setVisibility(View.VISIBLE); updateReportDateBtn(); updateReportEditState();
@@ -2194,7 +2163,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** FTD list khulbe: notun FTD upore, purono niche — niche menu theke. */
     private void showFtdUsers() {
-        if (token == null) { showLogin(); return; }
+        if (!hasLoginSession()) { showLogin(); return; }
         loginView.setVisibility(View.GONE);
         mainView.setVisibility(View.GONE);
         reportView.setVisibility(View.GONE);
@@ -2288,6 +2257,13 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 token = GoogleAuthUtil.getToken(this, acct.getAccount(), "oauth2:" + SHEET_SCOPE + " " + DRIVE_SCOPE);
+                // Piece 3: Google ID token diye FirebaseAuth-e sign-in (Piece 1-er
+                // ensureFirestoreSignedInSync — age thekei Firestore user thakle
+                // redundant sign-in hoy na). Fail hole unauthenticated egono jabe na.
+                if (!ensureFirestoreSignedInSync()) {
+                    runOnUiThread(() -> { hideLoading(); signInClient.signOut(); FirebaseAuth.getInstance().signOut(); loginError.setText("ফায়ারবেস লগইন হয়নি — আবার চেষ্টা করুন"); pendingLoginEmail = null; pendingLoginAgentId = null; showLogin(); });
+                    return;
+                }
                 runOnUiThread(() -> {
                     setAvatar(acct.getEmail());
                     SharedPreferences prefs0 = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
@@ -2307,7 +2283,7 @@ public class MainActivity extends AppCompatActivity {
                         if (vEmail != null && vAgent != null && !vEmail.trim().isEmpty() && !vAgent.trim().isEmpty()) {
                             String signedEmail = acct.getEmail() == null ? "" : acct.getEmail().trim();
                             if (!signedEmail.equalsIgnoreCase(vEmail.trim())) {
-                                runOnUiThread(() -> { hideLoading(); signInClient.signOut(); loginError.setText("এই Gmail দিয়ে লগইন করা যাবে না — টাইপ করা Gmail আর Google অ্যাকাউন্ট মিলছে না"); pendingLoginEmail = null; pendingLoginAgentId = null; showLogin(); });
+                                runOnUiThread(() -> { hideLoading(); signInClient.signOut(); FirebaseAuth.getInstance().signOut(); loginError.setText("এই Gmail দিয়ে লগইন করা যাবে না — টাইপ করা Gmail আর Google অ্যাকাউন্ট মিলছে না"); pendingLoginEmail = null; pendingLoginAgentId = null; showLogin(); });
                                 return;
                             }
                             String canonical = null;
@@ -2320,7 +2296,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 // Saved session + read fail: purono flow-e jabe (transient error-e logout noy).
                             } else if (canonical == null || !canonical.trim().equalsIgnoreCase(vAgent.trim())) {
-                                runOnUiThread(() -> { hideLoading(); signInClient.signOut(); getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").remove("agent_email").apply(); loginError.setText("এই Gmail এবং Agent ID ডাটাবেসে মিলছে না — শুধু ডাটাবেসের Gmail আর Agent ID দিয়ে লগইন করা যাবে"); pendingLoginEmail = null; pendingLoginAgentId = null; showLogin(); });
+                                runOnUiThread(() -> { hideLoading(); signInClient.signOut(); FirebaseAuth.getInstance().signOut(); getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE).edit().remove("agent_id").remove("agent_email").apply(); loginError.setText("এই Gmail এবং Agent ID ডাটাবেসে মিলছে না — শুধু ডাটাবেসের Gmail আর Agent ID দিয়ে লগইন করা যাবে"); pendingLoginEmail = null; pendingLoginAgentId = null; showLogin(); });
                                 return;
                             } else {
                                 String canon = canonical.trim();
@@ -2374,12 +2350,91 @@ public class MainActivity extends AppCompatActivity {
     /** v4.42: login fail text — ApiException-er message "12500: "-er moto khali thakle pichoner ": " dekhabe na. */
     private static String loginFailText(Exception e) { String m = e == null ? null : e.getMessage(); if (m == null) m = ""; m = m.trim(); if (m.endsWith(":")) m = m.substring(0, m.length() - 1).trim(); return m.isEmpty() ? "লগইন হয়নি" : "লগইন হয়নি: " + m; }
 
+    /** Piece 3: login session — Sheets OAuth token BA FirebaseAuth user, je kono ekta
+     *  thaklei cholbe. Email+password agent-er Sheets token thake na, tai hot-path
+     *  gate-gulo ei helper diye chole; admin/setup path-gulo ager motoi token chay. */
+    private boolean hasLoginSession() {
+        return token != null || FirebaseAuth.getInstance().getCurrentUser() != null;
+    }
+
+    /** Piece 3: email+password agent login. Typed Gmail + password diye FirebaseAuth-e
+     *  sign-in, tarpor roles/{gmail} theke Agent ID newa hoy — typed Agent ID kokhono
+     *  trust kora hoy na. Match hole Google path-er motoi egono hoy (admin check,
+     *  tarpor showMain() + loadRows()). Roles doc na thakle (null) Firebase sign-out
+     *  kore ager mismatch error dekhano hoy. Password kothao save/log kora hoy na. */
+    private void submitEmailPasswordLogin() {
+        if (loginError != null) loginError.setText("");
+        String g = txt(loginGmailInput).trim();
+        String p = loginPasswordInput == null || loginPasswordInput.getText() == null ? "" : loginPasswordInput.getText().toString();
+        if (g.isEmpty() || !g.contains("@") || !g.contains(".")) { if (loginError != null) loginError.setText("সঠিক জিমেইল লিখুন"); return; }
+        if (p.isEmpty()) { if (loginError != null) loginError.setText("পাসওয়ার্ড লিখুন"); return; }
+        if (loginPasswordInput != null) loginPasswordInput.setText("");
+        pendingLoginEmail = null;
+        pendingLoginAgentId = null;
+        loginView.setVisibility(View.GONE);
+        showLoading("লগইন হচ্ছে...");
+        final String email = g;
+        firestoreStore.signInWithEmail(email, p, new FirestoreStore.Callback<Void>() {
+            public void onSuccess(Void v) {
+                firestoreStore.lookupAgentIdForGmail(email, new FirestoreStore.Callback<String>() {
+                    public void onSuccess(String foundAgentId) {
+                        if (foundAgentId == null || foundAgentId.trim().isEmpty()) {
+                            FirebaseAuth.getInstance().signOut();
+                            hideLoading();
+                            if (loginError != null) loginError.setText("এই Gmail এবং Agent ID ডাটাবেসে মিলছে না — শুধু ডাটাবেসের Gmail আর Agent ID দিয়ে লগইন করা যাবে");
+                            showLogin();
+                            return;
+                        }
+                        final String canon = foundAgentId.trim();
+                        SharedPreferences prefs = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                        prefs.edit().putString("agent_id", canon).putString("agent_email", email).putString("current_email", email).apply();
+                        agentId = canon;
+                        reportSheetId = null;
+                        setAgentSubtitle();
+                        setAvatar(email);
+                        // Admin check-e Sheets token lage (checkIsAdmin) — email path-e
+                        // token nei, tai background thread-e chalano hoy; ADMIN_EMAIL
+                        // mil nijei admin kholar jonno jothesto.
+                        new Thread(() -> {
+                            boolean isOwner = checkIsAdminWithEmail(email);
+                            runOnUiThread(() -> {
+                                hideLoading();
+                                if (isOwner) { showAdmin(); return; }
+                                showMain();
+                                loadRows();
+                            });
+                        }).start();
+                    }
+                    public void onError(Exception e) {
+                        FirebaseAuth.getInstance().signOut();
+                        hideLoading();
+                        if (loginError != null) loginError.setText("ডাটাবেস পড়া যায়নি — আবার চেষ্টা করুন");
+                        showLogin();
+                    }
+                });
+            }
+            public void onError(Exception e) {
+                hideLoading();
+                if (loginError != null) loginError.setText(loginFailText(e));
+                showLogin();
+            }
+        });
+    }
+
     /** v4.41: loadRows / save thread j numbers sheet ID resolve koreche — tap-er
      *  somoy outbox entry-te stamp deoar jonno (thread na cholleo worker pathabe). */
     private String lastResolvedNumbersId = null;
+    /** Firestore hot path (Piece 1): live store for load + save + drain.
+     *  google-services.json already registers fir-a-topup-bazar; no secret here. */
+    private final FirestoreStore firestoreStore = new FirestoreStore();
+    /** Public OAuth web-client ID (type 3 in google-services.json) — needed only
+     *  so Google sign-in returns an ID token for FirebaseAuth. Not a secret. */
+    private static final String FIRESTORE_WEB_CLIENT_ID = "928168996366-mip08g6bkngqhqvvk4b60l8rdkd6n907.apps.googleusercontent.com";
+    /** Result of a Firestore save attempt: null return means quota — caller falls back to Sheets. */
+    private static class FirestoreSaveResult { boolean logAppended; boolean logCleared; }
 
     private void loadRows() {
-        if (token == null) { showLogin(); return; }
+        if (!hasLoginSession()) { showLogin(); return; }
         if (agentId == null) { showAgent(); return; }
         if (rowsLoading) return; // v4.19: choloman load thakle double load noy
         rowsLoading = true;
@@ -2388,10 +2443,8 @@ public class MainActivity extends AppCompatActivity {
         statusText.setText("শিট থেকে লোড হচ্ছে...");
         new Thread(() -> {
             try {
-                tryRefreshConfig();
-                String resolvedNumbersId = resolveNumbersIdForAgent(agentId);
-                if (resolvedNumbersId != null && !resolvedNumbersId.isEmpty()) lastResolvedNumbersId = resolvedNumbersId;
-                List<Row> rows = SheetsClient.getRows(token, resolvedNumbersId, agentId);
+                ensureFirestoreSignedInSync();
+                List<Row> rows = loadAgentNumbersSync(agentId);
                 // v5.8: stale-read guard — sheet-e save ekhono na uthle (write-er
                 // porpori read purono value dey) just-save kora row-er notun status-i
                 // rakha hobe; sheet-e notun value ele guard sorbe. Clear-save-er
@@ -2399,7 +2452,7 @@ public class MainActivity extends AppCompatActivity {
                 long guardNow = System.currentTimeMillis();
                 for (Row gr : rows) {
                     if (gr == null) continue;
-                    String gn = SheetsClient.normLogNumber(gr.number);
+                    String gn = FirestoreStore.normLogNumber(gr.number);
                     if (gn.isEmpty()) continue;
                     Long gts = justSavedTs.get(gn);
                     if (gts != null && guardNow - gts.longValue() < JUST_SAVED_WINDOW_MS) {
@@ -2456,7 +2509,7 @@ public class MainActivity extends AppCompatActivity {
                 });
             } catch (Exception e) {
                 rowsLoading = false;
-                if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; loadRows(); return; }
+                if (!authRetryUsed && ensureFirestoreSignedInSync()) { authRetryUsed = true; loadRows(); return; }
                 runOnUiThread(() -> { hideLoading(); statusText.setText("লোড হয়নি: " + e.getMessage()); });
             }
         }).start();
@@ -2537,25 +2590,21 @@ public class MainActivity extends AppCompatActivity {
      *  Report-er manual FTD/Reg count hoto na). Ekhane sudhu "সর্বশেষ সিঙ্ক"
      *  somoy-ta dekhano hoy. Sheet na thakle / read na hole "সিঙ্ক হয়নি". */
     private void loadCommissionStats() {
-        if (token == null) return;
+        if (!hasLoginSession()) return;
         new Thread(() -> {
             try {
-                String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
-                if (id == null) { postCommissionEmpty(); return; }
-                List<String[]> rows = null;
-                try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
-                catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
-                String[] last = null;
-                for (String[] r : rows) {
-                    if (r == null || r.length < 4) continue;
-                    String d = cell(r, 0).trim();
-                    if (d.isEmpty() || "Date".equals(d)) continue;
-                    if (last == null || d.compareTo(cell(last, 0).trim()) >= 0) last = r;
-                }
-                if (last == null) { postCommissionEmpty(); return; }
-                String reg = cell(last, 3).trim(), ftd = cell(last, 1).trim(), amt = cell(last, 2).trim(), when = cell(last, 16).trim(), date = cell(last, 0).trim();
+                ensureFirestoreSignedInSync();
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                QuerySnapshot snap = Tasks.await(db.collection("commissionStats")
+                        .orderBy(FieldPath.documentId(), Query.Direction.DESCENDING).limit(1).get(), 30, TimeUnit.SECONDS);
+                if (snap == null || snap.isEmpty()) { postCommissionEmpty(); return; }
+                DocumentSnapshot doc = snap.getDocuments().get(0);
+                String date = doc.getId();
+                Object syncedAtObj = doc.get("syncedAt");
+                String when = syncedAtObj == null ? "" : String.valueOf(syncedAtObj).trim();
+                final String whenF = when, dateF = date;
                 runOnUiThread(() -> {
-                    if (autoSyncTime != null) autoSyncTime.setText("সর্বশেষ সিঙ্ক: " + (when.isEmpty() ? date : when));
+                    if (autoSyncTime != null) autoSyncTime.setText("সর্বশেষ সিঙ্ক: " + (whenF.isEmpty() ? dateF : whenF));
                 });
             } catch (Exception e) { postCommissionEmpty(); }
         }).start();
@@ -2573,25 +2622,10 @@ public class MainActivity extends AppCompatActivity {
 
     private ReportAuto readCommissionStatsForDate(String date) {
         try {
-            if (token == null || date == null) return null;
-            String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
-            if (id == null) return null;
-            List<String[]> rows = null;
-            try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
-            catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
-            if (rows == null) return null;
-            for (String[] r : rows) {
-                if (r == null || r.length < 4) continue;
-                String d = cell(r, 0).trim();
-                if (d.isEmpty() || "Date".equals(d)) continue;
-                if (!d.equals(date)) continue;
-                int reg = 0, ftd = 0; double amt = 0;
-                try { reg = (int) Math.round(Double.parseDouble(cell(r, 3).trim())); } catch (Exception ignored) {}
-                try { ftd = (int) Math.round(Double.parseDouble(cell(r, 1).trim())); } catch (Exception ignored) {}
-                try { amt = Double.parseDouble(cell(r, 2).trim()); } catch (Exception ignored) {}
-                return new ReportAuto(reg, ftd, amt);
-            }
-            return null;
+            if (date == null) return null;
+            Map<String, Object> m = loadCommissionStatsSync(date);
+            if (m == null) return null;
+            return reportAutoFromMap(m);
         } catch (Exception ignored) { return null; }
     }
 
@@ -2599,21 +2633,17 @@ public class MainActivity extends AppCompatActivity {
      *  Chart-er trailing 7 din-er headline hisab-er jonno — ekbar pore 7 din
      *  milano hoy (protteke alada read noy). Read na hole khali map (chart
      *  tokhon sob din manual dekhabe). Background thread theke daka hoy. */
-    private Map<String, Integer> readCommissionStatsFtdMap() {
+    private Map<String, Integer> readCommissionStatsFtdMap(String start, String end) {
         Map<String, Integer> m = new HashMap<>();
         try {
-            if (token == null) return m;
-            String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
-            if (id == null) return m;
-            List<String[]> rows = null;
-            try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
-            catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
-            if (rows == null) return m;
-            for (String[] r : rows) {
-                if (r == null || r.length < 2) continue;
-                String d = cell(r, 0).trim();
-                if (d.isEmpty() || "Date".equals(d)) continue;
-                try { m.put(d, (int) Math.round(Double.parseDouble(cell(r, 1).trim()))); } catch (Exception ignored) {}
+            if (start == null || end == null) return m;
+            String d = start;
+            int guard = 0;
+            while (d.compareTo(end) <= 0 && guard++ < 370) {
+                Map<String, Object> row = loadCommissionStatsSync(d);
+                if (row != null) m.put(d, mapInt(row, "ftd"));
+                if (d.equals(end)) break;
+                d = addDays(d, 1);
             }
         } catch (Exception ignored) { }
         return m;
@@ -2622,7 +2652,7 @@ public class MainActivity extends AppCompatActivity {
     /** v6.11: reportDate-r auto hisab background-e pore ane; tarikh bodle
      *  gele purono response boshbe na (date miliye dekha hoy). */
     private void loadReportAutoForDate(String date) {
-        if (token == null || date == null) return;
+        if (!hasLoginSession() || date == null) return;
         final String want = date;
         new Thread(() -> {
             ReportAuto a = readCommissionStatsForDate(want);
@@ -2656,23 +2686,18 @@ public class MainActivity extends AppCompatActivity {
      *  sob row (notun + purono), notun jomar tarikh age. Sheet na thakle /
      *  read na hole "সিঙ্ক হয়নি" dekhay, crash kore na. Khali field "—". */
     private void loadFtdUsers() {
-        if (token == null) return;
+        if (!hasLoginSession()) return;
         new Thread(() -> {
             try {
-                String id = writeSheetFor(currentConfig(), "FTD_USERS", dhakaDate());
-                if (id == null) { postFtdUsersEmpty(); return; }
-                List<String[]> rows = null;
-                try { rows = SheetsClient.getReportRows(token, id, "Users"); }
-                catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
+                ensureFirestoreSignedInSync();
+                List<FirestoreStore.FtdUser> storeUsers = loadFtdUsersSync();
                 List<FtdUserRow> users = new ArrayList<>();
                 String latestSync = "";
-                for (String[] r : rows) {
-                    if (r == null || r.length < 2) continue;
-                    String user = cell(r, 0).trim();
-                    if (user.isEmpty() || "Username".equals(user)) continue;
-                    String when = cell(r, 5).trim();
+                for (FirestoreStore.FtdUser u : storeUsers) {
+                    if (u.username == null || u.username.isEmpty()) continue;
+                    String when = u.syncedAt == null ? "" : u.syncedAt;
                     if (!when.isEmpty() && when.compareTo(latestSync) > 0) latestSync = when;
-                    users.add(new FtdUserRow(user, cell(r, 1).trim(), cell(r, 2).trim(), cell(r, 3).trim(), cell(r, 4).trim(), when));
+                    users.add(new FtdUserRow(u.username, fmtAmount(u.firstDepositAmount), u.accountCreated, u.lastLogin, u.depositDate, when));
                 }
                 java.util.Collections.sort(users, (a, b) -> { int d = b.depDate.compareTo(a.depDate); if (d != 0) return d; return b.syncAt.compareTo(a.syncAt); });
                 final List<FtdUserRow> shown = users;
@@ -2697,24 +2722,18 @@ public class MainActivity extends AppCompatActivity {
      *  FTD-er 2 সংখ্যা fillFtdUsers-e FTD Users sheet theke ase. Sheet na
      *  thakle / read na hole "—" dekhay, crash kore na. */
     private void loadFtdSummaryRegs() {
-        if (token == null) return;
+        if (!hasLoginSession()) return;
         new Thread(() -> {
             try {
-                String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
-                if (id == null) { postFtdSummaryRegsEmpty(); return; }
-                List<String[]> rows = null;
-                try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
-                catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
+                ensureFirestoreSignedInSync();
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                QuerySnapshot snap = Tasks.await(db.collection("commissionStats").get(), 30, TimeUnit.SECONDS);
                 String today = dhakaDate();
                 int todayReg = -1, totalReg = 0;
-                for (String[] r : rows) {
-                    if (r == null || r.length < 4) continue;
-                    String d = cell(r, 0).trim();
-                    if (d.isEmpty() || "Date".equals(d)) continue;
-                    int v = 0;
-                    try { v = (int) Math.round(Double.parseDouble(cell(r, 3).trim())); } catch (Exception ignored) { continue; }
+                if (snap != null) for (DocumentSnapshot doc : snap.getDocuments()) {
+                    int v = (int) Math.round(docNum(doc, "registered"));
                     totalReg += v;
-                    if (d.equals(today)) todayReg = v;
+                    if (today.equals(doc.getId())) todayReg = v;
                 }
                 final int tReg = todayReg, totReg = totalReg;
                 runOnUiThread(() -> {
@@ -2787,17 +2806,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadDayStats() {
-        if (token == null || agentId == null) return;
+        if (!hasLoginSession() || agentId == null) return;
         String day = selectedDate;
         final int seq = ++statsSeq;
         new Thread(() -> {
             try {
                 SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
                 tryRefreshConfig();
+                ensureFirestoreSignedInSync();
                 loadCommissionStats();
+                String anchorPref = p.getString("log_anchor_date_" + agentId, null);
+                String earliest = null;
+                try { earliest = earliestCallDateSync(agentId); } catch (Exception ignored) { }
+                String anchor = earliest != null ? earliest : (anchorPref != null ? anchorPref : day);
+                long diff = daysBetween(anchor, day);
+                long idx = diff >= 0 ? diff / 7 : 0;
+                String blockStart = addDays(anchor, (int) (idx * 7));
+                String blockEnd = addDays(blockStart, 6);
+                String trailStart = addDays(day, -6);
+                String windowStart = blockStart.compareTo(trailStart) < 0 ? blockStart : trailStart;
                 List<REntry> logs;
-                try { logs = readLogRowsForDate(day); }
-                catch (Exception le) {
+                try {
+                    logs = new ArrayList<>();
+                    String d = windowStart;
+                    int guard = 0;
+                    while (d.compareTo(day) <= 0 && guard++ < 370) {
+                        logs.addAll(callsToREntries(loadCallsSync(agentId, d)));
+                        if (d.equals(day)) break;
+                        d = addDays(d, 1);
+                    }
+                } catch (Exception le) {
                     runOnUiThread(() -> {
                         if (weekSummary != null) weekSummary.setText("হিসাব লোড হয়নি: লগ ফাইল পাইনি — রিফ্রেশ করুন");
                         if (weekChartCard != null) weekChartCard.setVisibility(View.GONE);
@@ -2805,11 +2843,9 @@ public class MainActivity extends AppCompatActivity {
                     });
                     return;
                 }
-                // v4.28: report ekhon date-chain theke (switch diner dui sheet mile);
-                // report file na pele agekar motoi khali list (dashboard-er log tile atkabe na).
                 List<REntry> regs = new ArrayList<>(), ftds = new ArrayList<>();
                 try {
-                    ReportSplit rs = splitReportRows(readReportRowsForDate(day));
+                    ReportSplit rs = splitReportRows(reportsToREntries(loadReportEntriesSync(agentId)));
                     regs = rs.reg; ftds = rs.ftd;
                 } catch (Exception ignored) { }
                 int conn = 0, valid = 0, notConn = 0, totalCall = 0;
@@ -2834,15 +2870,6 @@ public class MainActivity extends AppCompatActivity {
                 int headReg = Math.max(reg, autoReg);
                 int headFtdN = Math.max(ftdN, autoFtd);
                 double headFtdSum = Math.max(ftdSum, autoAmt);
-                String anchor = p.getString("log_anchor_date_" + agentId, null);
-                String min = null;
-                for (REntry e : logs) if (e.cells.length > 0 && (min == null || e.cells[0].compareTo(min) < 0)) min = e.cells[0];
-                if (min != null) anchor = min;
-                else if (anchor == null) anchor = day;
-                long diff = daysBetween(anchor, day);
-                long idx = diff >= 0 ? diff / 7 : 0;
-                String blockStart = addDays(anchor, (int) (idx * 7));
-                String blockEnd = addDays(blockStart, 6);
                 int connW = 0;
                 for (REntry e : filterRange(logs, blockStart, blockEnd)) if ("call connected".equals(cellE(e, 2))) connW++;
                 int notConnW = 0;
@@ -2854,10 +2881,9 @@ public class MainActivity extends AppCompatActivity {
                 // v6.16: chart — trailing 7 din (nirbachito din-e sesh), headline FTD
                 // (Stats row thakle AUTO, na hole manual report). weekSummary ager motoi
                 // anchor block-e thakbe.
-                String trailStart = addDays(day, -6);
                 int[] manPerDay = new int[7];
                 for (REntry e : filterRange(ftds, trailStart, day)) { int di = (int) daysBetween(trailStart, cellE(e, 0)); if (di >= 0 && di < 7) manPerDay[di] += ftdCountOf(e); }
-                Map<String, Integer> autoFtdByDate = readCommissionStatsFtdMap();
+                Map<String, Integer> autoFtdByDate = readCommissionStatsFtdMap(trailStart, day);
                 int[] headPerDay = new int[7];
                 for (int i = 0; i < 7; i++) {
                     String d = addDays(trailStart, i);
@@ -2870,8 +2896,8 @@ public class MainActivity extends AppCompatActivity {
                 int invW = countAutoInvalidRange(logs, blockStart, blockEnd);
                 int regW = regTotalCount(filterRange(regs, blockStart, blockEnd));
                 String finalBlockStart = blockStart, finalBlockEnd = blockEnd;
-                final boolean finalUsedLegacy = lastLogReadUsedLegacy;
-                final boolean finalPartialFail = lastLogPartialFail || lastReportPartialFail;
+                final boolean finalUsedLegacy = false;
+                final boolean finalPartialFail = false;
                 int finalConn = conn, finalValid = valid, finalInv = inv, finalReg = headReg, finalFtdN = headFtdN, finalConnW = connW, finalFtdNW = ftdNW, finalNotConn = notConn, finalNotConnW = notConnW, finalTotalCall = totalCall, finalValidW = validW, finalInvW = invW, finalRegW = regW;
                 double finalFtdSum = headFtdSum, finalFtdSumW = ftdSumW;
                 final int[] finalHeadPerDay = headPerDay; final String finalTrailStart = trailStart; final String finalDay = day;
@@ -2894,9 +2920,6 @@ public class MainActivity extends AppCompatActivity {
                     reportStatsFallbackUsed = false;
                 });
             } catch (Exception e) {
-                maybeInvalidateLogCache(e);
-                if (isNotFoundError(e) && !reportStatsFallbackUsed) { reportStatsFallbackUsed = true; clearReportCache(); loadDayStats(); return; }
-                if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; loadDayStats(); return; }
                 runOnUiThread(() -> { if (weekSummary != null) weekSummary.setText("হিসাব লোড হয়নি: " + e.getMessage()); if (weekChartCard != null) weekChartCard.setVisibility(View.GONE); });
             }
         }).start();
@@ -3114,29 +3137,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regPlusBtn, R.id.regMinusBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
-        if (token == null) { showLogin(); return; }
+        if (!hasLoginSession()) { showLogin(); return; }
         reportStatus.setText("রিপোর্ট লোড হচ্ছে...");
         // v6.11: notun tarikh-e purono din-er auto jeno na jholse — age shunno.
         reportAutoReg = 0; reportAutoFtd = 0; reportAutoAmt = 0; reportAutoHasRow = false;
         new Thread(() -> {
             try {
                 tryRefreshConfig();
+                ensureFirestoreSignedInSync();
                 final int seq = ++reportSeq;
                 String today = reportDate;
-                ReportSplit s = splitReportRows(readReportRowsForDate(today));
+                ReportSplit s = splitReportRows(reportsToREntries(loadReportEntriesSync(agentId)));
                 regToday = filterTodayE(s.reg, today);
                 ftdToday = filterTodayE(s.ftd, today);
                 invToday = filterTodayE(s.inv, today);
                 probToday = filterTodayE(s.prob, today);
-                final boolean partialReport = lastReportPartialFail;
-                runOnUiThread(() -> { if (seq != reportSeq || !reportDate.equals(today)) return; reportLoadFallbackUsed = false; refreshReportLists(); reportStatus.setText(partialReport ? "রিপোর্ট লোড হয়েছে, কিন্তু একটা শিট পড়তে পারিনি — হিসাব অসম্পূর্ণ হতে পারে" : ""); loadAutoInvalidForReport(); loadReportAutoForDate(today); });
+                runOnUiThread(() -> { if (seq != reportSeq || !reportDate.equals(today)) return; reportLoadFallbackUsed = false; refreshReportLists(); reportStatus.setText(""); loadAutoInvalidForReport(); loadReportAutoForDate(today); });
             } catch (Exception e) {
-                if (isNotFoundError(e) && !reportLoadFallbackUsed) {
-                    reportLoadFallbackUsed = true;
-                    clearReportCache();
-                    loadReportData(); return;
-                }
-                if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; loadReportData(); return; }
                 runOnUiThread(() -> reportStatus.setText("রিপোর্ট লোড হয়নি: " + e.getMessage()));
             }
         }).start();
@@ -3144,7 +3161,7 @@ public class MainActivity extends AppCompatActivity {
 
     private int countAutoInvalid(List<REntry> logs, String date) { return countAutoInvalidRange(logs, date, date); }
     /** Batch fix #12: range-er Invalid (distinct number, not connected + Valid No) — week hisab-er jonno. */
-    private int countAutoInvalidRange(List<REntry> logs, String start, String end) { java.util.Set<String> seen = new java.util.HashSet<>(); if (logs == null) return 0; for (REntry e : logs) { if (e == null) continue; String d = cellE(e, 0); if (d.compareTo(start) < 0 || d.compareTo(end) > 0) continue; if (!"not connected".equalsIgnoreCase(cellE(e, 2).trim())) continue; if (!"No".equalsIgnoreCase(cellE(e, 3).trim())) continue; String n = cellE(e, 1).replace(" ", "").replace("-", ""); if (n.startsWith("+880")) n = "0" + n.substring(4); else if (n.startsWith("880")) n = "0" + n.substring(3); else if (!n.startsWith("0")) n = "0" + n; if (!n.isEmpty()) seen.add(n); } return seen.size(); } private void loadAutoInvalidForReport() { final String d = reportDate; new Thread(() -> { try { if (token == null) return; List<REntry> logs = readLogRowsForDate(d); final int c = countAutoInvalid(logs, d); runOnUiThread(() -> { if (invAutoText != null) invAutoText.setText("Invalid: " + c); }); } catch (Exception ignored) { } }).start(); } private void refreshReportLists() {
+    private int countAutoInvalidRange(List<REntry> logs, String start, String end) { java.util.Set<String> seen = new java.util.HashSet<>(); if (logs == null) return 0; for (REntry e : logs) { if (e == null) continue; String d = cellE(e, 0); if (d.compareTo(start) < 0 || d.compareTo(end) > 0) continue; if (!"not connected".equalsIgnoreCase(cellE(e, 2).trim())) continue; if (!"No".equalsIgnoreCase(cellE(e, 3).trim())) continue; String n = cellE(e, 1).replace(" ", "").replace("-", ""); if (n.startsWith("+880")) n = "0" + n.substring(4); else if (n.startsWith("880")) n = "0" + n.substring(3); else if (!n.startsWith("0")) n = "0" + n; if (!n.isEmpty()) seen.add(n); } return seen.size(); } private void loadAutoInvalidForReport() { final String d = reportDate; new Thread(() -> { try { if (agentId == null) return; ensureFirestoreSignedInSync(); List<REntry> logs = callsToREntries(loadCallsSync(agentId, d)); final int c = countAutoInvalid(logs, d); runOnUiThread(() -> { if (invAutoText != null) invAutoText.setText("Invalid: " + c); }); } catch (Exception ignored) { } }).start(); } private void refreshReportLists() {
         // v6.12: prodhan songkhya = AUTO (panel), jodi oi din-er Stats row thake;
         // row na thakle manual (ager moto). Manual auto-r moddhei dhora thake,
         // tai jog kora jabe na — jog korle double count hoy (FTD 6 / Reg 11 hoto).
@@ -3218,27 +3235,41 @@ public class MainActivity extends AppCompatActivity {
      *  (delete-er API-te lage na, shudhu caller-er chenar jonno). Guard-e rawCells
      *  (asol unified row) miliye dekha hoy. */
     private void deleteReportEntry(String tab, REntry e) { if (!isReportToday()) { Toast.makeText(this, "অতীতের রিপোর্ট শুধু দেখা ও কপি করা যাবে", Toast.LENGTH_SHORT).show(); return; }
-        if (token == null) { showLogin(); return; }
+        if (!hasLoginSession()) { showLogin(); return; }
         reportStatus.setText("মুছে ফেলা হচ্ছে...");
         new Thread(() -> {
             try {
-                // v4.28: row-ta je sheet-e ache sekhan thekei muchbe (switch diner row purono sheet-eo thakte pare).
-                String delSheet = e.sourceSheet != null ? e.sourceSheet : ensureReportSheetForWrite();
-                // v4.20: delete-er age PURO row miliye dekha — sudhu date millei hobe na
-                // (eki diner onek row thake, row sore gele vul row muchto).
-                String[] current = SheetsClient.readRowCells(token, delSheet, agentId, e.sheetRow);
-                String[] expect = e.rawCells != null ? e.rawCells : e.cells;
-                boolean same = true;
-                for (int ci = 0; ci < expect.length; ci++) {
-                    String cur = ci < current.length ? current[ci] : "";
-                    String exp = expect[ci] == null ? "" : expect[ci];
-                    if (!cur.trim().equals(exp.trim())) { same = false; break; }
+                ensureFirestoreSignedInSync();
+                String date = cellE(e, 0);
+                String number = "";
+                double amount = 0;
+                String note = "";
+                if ("FTD".equals(tab)) { number = cellE(e, 1); try { amount = Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
+                else if ("Invalid".equals(tab)) { number = cellE(e, 1); note = cellE(e, 2); }
+                else if ("Problems".equals(tab)) { note = cellE(e, 1); }
+                else { number = cellE(e, 1); }
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                QuerySnapshot snap = Tasks.await(db.collection("reports").whereEqualTo("agentId", agentId).get(), 30, TimeUnit.SECONDS);
+                DocumentSnapshot match = null;
+                if (snap != null) for (DocumentSnapshot doc : snap.getDocuments()) {
+                    String docDate = doc.getString("date");
+                    String docType = doc.getString("type");
+                    Object numObj = doc.get("number");
+                    String docNumber = numObj == null ? "" : String.valueOf(numObj);
+                    double docAmount = docNum(doc, "amount");
+                    String docNote = doc.getString("note");
+                    if (docNote == null) docNote = "";
+                    boolean same = (date == null ? "" : date).equals(docDate == null ? "" : docDate)
+                            && tab.equals(docType)
+                            && number.equals(docNumber)
+                            && Math.abs(amount - docAmount) < 0.0001
+                            && note.equals(docNote);
+                    if (same) { match = doc; break; }
                 }
-                if (!same) throw new Exception("Sheet-e row bodle geche — Refresh kore abar delete korun");
-                SheetsClient.deleteReportRow(token, delSheet, agentId, e.sheetRow);
+                if (match == null) throw new Exception("রিপোর্টে এন্ট্রিটি পাইনি — Refresh করে আবার delete করুন");
+                Tasks.await(match.getReference().delete(), 30, TimeUnit.SECONDS);
                 runOnUiThread(() -> { reportOutputCard.setVisibility(View.GONE); loadReportData(); loadDayStats(); });
             } catch (Exception ex) {
-                if (isAuthError(ex) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; deleteReportEntry(tab, e); return; }
                 runOnUiThread(() -> reportStatus.setText("মুছে ফেলা হয়নি: " + ex.getMessage()));
             }
         }).start();
@@ -3248,23 +3279,24 @@ public class MainActivity extends AppCompatActivity {
      *  motoi purono shape-e vals pathay, ekhane unified row-te map kore agent tab-e lekha hoy:
      *  [Date, Type, Number, Amount, Note]. */
     private void addReportEntry(String tab, String[] vals, Runnable clear) { if (!isReportToday()) { Toast.makeText(this, "অতীতের রিপোর্ট শুধু দেখা ও কপি করা যাবে", Toast.LENGTH_SHORT).show(); return; }
-        if (token == null) { showLogin(); return; }
+        if (!hasLoginSession()) { showLogin(); return; }
         reportStatus.setText("যোগ করা হচ্ছে...");
         new Thread(() -> {
             try {
-                String wid = ensureReportSheetForWrite();
+                ensureFirestoreSignedInSync();
                 String v0 = vals.length > 0 ? vals[0] : "";
                 String v1 = vals.length > 1 ? vals[1] : "";
                 String v2 = vals.length > 2 ? vals[2] : "";
-                String[] u;
-                if ("FTD".equals(tab)) u = new String[]{v0, "FTD", v1, v2, ""};
-                else if ("Invalid".equals(tab)) u = new String[]{v0, "Invalid", v1, "", v2};
-                else if ("Problems".equals(tab)) u = new String[]{v0, "Problems", "", "", v1};
-                else u = new String[]{v0, "Registration", v1, "", ""};
-                SheetsClient.appendReportRow(token, wid, agentId, u);
+                String number = "";
+                double amount = 0;
+                String note = "";
+                if ("FTD".equals(tab)) { number = v1; try { amount = Double.parseDouble(v2); } catch (Exception ignored) {} }
+                else if ("Invalid".equals(tab)) { number = v1; note = v2; }
+                else if ("Problems".equals(tab)) { note = v1; }
+                else { number = v1; }
+                addReportEntrySync(agentId, new FirestoreStore.ReportEntry(v0, tab, number, amount, note));
                 runOnUiThread(() -> { if (clear != null) clear.run(); loadReportData(); loadDayStats(); });
             } catch (Exception e) {
-                if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; addReportEntry(tab, vals, clear); return; }
                 runOnUiThread(() -> reportStatus.setText("যোগ হয়নি: " + e.getMessage()));
             }
         }).start();
@@ -3275,26 +3307,20 @@ public class MainActivity extends AppCompatActivity {
      *  hobe; duplicate holeo ager behavior-er baire noy). */
     private boolean alreadySubmittedDaily(String day) {
         try {
-            if (token == null || agentId == null) return false;
-            String dailyId = writeSheetFor(currentConfig(), "DAILY", day);
-            if (dailyId == null) dailyId = DAILY_REPORTS_ID;
-            if (dailyId == null) return false;
-            List<String[]> rows = SheetsClient.getReportRows(token, dailyId, "Reports");
-            String want = displayDay(day);
-            for (String[] r : rows) {
-                if (r != null && r.length >= 2 && want.equals(r[0]) && agentId.equals(r[1])) return true;
-            }
-            return false;
+            if (agentId == null || day == null) return false;
+            ensureFirestoreSignedInSync();
+            return loadDailyReportSync(agentId, day) != null;
         } catch (Exception ignored) { return false; }
     }
     private void generateReport() {
-        if (token == null) { showLogin(); return; }
+        if (!hasLoginSession()) { showLogin(); return; }
         reportStatus.setText("রিপোর্ট বানানো হচ্ছে...");
         showLoading("রিপোর্ট বানানো হচ্ছে...");
         new Thread(() -> {
             try {
                 tryRefreshConfig();
-                List<REntry> logs = readLogRowsForDate(reportDate);
+                ensureFirestoreSignedInSync();
+                List<REntry> logs = callsToREntries(loadCallsSync(agentId, reportDate));
                 int total = 0, conn = 0;
                 for (REntry e : logs) {
                     if (reportDate.equals(cellE(e, 0))) {
@@ -3303,7 +3329,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 String today = reportDate;
-                ReportSplit s = splitReportRows(readReportRowsForDate(today));
+                ReportSplit s = splitReportRows(reportsToREntries(loadReportEntriesSync(agentId)));
                 regToday = filterTodayE(s.reg, today);
                 ftdToday = filterTodayE(s.ftd, today);
                 invToday = filterTodayE(s.inv, today);
@@ -3378,7 +3404,6 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
             } catch (Exception e) {
-                if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) { authRetryUsed = true; generateReport(); return; }
                 runOnUiThread(() -> { hideLoading(); reportStatus.setText("রিপোর্ট বানানো হয়নি: " + e.getMessage()); });
             }
         }).start();
@@ -3464,7 +3489,7 @@ public class MainActivity extends AppCompatActivity {
     /** Batch fix #9: list-e ferar somoy admin-er notun number dekhano — sudhu clean
      *  obosthay (dirty ba in-flight save thakle refresh noy, lekha bachbe). */
     private void maybeAutoRefreshList() {
-        if (token == null || adapter == null) return;
+        if (!hasLoginSession() || adapter == null) return;
         if (!savingRows.isEmpty()) return;
         if (hasDirtyRows()) return;
         debouncedLoadRows();
@@ -3588,12 +3613,12 @@ public class MainActivity extends AppCompatActivity {
             JSONArray arr;
             try { arr = new JSONArray(p.getString(OUTBOX_KEY, "[]")); } catch (Exception e) { return; }
             JSONArray kept = new JSONArray();
-            String norm = SheetsClient.normLogNumber(number);
+            String norm = FirestoreStore.normLogNumber(number);
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.optJSONObject(i);
                 if (o == null) continue;
                 boolean same = agent != null && agent.equals(o.optString("agent"))
-                        && norm.equals(SheetsClient.normLogNumber(o.optString("number")))
+                        && norm.equals(FirestoreStore.normLogNumber(o.optString("number")))
                         && ts == o.optLong("ts");
                 if (same) continue;
                 kept.put(o);
@@ -3622,59 +3647,417 @@ public class MainActivity extends AppCompatActivity {
             if (changed) p.edit().putString(OUTBOX_KEY, arr.toString()).commit();
         } catch (Exception ignored) {}
     }
+
+    /** Firestore sign-in bridge (Piece 1): rules-e request.auth lage, kintu app-e etodin
+     *  sudhu Google sign-in chilo. Google ID token diye FirebaseAuth-e sign-in kora hoy.
+     *  Saved session-er account-e ID token na thakle silentSignIn-e notun token newa hoy
+     *  (GSO-te requestIdToken ache). Background thread thekei dakte hobe — kokhono UI thread noy. */
+    private boolean ensureFirestoreSignedInSync() {
+        try {
+            if (FirebaseAuth.getInstance().getCurrentUser() != null) return true;
+            GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(this);
+            if (acct == null || acct.getIdToken() == null || acct.getIdToken().isEmpty()) {
+                try {
+                    if (signInClient != null) acct = Tasks.await(signInClient.silentSignIn(), 30, TimeUnit.SECONDS);
+                } catch (Exception ignored) { acct = null; }
+            }
+            if (acct == null || acct.getIdToken() == null || acct.getIdToken().isEmpty()) return false;
+            CountDownLatch latch = new CountDownLatch(1);
+            AtomicBoolean ok = new AtomicBoolean(false);
+            firestoreStore.signInWithGoogleCredential(acct.getIdToken(), new FirestoreStore.Callback<Void>() {
+                public void onSuccess(Void v) { ok.set(true); latch.countDown(); }
+                public void onError(Exception e) { latch.countDown(); }
+            });
+            if (!latch.await(30, TimeUnit.SECONDS)) return false;
+            return ok.get() && FirebaseAuth.getInstance().getCurrentUser() != null;
+        } catch (Exception ignored) { return false; }
+    }
+
+    /** FirestoreStore callback-ke blocking call-e badla — sudhu background thread theke. */
+    private List<Row> loadAgentNumbersSync(String agent) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<List<Row>> rows = new AtomicReference<>();
+        AtomicReference<Exception> error = new AtomicReference<>();
+        firestoreStore.loadAgentNumbers(agent, new FirestoreStore.Callback<List<Row>>() {
+            public void onSuccess(List<Row> r) { rows.set(r); latch.countDown(); }
+            public void onError(Exception e) { error.set(e); latch.countDown(); }
+        });
+        if (!latch.await(30, TimeUnit.SECONDS)) throw new Exception("Firestore load timed out");
+        if (error.get() != null) throw error.get();
+        List<Row> out = rows.get();
+        return out == null ? new ArrayList<Row>() : out;
+    }
+
+    private void saveNumberStatusSync(String agent, Row row, String date, String time) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Exception> error = new AtomicReference<>();
+        firestoreStore.saveNumberStatus(agent, row, date, time, new FirestoreStore.Callback<Void>() {
+            public void onSuccess(Void v) { latch.countDown(); }
+            public void onError(Exception e) { error.set(e); latch.countDown(); }
+        });
+        if (!latch.await(30, TimeUnit.SECONDS)) throw new Exception("Firestore save timed out");
+        if (error.get() != null) throw error.get();
+    }
+
+    /** Number-doc sudhu merge (calls doc noy): unchanged save ba clear-save-er jonno.
+     *  FirestoreStore-e number-only method nei, tai field-gulo saveNumberStatus-er
+     *  numberData-r sathe hubuhu miliye ekhane lekha — kono calls doc toiri hoy na. */
+    private void saveNumberOnlySync(String agent, Row row, String date, String time) throws Exception {
+        String number = FirestoreStore.normLogNumber(row.number);
+        if (number.isEmpty()) throw new IllegalArgumentException("row number is empty");
+        Map<String, Object> data = new HashMap<>();
+        data.put("number", number);
+        data.put("status", row.status == null ? "" : row.status);
+        data.put("valid", row.valid == null ? "" : row.valid);
+        data.put("remark1", row.remark1 == null ? "" : row.remark1);
+        data.put("remark2", row.remark2 == null ? "" : row.remark2);
+        data.put("others", row.others == null ? "" : row.others);
+        data.put("lastCalledDate", date == null ? "" : date);
+        data.put("lastCalledTime", time == null ? "" : time);
+        data.put("syncedToSheet", false);
+        Tasks.await(FirebaseFirestore.getInstance().collection("agents").document(agent)
+                .collection("numbers").document(number).set(data, SetOptions.merge()), 30, TimeUnit.SECONDS);
+    }
+
+    /** Clear: oi date + number-er SOB calls doc muche fela (date-e query, number
+     *  client-side milano — date+number compound query-te composite index lagto). */
+    private void deleteCallsForDateNumberSync(String agent, String date, String number) throws Exception {
+        String norm = FirestoreStore.normLogNumber(number);
+        if (norm.isEmpty()) return;
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        QuerySnapshot snap = Tasks.await(db.collection("agents").document(agent).collection("calls")
+                .whereEqualTo("date", date == null ? "" : date).get(), 30, TimeUnit.SECONDS);
+        WriteBatch batch = db.batch();
+        boolean any = false;
+        for (DocumentSnapshot doc : snap.getDocuments()) {
+            if (norm.equals(FirestoreStore.normLogNumber(doc.getString("number")))) { batch.delete(doc.getReference()); any = true; }
+        }
+        if (any) Tasks.await(batch.commit(), 30, TimeUnit.SECONDS);
+    }
+
+    /** Log-only entry: calls doc ID-i dedup key (date_number_status_valid) — age theke
+     *  thakle kichu na korei safal; na thakle saveNumberStatus-er callData-r motoi doc lekha. */
+    private void createCallDocIfAbsentSync(String agent, String date, String number, String status, String valid, String time) throws Exception {
+        String norm = FirestoreStore.normLogNumber(number);
+        if (norm.isEmpty()) return;
+        String safeDate = date == null ? "" : date;
+        String safeStatus = status == null ? "" : status;
+        String safeValid = valid == null ? "" : valid;
+        String callDocId = safeDate + "_" + norm + "_" + safeStatus + "_" + safeValid;
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentSnapshot existing = Tasks.await(db.collection("agents").document(agent).collection("calls")
+                .document(callDocId).get(), 30, TimeUnit.SECONDS);
+        if (existing != null && existing.exists()) return;
+        Map<String, Object> callData = new HashMap<>();
+        callData.put("date", safeDate);
+        callData.put("number", norm);
+        callData.put("status", safeStatus);
+        callData.put("valid", safeValid);
+        callData.put("time", time == null ? "" : time);
+        callData.put("createdAt", FieldValue.serverTimestamp());
+        callData.put("syncedToSheet", false);
+        Tasks.await(db.collection("agents").document(agent).collection("calls")
+                .document(callDocId).set(callData), 30, TimeUnit.SECONDS);
+    }
+    /** Piece 2 sync wrappers (background thread only) — FirestoreStore callback-ke
+     *  blocking call-e badla, Piece 1-er loadAgentNumbersSync-er motoi. */
+    private List<FirestoreStore.CallEntry> loadCallsSync(String agent, String date) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<List<FirestoreStore.CallEntry>> out = new AtomicReference<>();
+        AtomicReference<Exception> error = new AtomicReference<>();
+        firestoreStore.loadCalls(agent, date, new FirestoreStore.Callback<List<FirestoreStore.CallEntry>>() {
+            public void onSuccess(List<FirestoreStore.CallEntry> r) { out.set(r); latch.countDown(); }
+            public void onError(Exception e) { error.set(e); latch.countDown(); }
+        });
+        if (!latch.await(30, TimeUnit.SECONDS)) throw new Exception("Firestore calls load timed out");
+        if (error.get() != null) throw error.get();
+        List<FirestoreStore.CallEntry> r = out.get();
+        return r == null ? new ArrayList<FirestoreStore.CallEntry>() : r;
+    }
+    private List<FirestoreStore.ReportEntry> loadReportEntriesSync(String agent) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<List<FirestoreStore.ReportEntry>> out = new AtomicReference<>();
+        AtomicReference<Exception> error = new AtomicReference<>();
+        firestoreStore.loadReportEntries(agent, new FirestoreStore.Callback<List<FirestoreStore.ReportEntry>>() {
+            public void onSuccess(List<FirestoreStore.ReportEntry> r) { out.set(r); latch.countDown(); }
+            public void onError(Exception e) { error.set(e); latch.countDown(); }
+        });
+        if (!latch.await(30, TimeUnit.SECONDS)) throw new Exception("Firestore reports load timed out");
+        if (error.get() != null) throw error.get();
+        List<FirestoreStore.ReportEntry> r = out.get();
+        return r == null ? new ArrayList<FirestoreStore.ReportEntry>() : r;
+    }
+    private Map<String, Object> loadCommissionStatsSync(String date) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Map<String, Object>> out = new AtomicReference<>();
+        AtomicReference<Exception> error = new AtomicReference<>();
+        firestoreStore.loadCommissionStats(date, new FirestoreStore.Callback<Map<String, Object>>() {
+            public void onSuccess(Map<String, Object> r) { out.set(r); latch.countDown(); }
+            public void onError(Exception e) { error.set(e); latch.countDown(); }
+        });
+        if (!latch.await(30, TimeUnit.SECONDS)) throw new Exception("Firestore stats load timed out");
+        if (error.get() != null) throw error.get();
+        return out.get();
+    }
+    private List<FirestoreStore.FtdUser> loadFtdUsersSync() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<List<FirestoreStore.FtdUser>> out = new AtomicReference<>();
+        AtomicReference<Exception> error = new AtomicReference<>();
+        firestoreStore.loadFtdUsers(new FirestoreStore.Callback<List<FirestoreStore.FtdUser>>() {
+            public void onSuccess(List<FirestoreStore.FtdUser> r) { out.set(r); latch.countDown(); }
+            public void onError(Exception e) { error.set(e); latch.countDown(); }
+        });
+        if (!latch.await(30, TimeUnit.SECONDS)) throw new Exception("Firestore FTD users load timed out");
+        if (error.get() != null) throw error.get();
+        List<FirestoreStore.FtdUser> r = out.get();
+        return r == null ? new ArrayList<FirestoreStore.FtdUser>() : r;
+    }
+    private Map<String, Object> loadDailyReportSync(String agent, String date) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Map<String, Object>> out = new AtomicReference<>();
+        AtomicReference<Exception> error = new AtomicReference<>();
+        firestoreStore.loadDailyReport(agent, date, new FirestoreStore.Callback<Map<String, Object>>() {
+            public void onSuccess(Map<String, Object> r) { out.set(r); latch.countDown(); }
+            public void onError(Exception e) { error.set(e); latch.countDown(); }
+        });
+        if (!latch.await(30, TimeUnit.SECONDS)) throw new Exception("Firestore daily report load timed out");
+        if (error.get() != null) throw error.get();
+        return out.get();
+    }
+    private void addReportEntrySync(String agent, FirestoreStore.ReportEntry entry) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Exception> error = new AtomicReference<>();
+        firestoreStore.addReportEntry(agent, entry, new FirestoreStore.Callback<Void>() {
+            public void onSuccess(Void v) { latch.countDown(); }
+            public void onError(Exception e) { error.set(e); latch.countDown(); }
+        });
+        if (!latch.await(30, TimeUnit.SECONDS)) throw new Exception("Firestore report add timed out");
+        if (error.get() != null) throw error.get();
+    }
+    /** CallEntry -> log REntry [Date, Number, Status, Valid, Time]; sheetRow = time
+     *  order-er position (loadCalls time-onujayi sort kore), buildCalledRows-er
+     *  newest-first sort-er jonno. */
+    private static List<REntry> callsToREntries(List<FirestoreStore.CallEntry> calls) {
+        List<REntry> out = new ArrayList<>();
+        if (calls == null) return out;
+        for (int i = 0; i < calls.size(); i++) {
+            FirestoreStore.CallEntry c = calls.get(i);
+            if (c == null) continue;
+            out.add(new REntry(new String[]{c.date, c.number, c.status, c.valid, c.time}, i, null, null, 0));
+        }
+        return out;
+    }
+    /** ReportEntry -> unified report REntry [Date, Type, Number, Amount, Note]
+     *  (projectReportRow/splitReportRows-er asha shape-i). */
+    private static List<REntry> reportsToREntries(List<FirestoreStore.ReportEntry> entries) {
+        List<REntry> out = new ArrayList<>();
+        if (entries == null) return out;
+        for (int i = 0; i < entries.size(); i++) {
+            FirestoreStore.ReportEntry e = entries.get(i);
+            if (e == null) continue;
+            out.add(new REntry(new String[]{e.date, e.type, e.number, fmtAmount(e.amount), e.note}, i + 2, null, null, i));
+        }
+        return out;
+    }
+    private static double mapNum(Map<String, Object> m, String field) {
+        if (m == null) return 0;
+        Object v = m.get(field);
+        if (v instanceof Number) return ((Number) v).doubleValue();
+        if (v instanceof String) { try { return Double.parseDouble(((String) v).trim()); } catch (Exception ignored) { return 0; } }
+        return 0;
+    }
+    private static int mapInt(Map<String, Object> m, String field) { return (int) Math.round(mapNum(m, field)); }
+    private static double docNum(DocumentSnapshot doc, String field) {
+        if (doc == null) return 0;
+        Object v = doc.get(field);
+        if (v instanceof Number) return ((Number) v).doubleValue();
+        if (v instanceof String) { try { return Double.parseDouble(((String) v).trim()); } catch (Exception ignored) { return 0; } }
+        return 0;
+    }
+    private static ReportAuto reportAutoFromMap(Map<String, Object> m) {
+        if (m == null) return null;
+        return new ReportAuto(mapInt(m, "registered"), mapInt(m, "ftd"), mapNum(m, "ftdAmount"));
+    }
+    /** Sobcheye ager call-er tarikh (7-din block-er anchor-er jonno) — ekta
+     *  orderBy(date) limit(1) read; FirestoreStore-e emon method nei. */
+    private String earliestCallDateSync(String agent) throws Exception {
+        QuerySnapshot snap = Tasks.await(FirebaseFirestore.getInstance().collection("agents").document(agent).collection("calls")
+                .orderBy("date").limit(1).get(), 30, TimeUnit.SECONDS);
+        if (snap == null || snap.isEmpty()) return null;
+        DocumentSnapshot doc = snap.getDocuments().get(0);
+        String d = doc.getString("date");
+        return (d == null || d.isEmpty()) ? null : d;
+    }
+
+    /** Firestore save: changed non-clear -> saveNumberStatus (number + calls batch);
+     *  clear -> number-only merge + oi diner calls delete; unchanged -> number-only merge
+     *  (calls doc toiri hoy na, na hole ajker hisab barto). Quota hole null (Sheets fallback);
+     *  onno fail hole throw (entry joma thakbe, drain pore pathabe). */
+    private FirestoreSaveResult attemptFirestoreSave(Row row, long saveTs, boolean changed, boolean isClear, String key, String now, String dialNum) throws Exception {
+        String saveDate = dhakaDate();
+        String saveTime = dhakaTimeFrom(saveTs);
+        FirestoreSaveResult result = new FirestoreSaveResult();
+        try {
+            if (isClear) {
+                saveNumberOnlySync(agentId, row, saveDate, saveTime);
+                deleteCallsForDateNumberSync(agentId, saveDate, row.number);
+                removeOutboxEntry(agentId, row.number, saveTs);
+                purgePendingFor(saveDate, dialNum, "log");
+                removePendingEntry(agentId, row.number, saveTs);
+                lastStatusMap.put(key, now);
+                result.logCleared = true;
+            } else if (changed) {
+                saveNumberStatusSync(agentId, row, saveDate, saveTime);
+                removeOutboxEntry(agentId, row.number, saveTs);
+                purgePendingFor(saveDate, dialNum, "clear");
+                removePendingEntry(agentId, row.number, saveTs);
+                lastStatusMap.put(key, now);
+                result.logAppended = true;
+                SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                if (p.getString("log_anchor_date_" + agentId, null) == null)
+                    p.edit().putString("log_anchor_date_" + agentId, dhakaDate()).apply();
+            } else {
+                saveNumberOnlySync(agentId, row, saveDate, saveTime);
+                removeOutboxEntry(agentId, row.number, saveTs);
+                removePendingEntry(agentId, row.number, saveTs);
+            }
+        } catch (Exception e) {
+            if (e instanceof FirestoreStore.QuotaExceededException || FirestoreStore.isQuotaError(e)) return null;
+            throw e;
+        }
+        return result;
+    }
+
+    /** Save safal hole UI — Firestore ba Sheets, duita path-ei eki (age save thread-er vitore chilo). */
+    private void onSaveSucceeded(Row row, MaterialButton btn, String optKey, boolean logAppended, boolean logCleared, String logError, boolean changed) {
+        runOnUiThread(() -> {
+            authRetryUsed = false;
+            savingRows.remove(optKey); optimisticTileKeys.remove(optKey);
+            markRowCleanInSnapshot(row); DraftStore.clear(MainActivity.this, row.number); refreshQueuedCounter();
+            btn.setEnabled(true); btn.setText("সেভ করুন");
+            Toast.makeText(MainActivity.this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (logError != null ? " (লগ পরে সিঙ্ক হবে)" : (logCleared ? " (আজকের লগ রো মুছে গেছে)" : "")), Toast.LENGTH_LONG).show();
+            adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
+            refreshRemainingHero();
+            if (logAppended) { refreshInvalidTileAfterSave(); }
+            else if (logCleared) loadDayStats();
+            drainOutboxAsync(); drainPendingLogsAsync();
+            // v5.8: Save-er por reload 3s pore — sheet-e write uthte ektu
+            // somoy lage; 400ms-e reload korle stale read row-ke abar
+            // pending-e ferat pathato. Guard (justSavedStatus) thakleo
+            // reload-e notun status-i asbe.
+            if (changed) debouncedLoadRows(3000);
+        });
+    }
+
+    /** Firestore quota hole fallback: ager Sheets save path (updateRow + Status Log
+     *  append/delete). Ekhanei 401 retry + fail-Toast — Firestore path theke alada. */
+    private void saveViaSheets(Row row, long saveTs, String key, String now, boolean changed, boolean isClear, boolean isPrevDay, String dialNum, boolean preQueuedLog, MaterialButton btn, String optKey) {
+        try {
+            tryRefreshConfig();
+            String numbersIdForSave = resolveNumbersIdForAgent(agentId);
+            if (numbersIdForSave != null && !numbersIdForSave.isEmpty()) lastResolvedNumbersId = numbersIdForSave;
+            stampOutboxNumbersId(agentId, row.number, saveTs, numbersIdForSave);
+            SheetsClient.updateRow(token, numbersIdForSave, agentId, row);
+            // v4.32: main update land koreche — pre-queue kora outbox entry-ti sorbe.
+            removeOutboxEntry(agentId, row.number, saveTs);
+            String logError = null;
+            boolean logAppended = false;
+            boolean logCleared = false;
+            if (changed) {
+                try {
+                    ensureStatusLogSheet();
+                    // v4.32: log target stamp — worker sudhu stored ID-tei pathabe, andaj noy.
+                    // Clear entry-te stamp noy (chain-wide delete worker-er kaj noy — in-app drain korbe).
+                    if (!isClear) stampPendingLogTarget(agentId, row.number, saveTs, statusLogSheetId, statusLogTab);
+                    if (isClear) {
+                        // v4.20 clear-undo + v4.28: switch diner sob chain sheet theke muchbe.
+                        if (agentId.equals(statusLogTab)) deleteLogRowsEverywhere(dhakaDate(), dialNum, statusLogSheetId);
+                        else SheetsClient.deleteLogRowsForDateNumber(token, statusLogSheetId, statusLogTab, dhakaDate(), dialNum);
+                        purgePendingFor(dhakaDate(), dialNum, "log");
+                        // v4.32: ei save-er pre-queue clear entry-ti sudhu ts-match-e sorbe
+                        // (purge "clear" ager failed save-er entry-o muchto).
+                        removePendingEntry(agentId, row.number, saveTs);
+                        lastStatusMap.put(key, now);
+                        logCleared = true;
+                    } else {
+                        SheetsClient.appendReportRow(token, statusLogSheetId, statusLogTab, new String[]{dhakaDate(), dialNum, row.status == null ? "" : row.status, row.valid == null ? "" : row.valid, dhakaTimeFrom(saveTs)});
+                        lastStatusMap.put(key, now);
+                        logAppended = true;
+                        purgePendingFor(dhakaDate(), dialNum, "clear");
+                        // v4.32: ei save-er pre-queue log entry-ti sudhu ts-match-e sorbe
+                        // (purge "log" ager failed save-er entry-o muchto).
+                        removePendingEntry(agentId, row.number, saveTs);
+                        SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
+                        if (p.getString("log_anchor_date_" + agentId, null) == null)
+                            p.edit().putString("log_anchor_date_" + agentId, dhakaDate()).apply();
+                    }
+                } catch (Exception le) {
+                    logError = le.getMessage(); maybeInvalidateLogCache(le);
+                    // v4.32: log entry tap-er somoyei pre-queue kora ache — abar queue
+                    // korle duplicate hobe. Drain/worker pre-queue kora entry pathabe.
+                    lastStatusMap.put(key, now);
+                }
+            } else if (preQueuedLog) {
+                // v4.32: UI-te changed mone holeo thread-e changed noy (sheet-e age thekei
+                // ei value) — pre-queue kora entry jhule thakle pore bhul row append hoto.
+                // Sudhu ei save-er entry sorbe (ts-match); ager pending entry drain-e jabe.
+                removePendingEntry(agentId, row.number, saveTs);
+            }
+            onSaveSucceeded(row, btn, optKey, logAppended, logCleared, logError, changed);
+        } catch (Exception e) {
+            if (isAuthError(e) && !authRetryUsed && refreshTokenSync()) {
+                authRetryUsed = true;
+                runOnUiThread(() -> { savingRows.remove(optKey); btn.setEnabled(true); btn.setText("সেভ করুন"); btn.performClick(); });
+            } else {
+                // v4.32: tap-er somoyei outbox + pending-log commit() diye joma ache —
+                // abar queue korle duplicate hobe. Worker + drain pore pathabe.
+                runOnUiThread(() -> {
+                    savingRows.remove(optKey);
+                    btn.setEnabled(true); btn.setText("সেভ করুন");
+                    Toast.makeText(MainActivity.this, "সেভ হয়নি — পরে আবার চেষ্টা হবে (জমা আছে): " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+            }
+        }
+    }
+
     private void drainOutboxAsync() {
-        if (token == null || agentId == null) return;
+        if (agentId == null) return;
         final String myAgent = agentId;
         new Thread(() -> {
             try {
+                ensureFirestoreSignedInSync();
                 SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
                 JSONArray arr;
                 try { arr = new JSONArray(p.getString(OUTBOX_KEY, "[]")); } catch (Exception e) { return; }
                 boolean changed = false;
-                boolean authTried = false;
-                String numbersId = resolveNumbersIdForAgent(myAgent);
                 for (int i = 0; i < arr.length(); ) {
                     JSONObject o = arr.optJSONObject(i);
                     if (o == null || !myAgent.equals(o.optString("agent"))) { i++; continue; }
                     Row r = new Row(o.optInt("row"), o.optString("number"), o.optString("status"), o.optString("valid"), o.optString("r1"), o.optString("r2"), o.optString("others"));
+                    String entryDate = dateFromTs(o.optLong("ts"));
+                    String entryTime = dhakaTimeFrom(o.optLong("ts"));
+                    String dNum = RowAdapter.dialNumber(r.number);
+                    boolean entryClear = (r.status == null || r.status.isEmpty()) && (r.valid == null || r.valid.isEmpty());
                     try {
-                        // v4.41: row sore gele number diye bortoman row khunje abar save —
-                        // team roj number soray, tai purono row number-e likhle "bodle geche"
-                        // hoye entry muchhe jeto ar user-ke abar save korte hoto.
-                        try {
-                            SheetsClient.updateRow(token, numbersId, myAgent, r);
-                        } catch (Exception ue) {
-                            String um = ue.getMessage() == null ? "" : ue.getMessage();
-                            if (!um.contains("bodle geche")) throw ue;
-                            Row fresh = SheetsClient.findRowByNumber(token, numbersId, myAgent, SheetsClient.normLogNumber(r.number));
-                            if (fresh == null) { arr.remove(i); changed = true; continue; } // number sheet-e ar nei — drop
-                            r.row = fresh.row;
-                            SheetsClient.updateRow(token, numbersId, myAgent, r); // abar bodle gele outer catch-e jabe
-                        }
-                        // v4.20: drain-e main update land korlei log side-o thik korte hobe.
-                        String entryDate = dateFromTs(o.optLong("ts"));
-                        String dNum = RowAdapter.dialNumber(r.number);
-                        boolean entryClear = (r.status == null || r.status.isEmpty()) && (r.valid == null || r.valid.isEmpty());
+                        // Firestore doc ID-i number — "row sore geche" fallback ekhane projojjo noy.
                         if (entryClear) {
+                            saveNumberOnlySync(myAgent, r, entryDate, entryTime);
                             try {
-                                StatusLogTarget et = resolveStatusLogTargetForDate(entryDate);
-                                deleteLogRowsForTarget(et, entryDate, dNum);
-                                purgePendingFor(entryDate, dNum, "log");
+                                deleteCallsForDateNumberSync(myAgent, entryDate, r.number);
                             } catch (Exception de) {
                                 queuePendingClear(entryDate, dNum);
                                 enqueueSaveDrainWorker();
                                 arr.remove(i); changed = true;
                                 break; // delete fail — porer entry pore, order thik thakbe
                             }
+                            purgePendingFor(entryDate, dNum, "log");
                         } else {
+                            saveNumberStatusSync(myAgent, r, entryDate, entryTime);
                             purgePendingFor(entryDate, dNum, "clear");
                         }
                         arr.remove(i); changed = true; // eki index-e porer entry asbe, i barbe na
                     } catch (Exception e) {
-                        String m = e.getMessage() == null ? "" : e.getMessage();
-                        if (m.contains("bodle geche")) { arr.remove(i); changed = true; continue; } // row sore geche — ar apply kora nirapad noy, user abar save korbe
-                        if (isAuthError(e) && !authTried && refreshTokenSync()) { authTried = true; continue; }
-                        break; // prothom fail-e thambe — baki gulo pore abar chesta hobe, order thik thakbe
+                        break; // quota ba onno fail — entry joma thakbe, prothom fail-e thambe, order thik thakbe
                     }
                 }
                 if (changed) p.edit().putString(OUTBOX_KEY, arr.toString()).apply();
@@ -3756,13 +4139,13 @@ public class MainActivity extends AppCompatActivity {
             JSONArray arr;
             try { arr = new JSONArray(p.getString(PENDING_LOG_KEY, "[]")); } catch (Exception e) { return; }
             JSONArray kept = new JSONArray();
-            String norm = SheetsClient.normLogNumber(number);
+            String norm = FirestoreStore.normLogNumber(number);
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.optJSONObject(i);
                 if (o == null) continue;
                 String ea = o.optString("agent");
                 if (!ea.isEmpty() && agentId != null && !ea.equals(agentId)) { kept.put(o); continue; }
-                boolean same = date.equals(o.optString("date")) && norm.equals(SheetsClient.normLogNumber(o.optString("number")));
+                boolean same = date.equals(o.optString("date")) && norm.equals(FirestoreStore.normLogNumber(o.optString("number")));
                 if (same && (type == null || type.equals(o.optString("type")))) continue;
                 kept.put(o);
             }
@@ -3778,12 +4161,12 @@ public class MainActivity extends AppCompatActivity {
             JSONArray arr;
             try { arr = new JSONArray(p.getString(PENDING_LOG_KEY, "[]")); } catch (Exception e) { return; }
             JSONArray kept = new JSONArray();
-            String norm = SheetsClient.normLogNumber(number);
+            String norm = FirestoreStore.normLogNumber(number);
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.optJSONObject(i);
                 if (o == null) continue;
                 boolean same = agent != null && agent.equals(o.optString("agent"))
-                        && norm.equals(SheetsClient.normLogNumber(o.optString("number")))
+                        && norm.equals(FirestoreStore.normLogNumber(o.optString("number")))
                         && ts == o.optLong("ts");
                 if (same) continue;
                 kept.put(o);
@@ -3794,11 +4177,16 @@ public class MainActivity extends AppCompatActivity {
     /** Pending log/clear drain: FIFO; outbox-e oi number-er main update baki thakle
      *  tar log entry skip (pore abar, order thik rakhte eki number-er porer gulo-o skip),
      *  clear entry skip noy. Fail hole thambe (order thik). */
+    /** Pending log/clear drain: FIFO; outbox-e oi number-er main update baki thakle
+     *  tar log entry skip (pore abar, order thik rakhte eki number-er porer gulo-o skip),
+     *  clear entry skip noy. Fail hole thambe (order thik). Dedup: calls doc ID-i
+     *  date|number|status|valid — age theke thakle entry sorbe, duplicate hobe na. */
     private void drainPendingLogsAsync() {
-        if (token == null || agentId == null) return;
+        if (agentId == null) return;
         final String myAgent = agentId;
         new Thread(() -> {
             try {
+                ensureFirestoreSignedInSync();
                 SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
                 JSONArray arr;
                 try { arr = new JSONArray(p.getString(PENDING_LOG_KEY, "[]")); } catch (Exception e) { return; }
@@ -3808,15 +4196,10 @@ public class MainActivity extends AppCompatActivity {
                     JSONArray ob = new JSONArray(p.getString(OUTBOX_KEY, "[]"));
                     for (int i = 0; i < ob.length(); i++) {
                         JSONObject o = ob.optJSONObject(i);
-                        if (o != null && myAgent.equals(o.optString("agent"))) outboxNums.add(SheetsClient.normLogNumber(o.optString("number")));
+                        if (o != null && myAgent.equals(o.optString("agent"))) outboxNums.add(FirestoreStore.normLogNumber(o.optString("number")));
                     }
                 } catch (Exception ignored) {}
-                // v4.28: prottek entry tar nijer date-er write target-e jabe (chain).
                 boolean changed = false;
-                boolean authTried = false;
-                java.util.Map<String, StatusLogTarget> targetForDateCache = new java.util.HashMap<>();
-                // v4.32: target tab-er row cache (dedup check-er jonno, proti tab ekbar pora hobe).
-                java.util.Map<String, java.util.Set<String>> logRowsCache = new java.util.HashMap<>();
                 java.util.Set<String> skippedNums = new java.util.HashSet<>();
                 for (int i = 0; i < arr.length(); ) {
                     JSONObject o = arr.optJSONObject(i);
@@ -3824,38 +4207,16 @@ public class MainActivity extends AppCompatActivity {
                     String ea = o.optString("agent");
                     if (!ea.isEmpty() && !myAgent.equals(ea)) { i++; continue; }
                     String type = o.optString("type");
-                    String num = SheetsClient.normLogNumber(o.optString("number"));
+                    String num = FirestoreStore.normLogNumber(o.optString("number"));
                     if ("log".equals(type) && (outboxNums.contains(num) || skippedNums.contains(num))) { skippedNums.add(num); i++; continue; }
                     try {
-                        StatusLogTarget et = targetForDateCache.get(o.optString("date"));
-                        if (et == null) { et = resolveStatusLogTargetForDate(o.optString("date")); targetForDateCache.put(o.optString("date"), et); }
                         if ("clear".equals(type)) {
-                            deleteLogRowsForTarget(et, o.optString("date"), o.optString("number"));
+                            deleteCallsForDateNumberSync(myAgent, o.optString("date"), o.optString("number"));
                         } else {
-                            // v4.32: timeout-after-success / double-queue hole eki row duibar
-                            // append hoto — target tab-e age thekei thakle skip (entry sorbe).
-                            java.util.Set<String> existing = logRowsCache.get(et.sheetId + "|" + et.tab);
-                            if (existing == null) {
-                                existing = new java.util.HashSet<>();
-                                try {
-                                    for (String[] lr : SheetsClient.getReportRows(token, et.sheetId, et.tab)) {
-                                        if (lr != null && lr.length >= 4) existing.add(lr[0] + "|" + SheetsClient.normLogNumber(lr[1]) + "|" + lr[2] + "|" + lr[3]);
-                                    }
-                                    logRowsCache.put(et.sheetId + "|" + et.tab, existing);
-                                } catch (Exception re) { existing = null; } // read fail — skip noy, append chesta hobe
-                            }
-                            if (existing != null) {
-                                String dupKey = o.optString("date") + "|" + num + "|" + o.optString("status") + "|" + o.optString("valid");
-                                if (existing.contains(dupKey)) { arr.remove(i); changed = true; continue; }
-                            }
-                            SheetsClient.appendReportRow(token, et.sheetId, et.tab, new String[]{o.optString("date"), RowAdapter.dialNumber(o.optString("number")), o.optString("status"), o.optString("valid"), dhakaTimeFrom(o.optLong("ts", 0))});
-                            // v4.32: eki drain-e porer duplicate entry-o jate skip hoy.
-                            java.util.Set<String> ex = logRowsCache.get(et.sheetId + "|" + et.tab);
-                            if (ex != null) ex.add(o.optString("date") + "|" + num + "|" + o.optString("status") + "|" + o.optString("valid"));
+                            createCallDocIfAbsentSync(myAgent, o.optString("date"), o.optString("number"), o.optString("status"), o.optString("valid"), dhakaTimeFrom(o.optLong("ts", 0)));
                         }
                         arr.remove(i); changed = true;
                     } catch (Exception e) {
-                        if (isAuthError(e) && !authTried && refreshTokenSync()) { authTried = true; continue; }
                         break;
                     }
                 }
@@ -3879,11 +4240,12 @@ public class MainActivity extends AppCompatActivity {
     }
     /** Save-er por Invalid tile taja kora (ekta log read — cache thakle Drive search noy). */
     private void refreshInvalidTileAfterSave() {
-        if (token == null || agentId == null) return;
+        if (!hasLoginSession() || agentId == null) return;
         if (selectedDate == null || !selectedDate.equals(dhakaDate())) return;
         new Thread(() -> {
             try {
-                List<REntry> logs = readLogRowsForDate(dhakaDate());
+                ensureFirestoreSignedInSync();
+                List<REntry> logs = callsToREntries(loadCallsSync(agentId, dhakaDate()));
                 final int c = countAutoInvalid(logs, dhakaDate());
                 runOnUiThread(() -> { if (statInvDay != null && selectedDate != null && selectedDate.equals(dhakaDate())) statInvDay.setText(String.valueOf(c)); });
             } catch (Exception ignored) {}
@@ -3895,7 +4257,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             if (adapter == null) return;
             java.util.Map<String, Row> mainByNorm = new java.util.HashMap<>();
-            for (Row r : adapter.getAll()) mainByNorm.put(SheetsClient.normLogNumber(r.number), r);
+            for (Row r : adapter.getAll()) mainByNorm.put(FirestoreStore.normLogNumber(r.number), r);
             java.util.Map<String, String[]> latest = new java.util.HashMap<>();
             java.util.Map<String, String> displayNum = new java.util.HashMap<>();
             java.util.Map<String, Integer> lastPos = new java.util.HashMap<>();
@@ -3904,7 +4266,7 @@ public class MainActivity extends AppCompatActivity {
                 if (e == null || !day.equals(cellE(e, 0))) continue;
                 String st = cellE(e, 2);
                 if (st == null || st.isEmpty()) continue;
-                String norm = SheetsClient.normLogNumber(cellE(e, 1));
+                String norm = FirestoreStore.normLogNumber(cellE(e, 1));
                 if (norm.isEmpty()) continue;
                 latest.put(norm, new String[]{st, cellE(e, 3), cellE(e, 4)});
                 displayNum.put(norm, cellE(e, 1));
@@ -3925,7 +4287,7 @@ public class MainActivity extends AppCompatActivity {
                     if (!day.equals(o.optString("date"))) continue;
                     String pst = o.optString("status", "");
                     if (pst.isEmpty()) continue;
-                    String pnorm = SheetsClient.normLogNumber(o.optString("number", ""));
+                    String pnorm = FirestoreStore.normLogNumber(o.optString("number", ""));
                     if (pnorm.isEmpty() || latest.containsKey(pnorm)) continue;
                     latest.put(pnorm, new String[]{pst, o.optString("valid", ""), dhakaTimeFrom(o.optLong("ts", 0))});
                     displayNum.put(pnorm, o.optString("number", ""));
@@ -3950,7 +4312,7 @@ public class MainActivity extends AppCompatActivity {
             // v4.26: notun call upore, purono niche — log-er sesh row (boro sheetRow)
             // age; HashMap order-e ar ultapalta dekhabe na.
             java.util.Collections.sort(called, (a, b) -> {
-                String na = SheetsClient.normLogNumber(a.number), nb = SheetsClient.normLogNumber(b.number);
+                String na = FirestoreStore.normLogNumber(a.number), nb = FirestoreStore.normLogNumber(b.number);
                 int oa = lastOrder.getOrDefault(na, -1), ob = lastOrder.getOrDefault(nb, -1);
                 if (oa != ob) return Integer.compare(ob, oa);
                 int pa = lastPos.getOrDefault(na, -1), pb = lastPos.getOrDefault(nb, -1);
@@ -3962,7 +4324,7 @@ public class MainActivity extends AppCompatActivity {
             java.util.Set<String> inCalled = new java.util.HashSet<>(latest.keySet());
             for (Row r : adapter.getAll()) {
                 if (r.savedStatus == null || r.savedStatus.isEmpty()) continue;
-                String n = SheetsClient.normLogNumber(r.number);
+                String n = FirestoreStore.normLogNumber(r.number);
                 if (n.isEmpty() || inCalled.contains(n)) continue;
                 // v5.8: ekhuni save kora row — log-e entry ekhono na uthleu called-e
                 // thakbe, kintu "আগের দিনের কল" badge noy (eta ajkeri call).
@@ -4032,14 +4394,21 @@ public class MainActivity extends AppCompatActivity {
      *  Daily Reports file-er row-ta generate kora text-er sathe mile. */
     private String appendDailyReport(int total, int conn, int regCount, int ftdCount, double sum, List<REntry> logs, String day, List<REntry> probs) {
         try {
-            if (token == null || agentId == null) return "";
-            String dailyId = writeSheetFor(currentConfig(), "DAILY", day);
-            if (dailyId == null) dailyId = DAILY_REPORTS_ID;
-            if (dailyId == null) return "ডেইলি রিপোর্টস ফাইলে জমা হয়নি (ফাইল পাইনি) — রিপোর্ট ঠিক আছে, কপি করতে পারবেন";
-            SheetsClient.ensureDailyTab(token, dailyId);
-            StringBuilder probsText = new StringBuilder();
-            for (REntry r : probs) { if (probsText.length() > 0) probsText.append("; "); probsText.append(cellE(r, 1)); }
-            SheetsClient.appendReportRow(token, dailyId, "Reports", new String[]{displayDay(day), agentId, String.valueOf(total), String.valueOf(conn), String.valueOf(regCount), String.valueOf(ftdCount), fmtAmount(sum), String.valueOf(countAutoInvalid(logs, day)), probsText.length() == 0 ? "-" : probsText.toString(), dhaka("dd-MM-yyyy hh:mm a")});
+            if (agentId == null || day == null) return "";
+            ensureFirestoreSignedInSync();
+            Map<String, Object> data = new HashMap<>();
+            data.put("agentId", agentId);
+            data.put("date", day);
+            data.put("totalCalls", total);
+            data.put("connected", conn);
+            data.put("registration", regCount);
+            data.put("ftd", ftdCount);
+            data.put("ftdAmount", sum);
+            data.put("invalid", countAutoInvalid(logs, day));
+            data.put("problems", probs == null ? 0 : probs.size());
+            data.put("generatedAt", dhaka("dd-MM-yyyy hh:mm a"));
+            data.put("createdAt", FieldValue.serverTimestamp());
+            Tasks.await(FirebaseFirestore.getInstance().collection("dailyReports").document().set(data), 30, TimeUnit.SECONDS);
             return "";
         } catch (Exception e) {
             return "ডেইলি রিপোর্টস ফাইলে জমা হয়নি (" + e.getMessage() + ") — রিপোর্ট ঠিক আছে, কপি করতে পারবেন";

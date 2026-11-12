@@ -65,14 +65,13 @@ public class ReminderReceiver extends BroadcastReceiver {
         }
     }
 
-    /** Notification dekhano — number + Call action (chooser, row-er Call-er motoi) + Bondho action. */
+    /** Notification dekhano — number + Call action (direct dial, row-er Call-er motoi) + Bondho action. */
     public static void notifyNow(Context ctx, String number) {
         ensureChannel(ctx);
         int id = requestCodeFor(number);
         Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + number));
-        Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
-        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent callPi = PendingIntent.getActivity(ctx, id + 1, chooser, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        dial.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent callPi = PendingIntent.getActivity(ctx, id + 1, dial, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Intent dismiss = new Intent(ctx, ReminderReceiver.class);
         dismiss.setAction(ACTION_DISMISS);
         dismiss.putExtra(EXTRA_NUMBER, number);

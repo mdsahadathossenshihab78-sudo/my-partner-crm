@@ -6,8 +6,8 @@ android {
         applicationId 'com.telesales.status'
         minSdk 24
         targetSdk 34
-        versionCode 100
-        versionName '7.9.2'
+        versionCode 101
+        versionName '7.9.3'
     }
     signingConfigs {
         debug {
@@ -36,4 +36,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:21.0.0'
     implementation 'androidx.browser:browser:1.7.0'
     implementation 'androidx.work:work-runtime:2.9.0'
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.guava:guava:32.1.2-android'
 }
