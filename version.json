@@ -1,6 +1,1 @@
-{
-  "apkUrl": "https://telesales-status-app.vercel.app/telesales-status.apk",
-  "minVersionCode": 101,
-  "versionCode": 101,
-  "versionName": "7.9.3"
-}
+{"apkUrl":"https://telesales-status-app.vercel.app/telesales-status.apk","minVersionCode":102,"versionCode":102,"versionName":"7.9.4"}
