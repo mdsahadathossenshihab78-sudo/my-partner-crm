@@ -1,16 +1,69 @@
 {
   "agents": [
-    {"gmail": "amirhossen650975@gmail.com", "agentId": "bdxamir03", "role": "agent"},
-    {"gmail": "C9743347@gmail.com", "agentId": "bdxchadni03", "role": "agent"},
-    {"gmail": "mhasanul337@gmail.com", "agentId": "bdxhasan03", "role": "agent"},
-    {"gmail": "ishratjahaniqra@gmail.com", "agentId": "bdxisrat03", "role": "agent"},
-    {"gmail": "miftahulfardous07@gmail.com", "agentId": "bdxmifta03", "role": "agent"},
-    {"gmail": "f74581458@gmail.com", "agentId": "bdxrafu03", "role": "agent"},
-    {"gmail": "sohelwork420@gmail.com", "agentId": "bdxsohel03", "role": "agent"},
-    {"gmail": "mdsahadathossenshihab78@gmail.com", "agentId": "bdxsukuna03", "role": "agent"},
-    {"gmail": "syedtanzilh@gmail.com", "agentId": "bdxsyed03", "role": "agent"},
-    {"gmail": "musarattabassum21@gmail.com", "agentId": "bdxtasfia03", "role": "agent"},
-    {"gmail": "zi7738648@gmail.com", "agentId": "bdxzara03", "role": "agent"},
-    {"gmail": "shihabno.18@gmail.com", "agentId": "bdxsukuna03", "role": "admin"}
+    {
+      "gmail": "amirhossen650975@gmail.com",
+      "agentId": "bdxamir03",
+      "role": "agent"
+    },
+    {
+      "gmail": "C9743347@gmail.com",
+      "agentId": "bdxchadni03",
+      "role": "agent"
+    },
+    {
+      "gmail": "mhasanul337@gmail.com",
+      "agentId": "bdxhasan03",
+      "role": "agent"
+    },
+    {
+      "gmail": "ishratjahaniqra@gmail.com",
+      "agentId": "bdxisrat03",
+      "role": "agent"
+    },
+    {
+      "gmail": "miftahulfardous07@gmail.com",
+      "agentId": "bdxmifta03",
+      "role": "agent"
+    },
+    {
+      "gmail": "f74581458@gmail.com",
+      "agentId": "bdxrafu03",
+      "role": "agent"
+    },
+    {
+      "gmail": "binancem587@gmail.com",
+      "agentId": "bdxraju03",
+      "role": "agent"
+    },
+    {
+      "gmail": "sohelwork420@gmail.com",
+      "agentId": "bdxsohel03",
+      "role": "agent"
+    },
+    {
+      "gmail": "mdsahadathossenshihab78@gmail.com",
+      "agentId": "bdxsukuna03",
+      "role": "agent"
+    },
+    {
+      "gmail": "syedtanzilh@gmail.com",
+      "agentId": "bdxsyed03",
+      "role": "agent"
+    },
+    {
+      "gmail": "musarattabassum21@gmail.com",
+      "agentId": "bdxtasfia03",
+      "role": "agent"
+    },
+    {
+      "gmail": "zi7738648@gmail.com",
+      "agentId": "bdxzara03",
+      "role": "agent"
+    },
+    {
+      "gmail": "shihabno.18@gmail.com",
+      "agentId": "bdxsukuna03",
+      "role": "admin"
+    }
   ]
 }
