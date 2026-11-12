@@ -211,13 +211,15 @@ public class RowAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     .setTitle("কোন নাম্বারে কল করবেন?")
                     .setItems(nums, (d, w) -> {
                         Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + nums[w]));
-                        h.itemView.getContext().startActivity(dial);
+                        Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+                        h.itemView.getContext().startActivity(chooser);
                     })
                     .setNegativeButton("বাতিল", null)
                     .show();
             } else {
                 Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + main));
-                h.itemView.getContext().startActivity(dial);
+                Intent chooser = Intent.createChooser(dial, "কল করার অ্যাপ বেছে নিন");
+                h.itemView.getContext().startActivity(chooser);
             }
         });
         h.btnCopy.setOnClickListener(v -> {

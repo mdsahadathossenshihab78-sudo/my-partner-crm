@@ -35,17 +35,6 @@
             android:layout_marginTop="14dp" android:text="লগইন করুন"
             android:textSize="15sp" android:textStyle="bold" android:textColor="@color/white"
             app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
-        <com.google.android.material.textfield.TextInputEditText android:id="@+id/loginPasswordInput"
-            android:layout_width="match_parent" android:layout_height="56dp"
-            android:layout_marginTop="14dp" android:hint="পাসওয়ার্ড"
-            android:inputType="textPassword"
-            android:background="@drawable/glass_field" android:padding="12dp"
-            android:textColor="@color/ink" android:textColorHint="@color/muted_warm" />
-        <com.google.android.material.button.MaterialButton android:id="@+id/loginPasswordBtn"
-            android:layout_width="match_parent" android:layout_height="56dp"
-            android:layout_marginTop="14dp" android:text="পাসওয়ার্ড দিয়ে লগইন করুন"
-            android:textSize="15sp" android:textStyle="bold" android:textColor="@color/white"
-            app:backgroundTint="@null" android:background="@drawable/btn_gradient" />
         <TextView android:id="@+id/loginError" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:layout_marginTop="12dp"
             android:textColor="@color/error_light" android:textSize="13sp" />

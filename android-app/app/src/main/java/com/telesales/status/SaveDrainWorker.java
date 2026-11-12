@@ -5,36 +5,27 @@ import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.firestore.WriteBatch;
-import com.google.android.gms.tasks.Tasks;
+import com.google.android.gms.auth.GoogleAuthException;
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
-/** Firestore drain — app na khulleo joma save Firestore-e pathay.
+/** v4.32: background drain — app na khulleo joma save sheet-e pathay.
  *  UI chhoy na (no Toast/View/Activity), Activity reference rakhe na.
- *  FirebaseAuth session disk-e persist kore, tai worker-e notun sign-in lage na;
- *  user na thakle Result.failure() (app khule login korte hobe — retry-e lav nei).
+ *  Stored sheet ID chara entry kokhono pathay na (legacy / stamp-hoyni entry
+ *  in-app drain-er jonno rekhe deya hoy — andaj kore kono sheet-e lekha hoy na).
  *  Entry sorbe sudhu confirmed safal write-er por; in-app drain-er sathe interleave
- *  holeo nirapad (number merge + calls-doc set idempotent, log dedup doc-ID diye).
- *  Quota hole entry joma thakbe, Result.retry() — Sheets fallback worker-e nei,
- *  in-app save path-e quota hole Sheets-e jay (saveViaSheets). */
+ *  holeo nirapad (updateRow idempotent + log dedup guard). */
 public class SaveDrainWorker extends Worker {
     public SaveDrainWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -50,35 +41,65 @@ public class SaveDrainWorker extends Worker {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         String myAgent = p.getString("agent_id", null);
         if (myAgent == null || myAgent.isEmpty()) return Result.failure();
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) return Result.failure();
-        FirestoreStore store = new FirestoreStore();
+        GoogleSignInAccount acct = GoogleSignIn.getLastSignedInAccount(ctx);
+        if (acct == null || acct.getAccount() == null) return Result.failure();
+        String token;
+        try {
+            token = GoogleAuthUtil.getToken(ctx, acct.getAccount(),
+                    "oauth2:" + MainActivity.SHEET_SCOPE + " " + MainActivity.DRIVE_SCOPE);
+        } catch (UserRecoverableAuthException e) {
+            return Result.failure(); // consent lagbe — user chara hobe na, loop noy
+        } catch (IOException e) {
+            return Result.retry(); // network samoyik
+        } catch (GoogleAuthException e) {
+            return Result.failure();
+        } catch (Exception e) {
+            return Result.failure();
+        }
+        if (token == null || token.isEmpty()) return Result.failure();
 
         boolean authFail = false;
         boolean transientFail = false;
 
-        // OUTBOX pass: number merge + calls doc (clear hole calls delete).
-        // numbersId stamp ar lage na — doc ID-i number.
+        // OUTBOX pass: main update sudhu (log side alada pending entry-te hobe).
         List<String[]> deliveredOutbox = new ArrayList<>();
         try {
             JSONArray ob = new JSONArray(p.getString(OUTBOX_KEY, "[]"));
             for (int i = 0; i < ob.length(); i++) {
                 JSONObject o = ob.optJSONObject(i);
                 if (o == null || !myAgent.equals(o.optString("agent"))) continue;
+                String numbersId = o.optString("numbersId");
+                if (numbersId == null || numbersId.isEmpty()) continue; // legacy / stamp-hoyni
                 Row r = new Row(o.optInt("row"), o.optString("number"), o.optString("status"),
                         o.optString("valid"), o.optString("r1"), o.optString("r2"), o.optString("others"));
-                String entryDate = dateFromTs(o.optLong("ts"));
-                String entryTime = timeFromTs(o.optLong("ts"));
-                boolean entryClear = (r.status == null || r.status.isEmpty()) && (r.valid == null || r.valid.isEmpty());
                 try {
-                    if (entryClear) {
-                        saveNumberOnly(myAgent, r, entryDate, entryTime);
-                        deleteCallsForDateNumber(myAgent, entryDate, r.number);
-                    } else {
-                        saveNumberStatusSync(store, myAgent, r, entryDate, entryTime);
-                    }
+                    SheetsClient.updateRow(token, numbersId, myAgent, r);
                     deliveredOutbox.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
                 } catch (Exception e) {
-                    if (FirestoreStore.isQuotaError(e)) { transientFail = true; break; }
+                    String m = e.getMessage() == null ? "" : e.getMessage();
+                    if (m.contains("bodle geche")) {
+                        // v4.41: row sore geche — number diye bortoman row khunje abar save.
+                        // Team roj number soray; ager moto entry muchhle user-ke abar save korte hoto.
+                        try {
+                            Row fresh = SheetsClient.findRowByNumber(token, numbersId, myAgent, SheetsClient.normLogNumber(o.optString("number")));
+                            if (fresh == null) {
+                                deliveredOutbox.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
+                                continue; // number sheet-e ar nei — drop
+                            }
+                            r.row = fresh.row;
+                            SheetsClient.updateRow(token, numbersId, myAgent, r);
+                            deliveredOutbox.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
+                        } catch (Exception re) {
+                            String rm = re.getMessage() == null ? "" : re.getMessage();
+                            if (rm.contains("bodle geche")) {
+                                deliveredOutbox.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
+                                continue; // abar soreche — drop
+                            }
+                            if (isTransient(re)) { transientFail = true; break; }
+                            authFail = true; break;
+                        }
+                        continue;
+                    }
                     if (isTransient(e)) { transientFail = true; break; }
                     authFail = true; break;
                 }
@@ -86,18 +107,19 @@ public class SaveDrainWorker extends Worker {
         } catch (Exception ignored) {}
         if (!deliveredOutbox.isEmpty()) removeOutboxEntries(ctx, deliveredOutbox);
 
-        // PENDING pass: sudhu "log" type. Clear entry chain-wide delete chay —
-        // seta in-app drain korbe, worker noy.
+        // PENDING pass: sudhu "log" type + stored logSheetId/logTab thakle.
+        // Clear entry chain-wide delete chay — seta in-app drain korbe, worker noy.
         Set<String> remainingOutboxNums = new HashSet<>();
         try {
             JSONArray ob = new JSONArray(p.getString(OUTBOX_KEY, "[]"));
             for (int i = 0; i < ob.length(); i++) {
                 JSONObject o = ob.optJSONObject(i);
                 if (o != null && myAgent.equals(o.optString("agent")))
-                    remainingOutboxNums.add(FirestoreStore.normLogNumber(o.optString("number")));
+                    remainingOutboxNums.add(SheetsClient.normLogNumber(o.optString("number")));
             }
         } catch (Exception ignored) {}
         List<String[]> deliveredPending = new ArrayList<>();
+        Map<String, Set<String>> logRowsCache = new HashMap<>();
         if (!authFail) {
             try {
                 JSONArray arr = new JSONArray(p.getString(PENDING_LOG_KEY, "[]"));
@@ -105,14 +127,34 @@ public class SaveDrainWorker extends Worker {
                     JSONObject o = arr.optJSONObject(i);
                     if (o == null || !myAgent.equals(o.optString("agent"))) continue;
                     if (!"log".equals(o.optString("type"))) continue; // clear skip
-                    String num = FirestoreStore.normLogNumber(o.optString("number"));
+                    String logSheetId = o.optString("logSheetId");
+                    String logTab = o.optString("logTab");
+                    if (logSheetId == null || logSheetId.isEmpty() || logTab == null || logTab.isEmpty()) continue; // legacy / stamp-hoyni
+                    String num = SheetsClient.normLogNumber(o.optString("number"));
                     if (remainingOutboxNums.contains(num)) continue; // main update baki — order thik rakhte pore
+                    String key = o.optString("date") + "|" + num + "|" + o.optString("status") + "|" + o.optString("valid");
                     try {
-                        createCallDocIfAbsent(myAgent, o.optString("date"), o.optString("number"),
-                                o.optString("status"), o.optString("valid"), timeFromTs(o.optLong("ts", 0)));
+                        Set<String> existing = logRowsCache.get(logSheetId + "|" + logTab);
+                        if (existing == null) {
+                            existing = new HashSet<>();
+                            try {
+                                for (String[] lr : SheetsClient.getReportRows(token, logSheetId, logTab)) {
+                                    if (lr != null && lr.length >= 4)
+                                        existing.add(lr[0] + "|" + SheetsClient.normLogNumber(lr[1]) + "|" + lr[2] + "|" + lr[3]);
+                                }
+                                logRowsCache.put(logSheetId + "|" + logTab, existing);
+                            } catch (Exception re) { existing = null; } // read fail — skip noy, append chesta hobe
+                        }
+                        if (existing != null && existing.contains(key)) {
+                            deliveredPending.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
+                            continue;
+                        }
+                        SheetsClient.appendReportRow(token, logSheetId, logTab, new String[]{
+                                o.optString("date"), RowAdapter.dialNumber(o.optString("number")),
+                                o.optString("status"), o.optString("valid")});
+                        if (existing != null) existing.add(key);
                         deliveredPending.add(new String[]{o.optString("agent"), o.optString("number"), String.valueOf(o.optLong("ts"))});
                     } catch (Exception e) {
-                        if (FirestoreStore.isQuotaError(e)) { transientFail = true; break; }
                         if (isTransient(e)) { transientFail = true; break; }
                         authFail = true; break;
                     }
@@ -126,99 +168,13 @@ public class SaveDrainWorker extends Worker {
         return Result.success();
     }
 
-    /** FirestoreStore callback-ke blocking call-e badla — doWork background thread-ei chole. */
-    private static void saveNumberStatusSync(FirestoreStore store, String agent, Row row, String date, String time) throws Exception {
-        final Exception[] error = new Exception[1];
-        final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
-        store.saveNumberStatus(agent, row, date, time, new FirestoreStore.Callback<Void>() {
-            public void onSuccess(Void v) { latch.countDown(); }
-            public void onError(Exception e) { error[0] = e; latch.countDown(); }
-        });
-        if (!latch.await(30, TimeUnit.SECONDS)) throw new Exception("Firestore save timed out");
-        if (error[0] != null) throw error[0];
-    }
-
-    /** Number-doc sudhu merge (calls doc noy) — clear ba unchanged save-er jonno. */
-    private static void saveNumberOnly(String agent, Row row, String date, String time) throws Exception {
-        String number = FirestoreStore.normLogNumber(row.number);
-        if (number.isEmpty()) throw new IllegalArgumentException("row number is empty");
-        Map<String, Object> data = new HashMap<>();
-        data.put("number", number);
-        data.put("status", row.status == null ? "" : row.status);
-        data.put("valid", row.valid == null ? "" : row.valid);
-        data.put("remark1", row.remark1 == null ? "" : row.remark1);
-        data.put("remark2", row.remark2 == null ? "" : row.remark2);
-        data.put("others", row.others == null ? "" : row.others);
-        data.put("lastCalledDate", date == null ? "" : date);
-        data.put("lastCalledTime", time == null ? "" : time);
-        data.put("syncedToSheet", false);
-        Tasks.await(FirebaseFirestore.getInstance().collection("agents").document(agent)
-                .collection("numbers").document(number).set(data, SetOptions.merge()), 30, TimeUnit.SECONDS);
-    }
-
-    /** Oi date + number-er SOB calls doc muche fela (date-e query, number client-side). */
-    private static void deleteCallsForDateNumber(String agent, String date, String number) throws Exception {
-        String norm = FirestoreStore.normLogNumber(number);
-        if (norm.isEmpty()) return;
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        QuerySnapshot snap = Tasks.await(db.collection("agents").document(agent).collection("calls")
-                .whereEqualTo("date", date == null ? "" : date).get(), 30, TimeUnit.SECONDS);
-        WriteBatch batch = db.batch();
-        boolean any = false;
-        for (DocumentSnapshot doc : snap.getDocuments()) {
-            if (norm.equals(FirestoreStore.normLogNumber(doc.getString("number")))) { batch.delete(doc.getReference()); any = true; }
-        }
-        if (any) Tasks.await(batch.commit(), 30, TimeUnit.SECONDS);
-    }
-
-    /** Calls doc ID-i dedup key (date_number_status_valid) — age theke thakle skip. */
-    private static void createCallDocIfAbsent(String agent, String date, String number, String status, String valid, String time) throws Exception {
-        String norm = FirestoreStore.normLogNumber(number);
-        if (norm.isEmpty()) return;
-        String safeDate = date == null ? "" : date;
-        String safeStatus = status == null ? "" : status;
-        String safeValid = valid == null ? "" : valid;
-        String callDocId = safeDate + "_" + norm + "_" + safeStatus + "_" + safeValid;
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentSnapshot existing = Tasks.await(db.collection("agents").document(agent).collection("calls")
-                .document(callDocId).get(), 30, TimeUnit.SECONDS);
-        if (existing != null && existing.exists()) return;
-        Map<String, Object> callData = new HashMap<>();
-        callData.put("date", safeDate);
-        callData.put("number", norm);
-        callData.put("status", safeStatus);
-        callData.put("valid", safeValid);
-        callData.put("time", time == null ? "" : time);
-        callData.put("createdAt", FieldValue.serverTimestamp());
-        callData.put("syncedToSheet", false);
-        Tasks.await(db.collection("agents").document(agent).collection("calls")
-                .document(callDocId).set(callData), 30, TimeUnit.SECONDS);
-    }
-
-    private static String dateFromTs(long ts) {
-        if (ts <= 0) return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
-        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        f.setTimeZone(TimeZone.getTimeZone("Asia/Dhaka"));
-        return f.format(new Date(ts));
-    }
-
-    private static String timeFromTs(long ts) {
-        if (ts <= 0) return new SimpleDateFormat("HH:mm", Locale.US).format(new Date());
-        SimpleDateFormat f = new SimpleDateFormat("HH:mm", Locale.US);
-        f.setTimeZone(TimeZone.getTimeZone("Asia/Dhaka"));
-        return f.format(new Date(ts));
-    }
-
     /** Samoyik somossa (quota/network/server) — retry korle lav ache. */
     private static boolean isTransient(Exception e) {
-        if (FirestoreStore.isQuotaError(e)) return true;
         String m = e == null ? "" : e.getMessage();
-        if (m == null) m = "";
         if (m.contains("429") || m.contains("500") || m.contains("502") || m.contains("503") || m.contains("504")) return true;
         String low = m.toLowerCase();
         return low.contains("timeout") || low.contains("timed out") || low.contains("unable to resolve host")
-                || low.contains("failed to connect") || low.contains("network") || low.contains("socket") || low.contains("eof")
-                || low.contains("unavailable");
+                || low.contains("failed to connect") || low.contains("network") || low.contains("socket") || low.contains("eof");
     }
 
     /** Fresh-read-merge removal: shesh muhurte notun joma entry thakleo harabe na
@@ -234,7 +190,7 @@ public class SaveDrainWorker extends Worker {
                 boolean hit = false;
                 for (String[] d : delivered) {
                     if (d[0].equals(o.optString("agent"))
-                            && FirestoreStore.normLogNumber(d[1]).equals(FirestoreStore.normLogNumber(o.optString("number")))
+                            && SheetsClient.normLogNumber(d[1]).equals(SheetsClient.normLogNumber(o.optString("number")))
                             && d[2].equals(String.valueOf(o.optLong("ts")))) { hit = true; break; }
                 }
                 if (!hit) kept.put(o);
@@ -254,7 +210,7 @@ public class SaveDrainWorker extends Worker {
                 boolean hit = false;
                 for (String[] d : delivered) {
                     if (d[0].equals(o.optString("agent"))
-                            && FirestoreStore.normLogNumber(d[1]).equals(FirestoreStore.normLogNumber(o.optString("number")))
+                            && SheetsClient.normLogNumber(d[1]).equals(SheetsClient.normLogNumber(o.optString("number")))
                             && d[2].equals(String.valueOf(o.optLong("ts")))) { hit = true; break; }
                 }
                 if (!hit) kept.put(o);
