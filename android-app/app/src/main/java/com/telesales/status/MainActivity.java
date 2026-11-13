@@ -139,6 +139,10 @@ public class MainActivity extends AppCompatActivity {
     private java.util.Set<String> savingRows = new java.util.HashSet<>();
     private java.util.Set<String> optimisticTileKeys = new java.util.HashSet<>();
     private RowAdapter adapter;
+    // v7.9.6: Save / reload-er por list-er scroll position dhore rakha hoy — notifyDataSetChanged()-e list upore chole jeto.
+    private RecyclerView listRecycler;
+    private int savedListPosition = RecyclerView.NO_POSITION;
+    private int savedListOffset = 0;
     // v6.14: per-number card — kono focus card / pinned bar nei; focus row,
     // pinned bar ar orbit ring sorano holo. Dashboard-er digital animation-er
     // animator list (glow pulse + meter sweep) — onDestroy-e cancel hobe.
@@ -612,6 +616,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         RecyclerView recycler = findViewById(R.id.recycler);
+        listRecycler = recycler;
         recycler.setLayoutManager(new LinearLayoutManager(this));
         // v6.13: RecyclerView-i ekmatro scroller — focus card + strip ekhon
         // er header item; nestedScrollingEnabled default (true) thakbe.
@@ -638,10 +643,10 @@ public class MainActivity extends AppCompatActivity {
             // tab-e jabe aar sekhanei thakbe — kono number bad jabe na. savedStatus ekhanei
             // notun value-e bosano hoy, jate row-ta pending theke sore; moveCalledToTop-e
             // called-er upore bosbe. Clear-save hole ulto: row-ta abar pending-e.
-            String optQ = searchBox.getText() == null ? "" : searchBox.getText().toString();
+            String optQ = searchBox.getText() == null ? "" : searchBox.getText().toString(); saveListScrollPosition();
             if (optClear) { row.savedStatus = ""; row.prevDay = false; adapter.removeCalledRow(row, optQ); }
             else if (optChanged) { row.savedStatus = row.status == null ? "" : row.status; row.prevDay = false; adapter.moveCalledToTop(row, optQ); }
-            else adapter.filter(optQ);
+            else adapter.filter(optQ); restoreListScrollPosition();
             // v4.33: row-ta screen-e jemon ache, baki hero-o sathe sathe temon (save/clear duitotei).
             refreshRemainingHero();
             // v4.32 + v4.41: exit-proof save — network thread shuru howar AGEI save intent-ti
@@ -737,7 +742,7 @@ public class MainActivity extends AppCompatActivity {
                         markRowCleanInSnapshot(row); DraftStore.clear(MainActivity.this, row.number); refreshQueuedCounter();
                         btn.setEnabled(true); btn.setText("সেভ করুন");
                         Toast.makeText(MainActivity.this, "রো " + row.row + " শিটে আপডেট হয়েছে" + (finalLogError != null ? " (লগ পরে সিঙ্ক হবে)" : (finalLogCleared ? " (আজকের লগ রো মুছে গেছে)" : "")), Toast.LENGTH_LONG).show();
-                        adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
+                        saveListScrollPosition(); adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString()); restoreListScrollPosition();
                         refreshRemainingHero();
                         if (finalLogAppended) { refreshInvalidTileAfterSave(); }
                         else if (finalLogCleared) loadDayStats();
@@ -2378,6 +2383,44 @@ public class MainActivity extends AppCompatActivity {
      *  somoy outbox entry-te stamp deoar jonno (thread na cholleo worker pathabe). */
     private String lastResolvedNumbersId = null;
 
+    // v7.9.6: RecyclerView-er scroll position save / restore — save ba reload-e
+    // adapter-er full refresh (notifyDataSetChanged) list-ke upore pathiye dito.
+    private void saveListScrollPosition() {
+        try {
+            if (listRecycler == null) return;
+            RecyclerView.LayoutManager lm = listRecycler.getLayoutManager();
+            if (!(lm instanceof LinearLayoutManager)) return;
+            LinearLayoutManager llm = (LinearLayoutManager) lm;
+            int pos = llm.findFirstVisibleItemPosition();
+            if (pos == RecyclerView.NO_POSITION) return;
+            View v = llm.findViewByPosition(pos);
+            savedListPosition = pos;
+            savedListOffset = (v == null) ? 0 : v.getTop();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void restoreListScrollPosition() {
+        try {
+            if (listRecycler == null) return;
+            if (savedListPosition == RecyclerView.NO_POSITION) return;
+            final int position = savedListPosition;
+            final int offset = savedListOffset;
+            listRecycler.post(() -> {
+                try {
+                    if (adapter == null || adapter.getItemCount() == 0) return;
+                    int pos = Math.min(position, adapter.getItemCount() - 1);
+                    RecyclerView.LayoutManager lm = listRecycler.getLayoutManager();
+                    if (lm instanceof LinearLayoutManager) {
+                        ((LinearLayoutManager) lm).scrollToPositionWithOffset(pos, offset);
+                    }
+                } catch (Exception ignored) {
+                }
+            });
+        } catch (Exception ignored) {
+        }
+    }
+
     private void loadRows() {
         if (token == null) { showLogin(); return; }
         if (agentId == null) { showAgent(); return; }
@@ -2433,9 +2476,9 @@ public class MainActivity extends AppCompatActivity {
                     // aar draft thaka row filter-e pending theke gayeb hoye jeto.
                     lastStatusMap.clear();
                     for (Row r : rows) { r.savedStatus = r.status == null ? "" : r.status; lastStatusMap.put(r.number == null ? "" : r.number.trim(), (r.status == null ? "" : r.status) + "|" + (r.valid == null ? "" : r.valid)); }
-                    applyDrafts(rows, false); adapter.setRows(rows); lastTotalNumDay = rows.size(); animateStatNumber(statTotalNumDay, rows.size()); refreshRemainingHero();
+                    saveListScrollPosition(); applyDrafts(rows, false); adapter.setRows(rows); lastTotalNumDay = rows.size(); animateStatNumber(statTotalNumDay, rows.size()); refreshRemainingHero();
                     refreshQueuedCounter();
-                    adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString());
+                    saveListScrollPosition(); adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString()); restoreListScrollPosition();
                     rowsLoaded = true; maybeOpenPendingReminder();
                     statusText.setText("শিটের সাথে সংযুক্ত — " + rows.size() + "টি রো");
                     if (rows.isEmpty()) {
