@@ -224,16 +224,6 @@ public class MainActivity extends AppCompatActivity {
     private android.os.Handler uiHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable pendingRowsLoad, pendingStatsLoad;
     private TextView reportStatus, reportOutput, ftdTotal, ftdStepCount, regStepCount, invAutoText;
-    /** v6.11: Report screen-e manual hisab-er sathe panel auto hisab merge —
-     *  reportDate-r jonno Commission Stats row theke Registered (col D),
-     *  FTD (col B), FTD Amount (col C). Dashboard-er v6.1 tile-er sathe
-     *  ekoi column, jate Dashboard ar Report mile. Auto sudhu pora hoy,
-     *  kokhono Reports sheet-e lekha hoy na. */
-    private int reportAutoReg = 0, reportAutoFtd = 0;
-    private double reportAutoAmt = 0;
-    // v6.12: oi din-er Stats row ache kina — headline = auto (row thakle),
-    // na hole manual. Manual auto-r moddhei dhora thake, tai jog noy.
-    private boolean reportAutoHasRow = false;
     private TextView regAutoSplit, ftdAutoSplit;
     private LinearLayout regList, invList, probList, ftdList, ftdStepAmountRow;
     private TextInputEditText regCount, ftdStepAmount, invNumber, probText;
@@ -2531,114 +2521,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Nirbachito diner + oi diner 7-diner block-er hisab (log + report file theke). */
-    /** v6.1: auto hisab — Telesales Commission Stats sheet-er sorboshesh row
-     *  (panel theke ghontay-ghontay sync hoy). v7.5: ei function ar boro tile-e
-     *  AUTO bosay na — tile-e manual+auto jogfol loadDayStats bosay (na hole
-     *  Report-er manual FTD/Reg count hoto na). Ekhane sudhu "সর্বশেষ সিঙ্ক"
-     *  somoy-ta dekhano hoy. Sheet na thakle / read na hole "সিঙ্ক হয়নি". */
-    private void loadCommissionStats() {
-        if (token == null) return;
-        new Thread(() -> {
-            try {
-                String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
-                if (id == null) { postCommissionEmpty(); return; }
-                List<String[]> rows = null;
-                try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
-                catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
-                String[] last = null;
-                for (String[] r : rows) {
-                    if (r == null || r.length < 4) continue;
-                    String d = cell(r, 0).trim();
-                    if (d.isEmpty() || "Date".equals(d)) continue;
-                    if (last == null || d.compareTo(cell(last, 0).trim()) >= 0) last = r;
-                }
-                if (last == null) { postCommissionEmpty(); return; }
-                String reg = cell(last, 3).trim(), ftd = cell(last, 1).trim(), amt = cell(last, 2).trim(), when = cell(last, 16).trim(), date = cell(last, 0).trim();
-                runOnUiThread(() -> {
-                    if (autoSyncTime != null) autoSyncTime.setText("সর্বশেষ সিঙ্ক: " + (when.isEmpty() ? date : when));
-                });
-            } catch (Exception e) { postCommissionEmpty(); }
-        }).start();
-    }
-
-    private void postCommissionEmpty() {
-        runOnUiThread(() -> { if (autoSyncTime != null) autoSyncTime.setText("সিঙ্ক হয়নি"); });
-    }
-
-    /** v6.11: Commission Stats sheet-er nirdisto din-er row (panel auto hisab).
-     *  Dashboard-er v6.1 tile-er motoi column: Registered = col D (3),
-     *  FTD = col B (1), FTD Amount = col C (2). Row na thakle / read na
-     *  hole null (auto = 0). Background thread theke daka hoy. */
-    private static class ReportAuto { final int reg, ftd; final double amt; ReportAuto(int r, int f, double a) { reg = r; ftd = f; amt = a; } }
-
-    private ReportAuto readCommissionStatsForDate(String date) {
-        try {
-            if (token == null || date == null) return null;
-            String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
-            if (id == null) return null;
-            List<String[]> rows = null;
-            try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
-            catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
-            if (rows == null) return null;
-            for (String[] r : rows) {
-                if (r == null || r.length < 4) continue;
-                String d = cell(r, 0).trim();
-                if (d.isEmpty() || "Date".equals(d)) continue;
-                if (!d.equals(date)) continue;
-                int reg = 0, ftd = 0; double amt = 0;
-                try { reg = (int) Math.round(Double.parseDouble(cell(r, 3).trim())); } catch (Exception ignored) {}
-                try { ftd = (int) Math.round(Double.parseDouble(cell(r, 1).trim())); } catch (Exception ignored) {}
-                try { amt = Double.parseDouble(cell(r, 2).trim()); } catch (Exception ignored) {}
-                return new ReportAuto(reg, ftd, amt);
-            }
-            return null;
-        } catch (Exception ignored) { return null; }
-    }
-
-    /** v6.16: Commission Stats sheet-er sob row theke date -> FTD (col B) map.
-     *  Chart-er trailing 7 din-er headline hisab-er jonno — ekbar pore 7 din
-     *  milano hoy (protteke alada read noy). Read na hole khali map (chart
-     *  tokhon sob din manual dekhabe). Background thread theke daka hoy. */
-    private Map<String, Integer> readCommissionStatsFtdMap() {
-        Map<String, Integer> m = new HashMap<>();
-        try {
-            if (token == null) return m;
-            String id = writeSheetFor(currentConfig(), "COMMISSION", dhakaDate());
-            if (id == null) return m;
-            List<String[]> rows = null;
-            try { rows = SheetsClient.getReportRows(token, id, "Stats"); }
-            catch (Exception e) { rows = SheetsClient.getReportRows(token, id, "Sheet1"); }
-            if (rows == null) return m;
-            for (String[] r : rows) {
-                if (r == null || r.length < 2) continue;
-                String d = cell(r, 0).trim();
-                if (d.isEmpty() || "Date".equals(d)) continue;
-                try { m.put(d, (int) Math.round(Double.parseDouble(cell(r, 1).trim()))); } catch (Exception ignored) {}
-            }
-        } catch (Exception ignored) { }
-        return m;
-    }
-
-    /** v6.11: reportDate-r auto hisab background-e pore ane; tarikh bodle
-     *  gele purono response boshbe na (date miliye dekha hoy). */
-    private void loadReportAutoForDate(String date) {
-        if (token == null || date == null) return;
-        final String want = date;
-        new Thread(() -> {
-            ReportAuto a = readCommissionStatsForDate(want);
-            final boolean hasRow = a != null;
-            final int ar = a == null ? 0 : a.reg;
-            final int af = a == null ? 0 : a.ftd;
-            final double aa = a == null ? 0 : a.amt;
-            runOnUiThread(() -> {
-                if (!reportDate.equals(want)) return;
-                reportAutoHasRow = hasRow;
-                reportAutoReg = ar; reportAutoFtd = af; reportAutoAmt = aa;
-                refreshReportLists();
-            });
-        }).start();
-    }
-
+    
     /** v6.11: split line banay — chhoto, muted rong-er TextView. */
     private TextView makeReportSplitView() {
         TextView t = new TextView(this);
@@ -2794,7 +2677,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 SharedPreferences p = getSharedPreferences("telesales_prefs", Context.MODE_PRIVATE);
                 tryRefreshConfig();
-                loadCommissionStats();
                 List<REntry> logs;
                 try { logs = readLogRowsForDate(day); }
                 catch (Exception le) {
@@ -2823,17 +2705,13 @@ public class MainActivity extends AppCompatActivity {
                 int ftdN = ftdTotalCount(ftdToday);
                 double ftdSum = 0;
                 for (REntry e : ftdToday) { try { ftdSum += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
-                // v7.8: Amount-tao MAX — count-er winner-er sathe badha NOY.
-                // v7.7-te amount count-er winner-er ta nitam; count soman
-                // hole (3 = 3) manual-er 600 nitam, auto-er 700 bad jeto.
-                // Ekhon amount alada MAX: jeta boro seta-i dekhay.
-                ReportAuto autoDay = readCommissionStatsForDate(day);
-                int autoReg = autoDay != null ? autoDay.reg : 0;
-                int autoFtd = autoDay != null ? autoDay.ftd : 0;
-                double autoAmt = autoDay != null ? autoDay.amt : 0;
-                int headReg = Math.max(reg, autoReg);
-                int headFtdN = Math.max(ftdN, autoFtd);
-                double headFtdSum = Math.max(ftdSum, autoAmt);
+                // v7.9.5: Registration + FTD MANUAL-ONLY - headline uses manual report counts only;
+                // manual hisab: reg, ftdN, ftdSum (agent-er report/log theke).
+                // Commission Stats (12bajeevip panel) theke auto songkha ar pora hoy na.
+                // Dashboard-e Commission Stats-er kono read thakbe na (v7.9.5).
+                int headReg = reg;
+                int headFtdN = ftdN;
+                double headFtdSum = ftdSum;
                 String anchor = p.getString("log_anchor_date_" + agentId, null);
                 String min = null;
                 for (REntry e : logs) if (e.cells.length > 0 && (min == null || e.cells[0].compareTo(min) < 0)) min = e.cells[0];
@@ -2851,19 +2729,13 @@ public class MainActivity extends AppCompatActivity {
                 int ftdNW = ftdTotalCount(ftdWeek);
                 double ftdSumW = 0;
                 for (REntry e : ftdWeek) { try { ftdSumW += Double.parseDouble(cellE(e, 2)); } catch (Exception ignored) {} }
-                // v6.16: chart — trailing 7 din (nirbachito din-e sesh), headline FTD
-                // (Stats row thakle AUTO, na hole manual report). weekSummary ager motoi
+                // v7.9.5: chart MANUAL-ONLY - trailing 7 din-er FTD sudhu manual report theke
+                // (ftdCountOf per day); Commission Stats (panel) auto map ar pora hoy na.
                 // anchor block-e thakbe.
                 String trailStart = addDays(day, -6);
                 int[] manPerDay = new int[7];
                 for (REntry e : filterRange(ftds, trailStart, day)) { int di = (int) daysBetween(trailStart, cellE(e, 0)); if (di >= 0 && di < 7) manPerDay[di] += ftdCountOf(e); }
-                Map<String, Integer> autoFtdByDate = readCommissionStatsFtdMap();
-                int[] headPerDay = new int[7];
-                for (int i = 0; i < 7; i++) {
-                    String d = addDays(trailStart, i);
-                    Integer a = autoFtdByDate.get(d);
-                    headPerDay[i] = (a != null) ? a : manPerDay[i];
-                }
+                int[] headPerDay = manPerDay;
                 // Batch fix #12: 7-din line-e Valid/Invalid/Registration-o thakbe.
                 int validW = 0;
                 for (REntry e : filterRange(logs, blockStart, blockEnd)) if ("Yes".equals(cellE(e, 3))) validW++;
@@ -2882,8 +2754,8 @@ public class MainActivity extends AppCompatActivity {
                     animateStatNumber(statNotConnDay, finalNotConn);
                     animateStatNumber(statValidDay, finalValid);
                     animateStatNumber(statInvDay, finalInv);
-                    // v7.5: tile-e sobsomoy manual+auto jogfol boshe — age AUTO
-                    // override korto bole Report-er manual FTD/Reg count hoto na.
+                    // v7.9.5: tile-e sudhu manual hisab boshe (manual+auto jogfol ar noy).
+                    // Commission Stats auto override ar nei (v7.9.5 manual-only).
                     animateStatNumber(statRegDay, finalReg);
                     animateStatNumber(statFtdDay, finalFtdN);
                     animateStatAmount(statFtdAmtDay, finalFtdSum);
@@ -3115,21 +2987,17 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isReportToday() { return reportDate.equals(dhakaDate()); } private void updateReportDateBtn() { if (reportDateBtn != null) reportDateBtn.setText(displayDay(reportDate)); } private void updateReportEditState() { boolean isToday = isReportToday(); int[] ids = {R.id.regPlusBtn, R.id.regMinusBtn, R.id.ftdPlusBtn, R.id.ftdMinusBtn, R.id.ftdStepAmount, R.id.ftdStepAddBtn, R.id.probText, R.id.probAddBtn}; for (int id : ids) { View v = findViewById(id); if (v != null) v.setEnabled(isToday); } View stepRow = findViewById(R.id.ftdStepAmountRow); if (stepRow != null && !isToday) stepRow.setVisibility(View.GONE); if (reportDateNote != null) reportDateNote.setVisibility(isToday ? View.GONE : View.VISIBLE); } private void setReportDate(String nd) { if (nd == null) return; if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); reportDate = nd; updateReportDateBtn(); updateReportEditState(); if (reportOutputCard != null) reportOutputCard.setVisibility(View.GONE); loadReportData(); } private void shiftReportDay(int delta) { try { Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC")); c.setTime(parseDay(reportDate)); c.add(Calendar.DAY_OF_MONTH, delta); String nd = fmtDay(c.getTime()); if (nd.compareTo(dhakaDate()) > 0) nd = dhakaDate(); setReportDate(nd); } catch (Exception e) { } } private void loadReportData() {
         if (token == null) { showLogin(); return; }
-        reportStatus.setText("রিপোর্ট লোড হচ্ছে...");
-        // v6.11: notun tarikh-e purono din-er auto jeno na jholse — age shunno.
-        reportAutoReg = 0; reportAutoFtd = 0; reportAutoAmt = 0; reportAutoHasRow = false;
+        reportStatus.setText("রিপোর্ট লোড হচ্ছে..."); final int seq = ++reportSeq;
         new Thread(() -> {
             try {
-                tryRefreshConfig();
-                final int seq = ++reportSeq;
-                String today = reportDate;
+                tryRefreshConfig(); String today = reportDate;
                 ReportSplit s = splitReportRows(readReportRowsForDate(today));
                 regToday = filterTodayE(s.reg, today);
                 ftdToday = filterTodayE(s.ftd, today);
                 invToday = filterTodayE(s.inv, today);
                 probToday = filterTodayE(s.prob, today);
                 final boolean partialReport = lastReportPartialFail;
-                runOnUiThread(() -> { if (seq != reportSeq || !reportDate.equals(today)) return; reportLoadFallbackUsed = false; refreshReportLists(); reportStatus.setText(partialReport ? "রিপোর্ট লোড হয়েছে, কিন্তু একটা শিট পড়তে পারিনি — হিসাব অসম্পূর্ণ হতে পারে" : ""); loadAutoInvalidForReport(); loadReportAutoForDate(today); });
+                runOnUiThread(() -> { if (seq != reportSeq || !reportDate.equals(today)) return; reportLoadFallbackUsed = false; refreshReportLists(); reportStatus.setText(partialReport ? "রিপোর্ট লোড হয়েছে, কিন্তু একটা শিট পড়তে পারিনি — হিসাব অসম্পূর্ণ হতে পারে" : ""); loadAutoInvalidForReport(); });
             } catch (Exception e) {
                 if (isNotFoundError(e) && !reportLoadFallbackUsed) {
                     reportLoadFallbackUsed = true;
@@ -3145,13 +3013,13 @@ public class MainActivity extends AppCompatActivity {
     private int countAutoInvalid(List<REntry> logs, String date) { return countAutoInvalidRange(logs, date, date); }
     /** Batch fix #12: range-er Invalid (distinct number, not connected + Valid No) — week hisab-er jonno. */
     private int countAutoInvalidRange(List<REntry> logs, String start, String end) { java.util.Set<String> seen = new java.util.HashSet<>(); if (logs == null) return 0; for (REntry e : logs) { if (e == null) continue; String d = cellE(e, 0); if (d.compareTo(start) < 0 || d.compareTo(end) > 0) continue; if (!"not connected".equalsIgnoreCase(cellE(e, 2).trim())) continue; if (!"No".equalsIgnoreCase(cellE(e, 3).trim())) continue; String n = cellE(e, 1).replace(" ", "").replace("-", ""); if (n.startsWith("+880")) n = "0" + n.substring(4); else if (n.startsWith("880")) n = "0" + n.substring(3); else if (!n.startsWith("0")) n = "0" + n; if (!n.isEmpty()) seen.add(n); } return seen.size(); } private void loadAutoInvalidForReport() { final String d = reportDate; new Thread(() -> { try { if (token == null) return; List<REntry> logs = readLogRowsForDate(d); final int c = countAutoInvalid(logs, d); runOnUiThread(() -> { if (invAutoText != null) invAutoText.setText("Invalid: " + c); }); } catch (Exception ignored) { } }).start(); } private void refreshReportLists() {
-        // v6.12: prodhan songkhya = AUTO (panel), jodi oi din-er Stats row thake;
-        // row na thakle manual (ager moto). Manual auto-r moddhei dhora thake,
-        // tai jog kora jabe na — jog korle double count hoy (FTD 6 / Reg 11 hoto).
+        // v7.9.5: prodhan songkhya = MANUAL (sudhu agent-er report theke);
+        // Commission Stats (panel) auto songkha ar bebohar hoy na.
+        // Headline = manual count (regToday / ftdToday theke).
         int manReg = regTotalCount(regToday);
-        int headReg = reportAutoHasRow ? reportAutoReg : manReg;
+        int headReg = manReg;
         if (regStepCount != null) regStepCount.setText(String.valueOf(headReg));
-        if (regAutoSplit != null) regAutoSplit.setText("ম্যানুয়াল: " + manReg + " • অটো: " + reportAutoReg);
+        if (regAutoSplit != null) regAutoSplit.setText("");
         // v4.18: Invalid per-entry list removed; auto-count is shown in invAutoText.
         fillList(probList, probToday, "Problems");
         double sum = 0;
@@ -3159,11 +3027,11 @@ public class MainActivity extends AppCompatActivity {
             try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}
         }
         int manFtd = ftdTotalCount(ftdToday);
-        int headFtd = reportAutoHasRow ? reportAutoFtd : manFtd;
-        double headAmt = reportAutoHasRow ? reportAutoAmt : sum;
+        int headFtd = manFtd;
+        double headAmt = sum;
         ftdStepCount.setText(String.valueOf(headFtd));
         ftdTotal.setText((reportDate.equals(dhakaDate()) ? "আজ মোট: " : displayDay(reportDate) + " মোট: ") + headFtd + "টা • ৳" + fmtAmount(headAmt));
-        if (ftdAutoSplit != null) ftdAutoSplit.setText("ম্যানুয়াল: " + manFtd + "টা • ৳" + fmtAmount(sum) + " • অটো: " + reportAutoFtd + "টা • ৳" + fmtAmount(reportAutoAmt));
+        if (ftdAutoSplit != null) ftdAutoSplit.setText("");
         // Batch fix #19: ajker FTD entry-gulo alada kore dekha + prottekta ✕ diye muchha
         // jabe (report TEXT-e sudhu count + total thakbe, ager motoi).
         if (ftdList != null) fillList(ftdList, ftdToday, "FTD");
@@ -3312,21 +3180,14 @@ public class MainActivity extends AppCompatActivity {
                 for (REntry r : ftdToday) {
                     try { sum += Double.parseDouble(cellE(r, 2)); } catch (Exception ignored) {}
                 }
-                // v6.12: report TEXT-eo prodhan hisab — oi din-er auto row
-                // ekhanei pore neya hoy (background thread, tai sync read thik).
-                // Row thakle prodhan = AUTO, na hole manual. Jog noy — manual
-                // auto-r moddhei dhora thake (jog korle double count: FTD 6 / Reg 11).
-                ReportAuto repAuto = readCommissionStatsForDate(today);
-                boolean hasAuto = repAuto != null;
-                int autoReg = repAuto == null ? 0 : repAuto.reg;
-                int autoFtd = repAuto == null ? 0 : repAuto.ftd;
-                double autoAmt = repAuto == null ? 0 : repAuto.amt;
-                int headReg = hasAuto ? autoReg : regTotalCount(regToday);
-                int headFtd = hasAuto ? autoFtd : ftdTotalCount(ftdToday);
-                double headAmt = hasAuto ? autoAmt : sum;
+                // v7.9.5: report TEXT-eo prodhan hisab = MANUAL (sudhu report theke);
+                // Commission Stats (panel) auto row ar pora hoy na.
+                // Headline = manual count (regToday / ftdToday theke).
+                // (v7.9.5 manual-only).
+                int headReg = regTotalCount(regToday);
+                int headFtd = ftdTotalCount(ftdToday);
+                double headAmt = sum;
                 // Screen-er stepper-er songkhyao text-er sathe miliye rakha.
-                reportAutoHasRow = hasAuto;
-                reportAutoReg = autoReg; reportAutoFtd = autoFtd; reportAutoAmt = autoAmt;
                 StringBuilder sb = new StringBuilder();
                 sb.append("Date: ").append(displayDay(today)).append("\n");
                 // Batch fix #10: past-date report-e bortoman somoy dekhale mone hoy oi

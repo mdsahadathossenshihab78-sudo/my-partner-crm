@@ -1529,30 +1529,30 @@ async function loadReportData(){
     const regs=filterTodayE(s.reg,day), ftds=filterTodayE(s.ftd,day), probs=filterTodayE(s.prob,day);
     const past=day<dhakaToday();
     renderEntryList('regList',regs,e=>isRegCountRow(e)?esc(cellE(e,1))+'টা':esc(cellE(e,1)),!past);
-    // Report headline: AUTO (Commission Stats) when a Stats row exists for this date, else MANUAL — never summed
-    let auto=null;
-    try{ await loadCommissionWeek(); auto=statsForDate(day); }catch(e){ auto=null; }
+    // v7.9.5: Report headline MANUAL-ONLY - manual report counts only; no Commission Stats read.
+    
+    
     const manReg=regTotalCount(regs);
     let manFtdSum=0; ftds.forEach(e=>{const v=parseFloat(cellE(e,2));if(!isNaN(v))manFtdSum+=v;});
     const manFtd=ftdTotalCount(ftds);
-    const headReg=auto?auto.reg:manReg;
-    const headFtd=auto?auto.ftd:manFtd;
-    const headAmt=auto?auto.amt:manFtdSum;
-    refreshRegStepper(day,regs,headReg,auto?manReg:null);
-    refreshFtdStepper(day,ftds,headFtd,headAmt,auto?{n:manFtd,amt:manFtdSum}:null);
+    const headReg=manReg;
+    const headFtd=manFtd;
+    const headAmt=manFtdSum;
+    refreshRegStepper(day,regs,headReg,null);
+    refreshFtdStepper(day,ftds,headFtd,headAmt,null);
     renderEntryList('ftdList',ftds,e=>'৳'+fmtAmt(parseFloat(cellE(e,2))||0),!past);
     renderEntryList('probList',probs,e=>esc(cellE(e,1)),!past);
     let autoInv=[];
     try{ const lrows=await readLogRowsForDate(day); autoInv=autoInvalidNumbers(lrows,day); }catch(e){}
     $('invAutoSummary').textContent=displayDay(day)+' — Invalid (অটো): '+autoInv.length+'টা';
     $('invAutoList').innerHTML='';
-    window._rep={regs:regs,ftds:ftds,invs:s.inv,probs:probs,autoInv:autoInv,repDay:day,auto:auto,headReg:headReg,headFtd:headFtd,headAmt:headAmt,manReg:manReg,manFtd:manFtd,manFtdSum:manFtdSum};
+    window._rep={regs:regs,ftds:ftds,invs:s.inv,probs:probs,autoInv:autoInv,repDay:day,auto:null,headReg:headReg,headFtd:headFtd,headAmt:headAmt,manReg:manReg,manFtd:manFtd,manFtdSum:manFtdSum};
   }catch(e){toast('Report লোড হয়নি, আবার চেষ্টা করুন');}
 }
 const BN_WEEKDAY=['রবি','সোম','মঙ্গল','বুধ','বৃহঃ','শুক্র','শনি'];
 function weekdayBn(dateStr){const p=dateStr.split('-');if(p.length<3)return '';return BN_WEEKDAY[new Date(Date.UTC(+p[0],+p[1]-1,+p[2])).getUTCDay()];}
-let commissionCache=null, commissionCacheAt=0;
-function statsForDate(d){ return (commissionCache&&commissionCache.statsByDate&&commissionCache.statsByDate[d])||null; }
+
+
 function renderWeekBars(byDate){
   const bars=$('heroWeekBars'), days=$('heroWeekDays');
   if(!bars||!days) return;
@@ -1577,68 +1577,43 @@ function applyCommission(byDate,lastSync){
 }
 function setTileSub(id,text){ const el=$(id); if(!el) return; if(text){ el.textContent=text; el.style.display='inline'; } else { el.textContent=''; el.style.display='none'; } }
 function applyStatTiles(){
-  const d=selectedDate||dhakaToday();
-  const auto=statsForDate(d);
-  // v7.8: Amount-tao MAX — count-er winner-er sathe badha NOY.
-  // v7.7-te amount count-er winner-er ta nitam; count soman hole
-  // manual-er 600 nitam, auto-er 700 bad jeto. Ekhon amount alada MAX.
-  const headFtd=Math.max(manFtd,auto?auto.ftd:0);
-  const headAmt=Math.max(manFtdAmt,auto?auto.amt:0);
-  const headReg=Math.max(manReg,auto?auto.reg:0);
+  // v7.9.5: Registration + FTD MANUAL-ONLY - headline uses manual report counts only;
+  // Commission Stats (12bajeevip panel) auto numbers are no longer read here.
+  
+  
+  
+  const headFtd=manFtd;
+  const headAmt=manFtdAmt;
+  const headReg=manReg;
   setStatNum($('stFtd'),headFtd);
   setStatNum($('stFtdAmt'),headAmt,{prefix:'৳',fmt:fmtAmt});
   setStatNum($('stReg'),headReg);
   setStatNum($('stDepAmt'),headAmt,{prefix:'৳',fmt:fmtAmt});
   setProgBar(null,headFtd,headReg,$('ftdPct'));
   var _fbs=$('ftdBarSub'); if(_fbs) _fbs.textContent=headFtd+' FTD / '+headReg+' রেজিস্ট্রেশন';
-  setTileSub('stFtdMan',auto?('ম্যানুয়াল: '+manFtd+'টা'):null);
-  setTileSub('stFtdAmtMan',auto?('ম্যানুয়াল: ৳'+fmtAmt(manFtdAmt)):null);
-  setTileSub('stRegMan',auto?('ম্যানুয়াল: '+manReg+'টা'):null);
+  setTileSub('stFtdMan',null);
+  setTileSub('stFtdAmtMan',null);
+  setTileSub('stRegMan',null);
   const _qf=$('qlFtd'); if(_qf) setStatNum(_qf,headFtd);
 }
 async function loadCommissionWeek(){
   if(!token) return;
   const chart=$('heroWeekChart');
-  // Chart headline rule (same as the Report headline + the app v6.16 chart):
-  // per day, AUTO (Stats) when a Stats row exists, else MANUAL (Reports sheet), never summed.
-  // Manual FTDs are read FRESH on every call — they change via the Report FTD
-  // stepper, so the 5-minute Stats cache must not hide a new manual FTD.
-  // The Stats (auto) part stays cached for 5 minutes.
+  // v7.9.5: 7-day chart MANUAL-ONLY - per-day FTD comes only from the agent's
+  // own manual report rows (Reports sheet). Commission Stats (12bajeevip panel)
+  // is no longer read for the chart or the headline. Manual FTDs are read FRESH
+  // on every call - they change via the Report FTD stepper.
+  
   let manByDate={};
   try{
     const _s=splitReportRows(await readReportRowsForDate(dhakaToday()));
     const _today=dhakaToday();
     for(let i=6;i>=0;i--){ const _d=addDays(_today,-i); manByDate[_d]=ftdTotalCount(filterTodayE(_s.ftd,_d)); }
   }catch(e){ manByDate={}; }
-  const _merge=(statsByDate)=>{ const out={}; const _today=dhakaToday(); for(let i=6;i>=0;i--){ const _d=addDays(_today,-i); out[_d]=(statsByDate&&statsByDate[_d])?statsByDate[_d].ftd:(manByDate[_d]||0); } return out; };
-  if(commissionCache&&Date.now()-commissionCacheAt<300000){ applyCommission(_merge(commissionCache.statsByDate),commissionCache.lastSync); return; }
+  
+  
   if(chart) chart.classList.add('hero-week-loading');
-  renderWeekBars(null);
-  try{
-    await tryRefreshConfig();
-    const id=writeSheetFor(currentConfig(),'COMMISSION',dhakaToday());
-    if(!id) throw new Error('no-commission-id');
-    const rows=await getTabRows(id,'Stats');
-    const statsByDate={}; let lastSync='';
-    rows.forEach(e=>{
-      const d=(cellE(e,0)||'').trim(); if(!d) return;
-      const v=parseInt(cellE(e,1),10);
-      const amt=parseFloat(cellE(e,2))||0, reg=parseInt(cellE(e,3),10);
-      statsByDate[d]={ftd:isNaN(v)?0:v,amt:amt,reg:isNaN(reg)?0:reg};
-      const s=(cellE(e,16)||'').trim();
-      if(s&&(!lastSync||s>lastSync)) lastSync=s;
-    });
-    const merged=_merge(statsByDate);
-    commissionCache={byDate:merged,statsByDate:statsByDate,lastSync:lastSync}; commissionCacheAt=Date.now();
-    if(chart) chart.classList.remove('hero-week-loading');
-    applyCommission(merged,lastSync);
-  }catch(e){
-    if(chart) chart.classList.remove('hero-week-loading');
-    if(commissionCache){ applyCommission(_merge(commissionCache.statsByDate),commissionCache.lastSync); }
-    else{
-      renderWeekBars(_merge(null));
-    }
-  }
+  applyCommission(manByDate,''); if(chart) chart.classList.remove('hero-week-loading');
 }
 async function loadFtdUsers(){
   $('ftdUsersSummary').textContent='লোড হচ্ছে...';
@@ -1684,13 +1659,13 @@ $('ftdStepAddBtn').onclick=async()=>{const a=$('ftdStepAmt').value.trim();if(!a)
 $('ftdMinusBtn').onclick=async()=>{if(reportDate!==dhakaToday()){toast('আগের তারিখে বদলানো যাবে না');return;}const rows=ftdTodayRows();if(!rows.length){toast('আজ কোনো FTD নেই');return;}let last=rows[0];rows.forEach(e=>{const so=e.sourceOrder||0, lso=last.sourceOrder||0; if(so>lso||(so===lso&&e.sheetRow>last.sheetRow)) last=e;});await deleteEntry('ftdList',last.sheetRow,last.sourceSheet);await loadDayStats();};
 $('probAddBtn').onclick=async()=>{const t=$('probText').value.trim();if(!t)return;if(reportDate!==dhakaToday()){toast('আগের তারিখে যোগ করা যাবে না');return;}try{await tryRefreshConfig();const wid=await reportWriteSheet();await appendRowRaw(wid,agentId,[dhakaToday(),'Problems','','',t]);$('probText').value='';$('reportOut').style.display='none';await loadReportData();}catch(e){toast('যোগ হয়নি, আবার চেষ্টা করুন');}};
 $('genBtn').onclick=async()=>{
-  // refresh the headline first so the generated text uses the freshest Stats row
+  // refresh the headline first so the generated text uses the freshest manual counts
   try{ await loadReportData(); }catch(e){}
   const r=window._rep||{regs:[],ftds:[],invs:[],probs:[],autoInv:[]};
   const now=dhakaNow();
   const day=r.repDay||reportDate;
   const total=rows.filter(x=>x.status).length, conn=rows.filter(x=>x.status==='call connected').length;
-  // headline: auto Stats when present, else manual — never summed
+  // headline: manual counts only (v7.9.5) - no auto Stats
   const headReg=(r.headReg===undefined||r.headReg===null)?regTotalCount(r.regs):r.headReg;
   const headFtd=(r.headFtd===undefined||r.headFtd===null)?ftdTotalCount(r.ftds):r.headFtd;
   let headAmt;
