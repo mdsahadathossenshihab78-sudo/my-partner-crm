@@ -1073,7 +1073,7 @@ async function drainOutbox(){
       } else {
         const cur=await apiSid(numsId,encodeURIComponent(agentId)+'!A'+r.row);
         const curNum=(cur.values&&cur.values[0]&&cur.values[0][0])||'';
-        if(curNum!==r.number){
+        if(normLogNum(curNum)!==normLogNum(r.number)){
           failed='rowcheck';
         } else {
           // (re)write the sheet row unless a previous attempt already verified it
@@ -1197,7 +1197,7 @@ function filteredRows(){
   const qt=qRaw.toLowerCase();
   let list;
   if(tab==='done'){ list=calledRows.slice(); }
-  else { list=rows.filter(r=>!r.savedStatus); }
+  else { const _doneToday=new Set((calledRows||[]).map(x=>normLogNum(x.number||''))); list=rows.filter(r=>!r.savedStatus && !_doneToday.has(normLogNum(r.number||''))); }
   if(typeFilter) list=list.filter(r=>matchesTypeFilter(r,typeFilter));
   if(qRaw){
     list=list.filter(r=>{
@@ -1262,9 +1262,16 @@ function refreshChips(rowNum){
 }
 // --- save verification: every write is read back before it counts as saved ---
 async function verifySheetRow(rowNum, number, val, vc){
-  const d=await apiSid(currentNumbersId(),encodeURIComponent(agentId)+'!A'+rowNum+':C'+rowNum);
-  const v=(d.values&&d.values[0])||[];
-  return (v[0]||'')===number && (v[1]||'')===val && (v[2]||'')===vc;
+  const want=normLogNum(number||'');
+  for(let a=0;a<3;a++){
+    try{
+      const d=await apiSid(currentNumbersId(),encodeURIComponent(agentId)+'!A'+rowNum+':C'+rowNum);
+      const v=(d.values&&d.values[0])||[];
+      if(normLogNum(v[0]||'')===want && (v[1]||'')===val && (v[2]||'')===vc) return true;
+    }catch(e){}
+    if(a<2) await new Promise(r=>setTimeout(r,600));
+  }
+  return false;
 }
 async function logHasEntry(today, n, val, vc){
   const rs=await readLogRowsForDate(today);
@@ -1296,7 +1303,7 @@ window.saveRow=async (rowNum)=>{
     const numsId=currentNumbersId();
     const cur=await apiSid(numsId,encodeURIComponent(agentId)+'!A'+rowNum);
     const curNum=(cur.values&&cur.values[0]&&cur.values[0][0])||'';
-    if(curNum!==r.number){
+    if(normLogNum(curNum)!==normLogNum(r.number)){
       // row moved in the sheet — never discard silently: queue for retry (resolved by number) and say so clearly
       queueFailedSave({rowNum:rowNum,number:r.number,val:val,vc:vc,r1:r1,r2:r2,ot:ot,ts:Date.now(),reason:'rowcheck',attempts:0});
       saveDraftForRow(r);
