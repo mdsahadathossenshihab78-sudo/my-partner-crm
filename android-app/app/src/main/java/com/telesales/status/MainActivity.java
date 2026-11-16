@@ -478,7 +478,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.qlListBtn).setOnClickListener(v -> { applySection(1); maybeAutoRefreshList(); });
         findViewById(R.id.qlReportBtn).setOnClickListener(v -> showReport());
         findViewById(R.id.qlFtdBtn).setOnClickListener(v -> showFtdUsers());
-        findViewById(R.id.qlWebBtn).setOnClickListener(v -> showWebsite());
+        findViewById(R.id.qlWebBtn).setOnClickListener(v -> showWebsite());        findViewById(R.id.helpBtn).setOnClickListener(v -> showHelp());
          
          
         findViewById(R.id.btnPrevDay).setOnClickListener(v -> shiftDay(-1));
