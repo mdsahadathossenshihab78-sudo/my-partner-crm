@@ -543,47 +543,13 @@ html.tod-night .bottom-menu button.on{background:var(--d2-accent);color:var(--d2
 <div class="stat ftd-item"><b id="stInv">0</b><span>Invalid</span></div>
 <div class="stat ftd-item"><b id="stValid">0</b><span>Valid</span></div>
 </div>
-<div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">পেন্ডিং</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div></div>
+<div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">পেন্ডিং</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div><div class="quick-link" onclick="showHelpPage()"><span class="ql-label">❓ সাহায্য পেজ</span><span class="ql-sub">জমা / উঠানো</span></div></div>
 <p class="muted" id="weekSummary"></p>
 <div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
 <p class="muted" id="targetLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px"></p>
 <div class="card" id="remindCard" style="display:none;margin-top:12px;padding:14px 16px"><b>মনে করিয়ে দেওয়া</b><div id="remindList" style="margin-top:8px"></div></div>
 </div>
-<!-- v7.9.7: deposit/withdrawal help section -->
-<section id="helpSection" class="card" style="margin-top:12px">
-<h2 style="margin:0 0 8px">টাকা জমা / উঠানো — সাহায্য</h2>
-<p class="muted">টাকা জমা দেওয়ার পরও না এলে, বা টাকা উঠানোর পরও না এলে — নিচের তথ্য দিয়ে সাহায্য পেজে জানান।</p>
-<h3 style="margin:16px 0 8px">ডিপোজিট পাননি?</h3>
-<ol style="margin:0;padding-left:22px">
-<li>জমা রেকর্ডে (জমা রেকর্ড পেজে) আপনার জমা রেফ# খুঁজুন।</li>
-</ol>
-<div style="background:var(--d2-surface2);border:2px solid var(--d2-ink);border-radius:12px;padding:12px 14px;margin:8px 0;box-shadow:var(--d2-shadow-sm)">
-<div style="font-weight:700;font-size:17px;color:var(--d2-accent)">জমা রেফ#: 14122114*****</div>
-<div style="font-weight:700;color:var(--d2-accent)">⬆ এই নাম্বারটা লাগবে</div>
-</div>
-<ol start="2" style="margin:0;padding-left:22px">
-<li>রেফ নম্বরের পাশের কপি বাটনে চাপ দিয়ে নম্বরটা কপি করুন।</li>
-<li>আপনার বিকাশ/নগদ পেমেন্টের রসিদের স্ক্রিনশট তৈরি রাখুন।</li>
-</ol>
-<div style="background:var(--d2-surface2);border:2px solid var(--d2-ink);border-radius:12px;padding:12px 14px;margin:8px 0;box-shadow:var(--d2-shadow-sm)">
-<div style="font-weight:700">বিকাশ / নগদ — পেমেন্ট রসিদ (উদাহরণ)</div>
-<div>নাম: ****</div>
-<div>নম্বর: ****</div>
-<div>ট্রানজেকশন আইডি: ****</div>
-<div>পরিমাণ: ****</div>
-<div>মার্চেন্ট: ****</div>
-<div style="font-weight:700;color:var(--d2-accent)">⬆ এই ছবিটা লাগবে</div>
-</div>
-<ol start="4" style="margin:0;padding-left:22px">
-<li>সাহায্য পেজে কপি করা রেফ নম্বর পেস্ট করুন আর রসিদের ছবিটা আপলোড করুন, তারপর জমা দিন চাপুন।</li>
-<li>ফলাফল: ১-২ মিনিটের মধ্যে টাকা চলে আসবে।</li>
-</ol>
-<h3 style="margin:16px 0 8px">উইথড্রয়াল পাননি?</h3>
-<p class="muted">উইথড্রয়াল অর্ডার নম্বর জমা দিন; ব্যাংক ট্রান্সফার রিসিপ্ট আপলোড করুন; জমা দিন চাপুন।</p>
-<h3 style="margin:16px 0 8px">অ্যাকাউন্ট আপডেট</h3>
-<p class="muted">যা বদলাতে চান তা বেছে নিন — লগইন পাসওয়ার্ড, উত্তোলন পাসওয়ার্ড, ই-ওয়ালেট নম্বর। ইমেইল, ইউজারনেম, প্রকৃত নাম, মোবাইল, ই-ওয়ালেট লিখুন। পরিচয়পত্রের সামনের ছবি, হাতে পরিচয়পত্র ধরা ছবি, সর্বশেষ সফল জমার রসিদ আপলোড করুন (প্রতিটি 10MB-এর বেশি নয়)। পর্যালোচনার ফলাফল আর নতুন পাসওয়ার্ড আপনার ইমেইলে পাঠানো হবে।</p>
-<a href="https://www.bajeevip55.help/financeHelp/general" target="_blank" rel="noopener" class="btn" style="display:inline-block;text-decoration:none;background:var(--d2-accent);color:var(--d2-on-accent);border:2px solid var(--d2-ink);box-shadow:var(--d2-shadow-sm)">সাহায্য পেজ খুলুন</a>
-</section>
+<!-- v7.9.8: help moved to helpView (screenshot-based help page) -->
 <div id="listView" style="display:none">
 <div class="row" style="margin-top:8px"><button class="btn tab-on" id="tabPendingBtn" style="flex:1">কল বাকি</button><button class="btn btn-light" id="tabDoneBtn" style="flex:1">কল করা হয়েছে</button></div>
 <p class="muted" id="filterNote" style="display:none"></p>
@@ -629,12 +595,12 @@ html.tod-night .bottom-menu button.on{background:var(--d2-accent);color:var(--d2
 <div class="card footer-card"><h2 style="margin-top:0"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> অ্যাপ ডাউনলোড (APK)</h2><p class="muted">ফোনে অ্যাপ হিসেবে ব্যবহার করতে চাইলে APK ডাউনলোড করে ইনস্টল করুন। ইনস্টলের সময় “Install unknown apps” অনুমতি চাইলে Allow করবেন।</p><a class="btn btn-primary" href="telesales-status.apk" style="text-decoration:none;display:inline-block"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> APK ডাউনলোড করুন</a></div>
 </div></div>
 </div>
-<nav class="bottom-menu" id="bottomMenu" style="display:none">
+<!-- v7.9.8: screenshot-based help page (REAL masked screenshots) --><div id="helpView" style="display:none"><div class="card"><h2 style="margin:0 0 8px">টাকা জমা / উঠানো — সাহায্য</h2><p class="muted">টাকা জমা দেওয়ার পরও না এলে, বা টাকা উঠানোর পরও না এলে — নিচের ধাপগুলো অনুসরণ করুন।</p><ol style="margin:0;padding-left:22px"><li>জমা রেকর্ড থেকে জমা রেফ# নম্বরটা কপি করুন — এই নাম্বারটা লাগবে</li><li>সাহায্য পেজে নম্বরটা পেস্ট করুন</li><li>বিকাশ/নগদ রসিদের ছবি আপলোড করুন — এই ছবিটা লাগবে</li><li>টাকা ১–২ মিনিটে আসবে</li></ol><button type="button" class="btn" id="openHelpBtn" style="margin-top:12px;background:var(--d2-accent);color:var(--d2-on-accent);border:2px solid var(--d2-ink);box-shadow:var(--d2-shadow-sm)" onclick="document.getElementById('helpShots').style.display='block';document.getElementById('openHelpBtn').style.display='none'">সাহায্য পেজ খুলুন</button><div id="helpShots" style="display:none"><h3 style="margin:16px 0 8px">জমা রেফ# — উদাহরণ</h3><img src="assets/help-deposit-records.jpg" alt="জমা রেকর্ডে জমা রেফ#" style="width:100%;border-radius:12px;border:2px solid var(--d2-ink)"><p style="text-align:center;font-weight:700;color:var(--d2-accent)">এই নাম্বারটা লাগবে</p><h3 style="margin:16px 0 8px">বিকাশ / নগদ — পেমেন্ট রসিদ (উদাহরণ)</h3><img src="assets/help-bkash-receipt.jpg" alt="বিকাশ রসিদ" style="width:100%;border-radius:12px;border:2px solid var(--d2-ink)"><p style="text-align:center;font-weight:700;color:var(--d2-accent)">এই ছবিটা লাগবে</p><img src="assets/help-payment-receipt.jpg" alt="পেমেন্ট রসিদ" style="width:100%;border-radius:12px;border:2px solid var(--d2-ink)"><p style="text-align:center;font-weight:700;color:var(--d2-accent)">এই ছবিটা লাগবে</p><a href="https://www.bajeevip55.help/financeHelp/general" class="btn" style="display:inline-block;text-decoration:none;background:var(--d2-accent);color:var(--d2-on-accent);border:2px solid var(--d2-ink);box-shadow:var(--d2-shadow-sm)">সাহায্য ফর্ম খুলুন</a></div></div></div><nav class="bottom-menu" id="bottomMenu" style="display:none">
 <button type="button" id="bmDash"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>ড্যাশবোর্ড</button>
 <button type="button" id="bmList"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>কল লিস্ট</button>
 <button type="button" id="bmReport"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>রিপোর্ট</button>
 <button type="button" id="bmFtd"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>এফটিডি লিস্ট</button>
-<button type="button" id="bmGuide"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>ইউজার গাইড</button>
+<button type="button" id="bmGuide"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>ইউজার গাইড</button><button type="button" id="bmHelp"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>সাহায্য পেজ</button>
 </nav>
 <div class="toast" id="toast"></div>
 <script>
@@ -729,16 +695,16 @@ function dialNumber(n){n=(n||'').replace(/[^0-9+]/g,'');if(!n)return '';if(n.sta
 function digits(n){return (n||'').replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d)).replace(/[^0-9]/g,'')}
 function normLogNum(n){let d=(n||'').replace(/[^0-9]/g,'');if(!d)return '';if(d.startsWith('880'))d='0'+d.slice(3);else if(!d.startsWith('0'))d='0'+d;return d;}
 function autoInvalidNumbers(logs,day){const seen=new Set(),out=[];logs.forEach(e=>{if(cellE(e,0)!==day)return;if(cellE(e,2)!=='not connected')return;if(cellE(e,3)!=='No')return;const n=normLogNum(cellE(e,1));if(!n||seen.has(n))return;seen.add(n);out.push(n);});return out;}
-function showLogin(){window.scrollTo(0,0);$('loginCard').style.display='block';$('loginHero').style.display='block';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='none'}
-function showAgent(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='block';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='none'}
-function showMain(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='block';$('dashView').style.display='block';$('listView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='flex';setBm('bmDash');$('agentLabel').textContent='Agent: '+agentId;updateDateBtn();loadDayStats()}
-function showList(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='block';$('dashView').style.display='none';$('listView').style.display='block';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='flex';setBm('bmList');}
+function showLogin(){window.scrollTo(0,0);$('loginCard').style.display='block';$('loginHero').style.display='block';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('helpView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='none'}
+function showAgent(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='block';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('helpView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='none'}
+function showMain(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='block';$('dashView').style.display='block';$('listView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('helpView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='flex';setBm('bmDash');$('agentLabel').textContent='Agent: '+agentId;updateDateBtn();loadDayStats()}
+function showList(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='block';$('dashView').style.display='none';$('listView').style.display='block';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('helpView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='flex';setBm('bmList');}
 const ADMIN_EMAIL='shihabno.18@gmail.com';
-function showAdmin(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='block';$('guideView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='none';$('adminMsg').textContent='';refreshAdminSheetSection();}
-function showReport(){window.scrollTo(0,0);$('loginHero').style.display='none';reportDate=dhakaToday();updateRepDateBtn();$('mainView').style.display='none';$('reportView').style.display='block';$('guideView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='flex';setBm('bmReport');loadReportData()}
-function showFtd(){window.scrollTo(0,0);$('loginHero').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('guideView').style.display='none';$('adminCard').style.display='none';$('ftdView').style.display='block';$('bottomMenu').style.display='flex';setBm('bmFtd');loadFtdUsers()}
-function showGuide(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='block';$('ftdView').style.display='none';$('bottomMenu').style.display='flex';setBm('bmGuide');}
-function setBm(id){['bmDash','bmList','bmReport','bmFtd','bmGuide'].forEach(x=>{const b=$(x);if(b)b.classList.toggle('on',x===id);});}
+function showAdmin(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='block';$('guideView').style.display='none';$('helpView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='none';$('adminMsg').textContent='';refreshAdminSheetSection();}
+function showReport(){window.scrollTo(0,0);$('loginHero').style.display='none';reportDate=dhakaToday();updateRepDateBtn();$('mainView').style.display='none';$('reportView').style.display='block';$('guideView').style.display='none';$('helpView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='flex';setBm('bmReport');loadReportData()}
+function showFtd(){window.scrollTo(0,0);$('loginHero').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('guideView').style.display='none';$('helpView').style.display='none';$('adminCard').style.display='none';$('ftdView').style.display='block';$('bottomMenu').style.display='flex';setBm('bmFtd');loadFtdUsers()}
+function showGuide(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='block';$('helpView').style.display='none';$('ftdView').style.display='none';$('bottomMenu').style.display='flex';setBm('bmGuide');}function showHelpPage(){window.scrollTo(0,0);$('loginCard').style.display='none';$('loginHero').style.display='none';$('agentCard').style.display='none';$('mainView').style.display='none';$('reportView').style.display='none';$('adminCard').style.display='none';$('guideView').style.display='none';$('helpView').style.display='none';$('ftdView').style.display='none';$('helpView').style.display='block';$('bottomMenu').style.display='flex';setBm('bmHelp');}
+function setBm(id){['bmDash','bmList','bmReport','bmFtd','bmGuide','bmHelp'].forEach(x=>{const b=$(x);if(b)b.classList.toggle('on',x===id);});}
 function updateDateBtn(){$('dateBtn').textContent=displayDay(selectedDate)+(selectedDate===dhakaToday()?' • আজ':'')}
 function shiftDay(d){const nd=addDays(selectedDate,d);if(nd>dhakaToday())return;selectedDate=nd;updateDateBtn();loadDayStats()}
 try{if(window.firebase){firebase.initializeApp(firebaseConfig);auth=firebase.auth();}}catch(e){}
@@ -939,7 +905,7 @@ $('bmDash').onclick=()=>{showMain();};
 $('bmList').onclick=()=>{showList();};
 $('bmReport').onclick=()=>{showReport();};
 $('bmFtd').onclick=()=>{showFtd();};
-$('bmGuide').onclick=()=>{showGuide();};
+$('bmGuide').onclick=()=>{showGuide();};$('bmHelp').onclick=()=>{showHelpPage();};
 $('prevDayBtn').onclick=()=>shiftDay(-1);
 $('nextDayBtn').onclick=()=>shiftDay(1);
 $('dateBtn').onclick=()=>{
