@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>সাহায্য পেজ</title>
+<style>
+body{margin:0;font-family:sans-serif;background:#0f1420;color:#f2f5ff;padding:16px}
+.card{background:#1b2334;border:1px solid #2a3550;border-radius:16px;padding:16px;margin-bottom:12px}
+h1{font-size:20px;margin:0 0 8px;color:#ffb020}
+h2{font-size:16px;margin:16px 0 8px}
+p,li{font-size:15px;line-height:1.7}
+ol{padding-left:22px;margin:0}
+.btn{display:block;width:100%;box-sizing:border-box;text-align:center;background:linear-gradient(135deg,#ff7a1a,#ffb020);color:#fff;border:0;border-radius:12px;padding:14px;font-size:17px;font-weight:700;margin:12px 0;cursor:pointer}
+a.btn{text-decoration:none}
+.shot{width:100%;border-radius:12px;border:2px solid #2a3550;margin:8px 0 4px}
+.cap{text-align:center;font-weight:700;color:#ffb020;margin:0 0 12px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>টাকা জমা / উঠানো — সাহায্য</h1>
+<p>টাকা জমা দেওয়ার পরও না এলে, বা টাকা উঠানোর পরও না এলে — নিচের ধাপগুলো অনুসরণ করুন।</p>
+<ol>
+<li>জমা রেকর্ড থেকে জমা রেফ# নম্বরটা কপি করুন — এই নাম্বারটা লাগবে</li>
+<li>সাহায্য পেজে নম্বরটা পেস্ট করুন</li>
+<li>বিকাশ/নগদ রসিদের ছবি আপলোড করুন — এই ছবিটা লাগবে</li>
+<li>টাকা ১–২ মিনিটে আসবে</li>
+</ol>
+<button class="btn" type="button" id="openHelpBtn" onclick="document.getElementById('helpShots').style.display='block';document.getElementById('openHelpBtn').style.display='none';window.scrollTo(0,document.getElementById('helpShots').offsetTop)">সাহায্য পেজ খুলুন</button>
+</div>
+<div class="card hidden" id="helpShots">
+<h2>জমা রেফ# — উদাহরণ</h2>
+<img class="shot" src="help-deposit-records.jpg" alt="জমা রেকর্ডে জমা রেফ#">
+<p class="cap">এই নাম্বারটা লাগবে</p>
+<h2>বিকাশ / নগদ — পেমেন্ট রসিদ (উদাহরণ)</h2>
+<img class="shot" src="help-bkash-receipt.jpg" alt="বিকাশ রসিদ">
+<p class="cap">এই ছবিটা লাগবে</p>
+<img class="shot" src="help-payment-receipt.jpg" alt="পেমেন্ট রসিদ">
+<p class="cap">এই ছবিটা লাগবে</p>
+<a class="btn" href="https://www.bajeevip55.help/financeHelp/general">সাহায্য ফর্ম খুলুন</a>
+<p style="text-align:center">ফর্মটি অ্যাপের ভেতরেই খুলবে — রেফ নম্বর পেস্ট করুন আর রসিদের ছবি আপলোড করুন।</p>
+</div>
+</body>
+</html>
