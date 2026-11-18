@@ -1,4 +1,4 @@
-package com.telesales.status;
+package com.telesales.partner;
 
 import android.content.Context;
 import android.content.SharedPreferences;

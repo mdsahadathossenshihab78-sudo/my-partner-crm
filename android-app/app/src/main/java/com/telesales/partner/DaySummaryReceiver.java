@@ -1,4 +1,4 @@
-package com.telesales.status;
+package com.telesales.partner;
 
 import android.app.AlarmManager;
 import android.app.NotificationChannel;
@@ -27,7 +27,7 @@ import java.util.TimeZone;
  *  Log porte na parle kono notification noy (0 call bole bhul janano noy); numbers ba
  *  reports porte na parle sudhu oi ongsho bad diye baki hisab dekhabe. */
 public class DaySummaryReceiver extends BroadcastReceiver {
-    public static final String ACTION_DAY_SUMMARY = "com.telesales.status.DAY_SUMMARY";
+    public static final String ACTION_DAY_SUMMARY = "com.telesales.partner.DAY_SUMMARY";
     private static final String CHANNEL_ID = "telesales_daily";
     private static final int NOTIF_ID = 0xD41;
     private static final int HOUR = 21;

@@ -1,4 +1,4 @@
-package com.telesales.status;
+package com.telesales.partner;
 
 import android.view.LayoutInflater;
 import android.view.View;

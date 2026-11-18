@@ -1,4 +1,4 @@
-package com.telesales.status;
+package com.telesales.partner;
 
 import android.app.AlarmManager;
 import android.app.NotificationChannel;
@@ -16,10 +16,10 @@ import androidx.core.app.NotificationManagerCompat;
  *  v6.8 theke fired reminder storage-e thakbe — app open-e popup dekhabe,
  *  action na nile harabe na. */
 public class ReminderReceiver extends BroadcastReceiver {
-    public static final String ACTION_REMIND = "com.telesales.status.REMIND";
-    public static final String ACTION_DISMISS = "com.telesales.status.REMIND_DISMISS";
+    public static final String ACTION_REMIND = "com.telesales.partner.REMIND";
+    public static final String ACTION_DISMISS = "com.telesales.partner.REMIND_DISMISS";
     /** Batch feature #3: notification theke 1 ghonta pore abar mone korano (snooze). */
-    public static final String ACTION_SNOOZE = "com.telesales.status.REMIND_SNOOZE";
+    public static final String ACTION_SNOOZE = "com.telesales.partner.REMIND_SNOOZE";
     public static final String EXTRA_NUMBER = "number";
     private static final String CHANNEL_ID = "telesales_reminders";
 

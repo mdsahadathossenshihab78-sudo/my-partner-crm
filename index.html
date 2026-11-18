@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="bn"><head><meta charset="UTF-8"><meta name="viewport" id="viewportMeta" content="width=1120"><script>try{var _vm=localStorage.getItem('viewMode');if(_vm==='mobile'||(!_vm&&window.screen&&window.screen.width<700)){document.getElementById('viewportMeta').setAttribute('content','width=device-width, initial-scale=1.0');}}catch(e){}</script>
 <script>try{var _tm=localStorage.getItem('themeMode');var _db=_tm==='dark'?'night':_tm==='light'?'morning':null;if(!_db){var _dp=new Date().toLocaleTimeString('en-GB',{timeZone:'Asia/Dhaka',hour:'2-digit',minute:'2-digit',hour12:false}).split(':');var _dm=(+_dp[0])*60+(+_dp[1]);if(_dp[0]==='24')_dm-=1440;_db=_dm>=300&&_dm<660?'morning':_dm>=660&&_dm<900?'noon':_dm>=900&&_dm<1050?'afternoon':_dm>=1050&&_dm<1170?'evening':'night';}document.documentElement.classList.add('tod-'+_db);}catch(e){}</script>
-<title>Telesales Agent CRM</title>
+<title>My Partner CRM</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -495,9 +495,9 @@ html.tod-night .bottom-menu button.on{background:var(--d2-accent);color:var(--d2
 .top h1{font-size:21px}
 }
 </style></head><body>
-<div id="digiLoader"><div class="digi-count" id="digiCount">0</div><div class="digi-title">Telesales Status</div><div class="digi-sub" id="loaderSub">নতুন দিনের হিসাব উঠছে…</div><div class="digi-bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+<div id="digiLoader"><div class="digi-count" id="digiCount">0</div><div class="digi-title">My Partner CRM</div><div class="digi-sub" id="loaderSub">নতুন দিনের হিসাব উঠছে…</div><div class="digi-bar"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
 <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div></div>
-<div class="top"><div class="top-inner"><div class="brand"><span class="logo-badge"><svg width="40" height="40" viewBox="0 0 84 84"><rect width="84" height="84" rx="20" fill="#0b1026" stroke="#8b5cf6" stroke-width="2"/><text x="42" y="58" font-size="44" font-weight="bold" text-anchor="middle" fill="#fff">T</text><path d="M58 26c4 2 4 8 0 10M64 20c7 4 7 14 0 18" fill="none" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/></svg></span><div><h1>Telesales Agent CRM</h1><p>Telesales (Team-03) • নিজের Agent ID দিয়ে শুধু নিজের লিস্ট</p></div><button type="button" class="btn btn-light btn-sm" id="viewToggleBtn" onclick="toggleViewMode()" style="margin-left:auto;white-space:nowrap" title="ভার্সন বদলান">📱 <span class="vt-txt">মোবাইল ভার্সন</span></button><button type="button" class="btn btn-light btn-sm" id="themeToggleBtn" onclick="toggleThemeMode()" style="white-space:nowrap" title="আলো / অন্ধকার বদলান">🌙 <span class="vt-txt">অন্ধকার</span></button></div></div></div>
+<div class="top"><div class="top-inner"><div class="brand"><span class="logo-badge"><svg width="40" height="40" viewBox="0 0 84 84"><rect width="84" height="84" rx="20" fill="#0b1026" stroke="#8b5cf6" stroke-width="2"/><text x="42" y="58" font-size="44" font-weight="bold" text-anchor="middle" fill="#fff">T</text><path d="M58 26c4 2 4 8 0 10M64 20c7 4 7 14 0 18" fill="none" stroke="#f472b6" stroke-width="3" stroke-linecap="round"/></svg></span><div><h1>My Partner CRM</h1><p>Telesales (Team-03) • নিজের Agent ID দিয়ে শুধু নিজের লিস্ট</p></div><button type="button" class="btn btn-light btn-sm" id="viewToggleBtn" onclick="toggleViewMode()" style="margin-left:auto;white-space:nowrap" title="ভার্সন বদলান">📱 <span class="vt-txt">মোবাইল ভার্সন</span></button><button type="button" class="btn btn-light btn-sm" id="themeToggleBtn" onclick="toggleThemeMode()" style="white-space:nowrap" title="আলো / অন্ধকার বদলান">🌙 <span class="vt-txt">অন্ধকার</span></button></div></div></div>
 <div class="wrap">
 
 <div class="hero-cover" id="loginHero"><div class="hero-eyebrow">TELESALES STATUS</div><div class="hero-title" id="heroTitle">সুপ্রভাত! আজকের<br>হিসাব দেখে নিন ☀️</div></div>
@@ -543,7 +543,17 @@ html.tod-night .bottom-menu button.on{background:var(--d2-accent);color:var(--d2
 <div class="stat ftd-item"><b id="stInv">0</b><span>Invalid</span></div>
 <div class="stat ftd-item"><b id="stValid">0</b><span>Valid</span></div>
 </div>
-<div class="quick-links" id="quickLinks"><div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">পেন্ডিং</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div><div class="quick-link" onclick="showHelpPage()"><span class="ql-label">❓ সাহায্য পেজ</span><span class="ql-sub">জমা / উঠানো</span></div></div>
+<div class="quick-links" id="quickLinks">
+<div class="card" id="partnerAssignCard" style="display:none;margin-top:14px;padding:14px 16px">
+<b>পার্টনারকে নম্বর দিন</b>
+<p class="muted" id="partnerAssignCount" style="margin:6px 0 10px">আপনার নম্বর: ০টি • পার্টনারের নম্বর: ০টি</p>
+<div style="display:flex;gap:8px;align-items:center">
+<input id="partnerAssignAmount" type="number" min="1" placeholder="কতটি নম্বর? (যেমন ১০)" style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#fff">
+<button class="btn btn-primary" id="partnerAssignButton">পার্টনারকে দিন</button>
+</div>
+<p class="muted" id="partnerAssignStatus" style="margin:8px 0 0"></p>
+</div>
+<div class="quick-link" onclick="showList()"><span class="ql-label">📞 কল লিস্ট</span><b class="ql-count" id="qlRemain">—</b><span class="ql-sub">পেন্ডিং</span></div><div class="quick-link" onclick="showReport()"><span class="ql-label">📝 রিপোর্ট</span><b class="ql-count" id="qlFtd">—</b><span class="ql-sub">আজকের FTD</span></div><div class="quick-link" onclick="showFtd()"><span class="ql-label">👥 এফটিডি লিস্ট</span><b class="ql-count" id="qlFtdUsers">—</b><span class="ql-sub">মোট ইউজার</span></div><div class="quick-link" onclick="showGuide()"><span class="ql-label">📥 অ্যাপ ডাউনলোড</span><span class="ql-sub">ইউজার গাইড</span></div><div class="quick-link" onclick="showHelpPage()"><span class="ql-label">❓ সাহায্য পেজ</span><span class="ql-sub">জমা / উঠানো</span></div></div>
 <p class="muted" id="weekSummary"></p>
 <div class="hero-week" id="heroWeekChart"><div class="hero-week-title">📊 গত ৭ দিনের FTD</div><div class="hero-weekbars" id="heroWeekBars"></div><div class="hero-weekdays" id="heroWeekDays"></div></div>
 <p class="muted" id="targetLine" style="display:none;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 12px"></p>
@@ -613,7 +623,40 @@ const FTD_USERS_ID='1hINLwYxPnvc9Rel9H4H3qtemRjQKCEm0QSe7SislnDQ';
 const COMMISSION_STATS_ID='1NeR60FB-mfb1_xMM626q0x3QAZ36IdsfGzO6hXz6pJY';
 const CONFIG_FILE_ID=SHARED_STATUS_LOG_ID;
 const firebaseConfig={apiKey:"AIzaSyB03sx0s65ycG3MYcSbB2HfGMigs9DI-r4",authDomain:"fir-a-topup-bazar.firebaseapp.com",databaseURL:"https://fir-a-topup-bazar-default-rtdb.firebaseio.com",projectId:"fir-a-topup-bazar",storageBucket:"fir-a-topup-bazar.firebasestorage.app",messagingSenderId:"928168996366",appId:"1:928168996366:web:fd879d795202891ee9965f",measurementId:"G-9QBLYHR817"};
-let auth=null, token=null, agentId=null, userEmail=null, rows=[], tab='pending', lastStatusMap={};
+let auth=null, token=null, agentId=null, userEmail=null, rows=[], partnerRows=[], tab='pending', lastStatusMap={};
+// My Partner CRM: partner (mypartner) - admin (bdxsukuna03) only moves numbers out of his own bdxsukuna03 tab.
+const PARTNER_AGENT_ID="mypartner";
+const ADMIN_AGENT_ID="bdxsukuna03";
+function isPartnerAdmin(){ return ADMIN_AGENT_ID===agentId; }
+async function readLogRowsForDateFor(date,who){ const ids=logReadIds(date); const out=[]; for(let si=0;si<ids.length;si++){ try{ const rs=await getTabRows(ids[si],who); rs.forEach(e=>out.push({cells:e.cells,sheetRow:e.sheetRow,sourceSheet:ids[si],sourceOrder:si})); }catch(e){} } return out; }
+async function readReportRowsForDateFor(date,who){ const ids=reportReadIds(date); const out=[]; for(let si=0;si<ids.length;si++){ try{ const rs=await getTabRows(ids[si],who); rs.forEach(e=>out.push({cells:e.cells,sheetRow:e.sheetRow,sourceSheet:ids[si],sourceOrder:si})); }catch(e){} } return out; }
+function refreshPartnerAssignCard(){ const card=$("partnerAssignCard"); if(!card) return; if(!isPartnerAdmin()){ card.style.display="none"; return; } card.style.display="block"; $("partnerAssignCount").textContent="আপনার নম্বর: "+rows.length+"টি • পার্টনারের নম্বর: "+partnerRows.length+"টি"; const btn=$("partnerAssignButton"); if(btn&&!btn._wired){ btn._wired=true; btn.onclick=assignNumbersToPartner; } }
+async function assignNumbersToPartner(){
+  if(!isPartnerAdmin()) return;
+  const amtEl=$("partnerAssignAmount"); let n=parseInt((amtEl.value||"").trim(),10); if(isNaN(n)||n<=0) n=10;
+  const btn=$("partnerAssignButton"), st=$("partnerAssignStatus");
+  btn.disabled=true; st.textContent="নম্বর দেওয়া হচ্ছে...";
+  try{
+    await tryRefreshConfig();
+    const numsId=currentNumbersId();
+    const data=await apiSid(numsId,encodeURIComponent(agentId)+"!A6:F");
+    const all=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||"",status:v[1]||""})).filter(r=>r.number&&!r.status);
+    const pick=all.slice(0,n);
+    if(!pick.length) throw new Error("দেওয়ার মতো না-ডাকা নম্বর নেই");
+    const tabs=await getTabsFor(numsId);
+    if(!tabs.includes(PARTNER_AGENT_ID)){
+      let h=null; try{ const hd=await apiSid(numsId,encodeURIComponent(agentId)+"!A5:F5"); h=(hd.values||[])[0]; }catch(e){}
+      await ensureNumbersTab(numsId,PARTNER_AGENT_ID,h);
+    }
+    for(const p of pick){ await appendRowRaw(numsId,PARTNER_AGENT_ID,[p.number]); }
+    for(const p of pick){ await apiSid(numsId,encodeURIComponent(agentId)+"!A"+p.row+":F"+p.row+"?valueInputOption=RAW","PUT",{values:[["","","","","",""]]}); }
+    st.textContent=pick.length+"টি নম্বর পার্টনারকে দেওয়া হয়েছে";
+    amtEl.value="";
+    await loadRows();
+  }catch(e){ st.textContent="দেওয়া হয়নি: "+(e&&e.message?e.message:e); }
+  btn.disabled=false;
+}
+
 let manFtd=0, manFtdAmt=0, manReg=0;
 let typeFilter='';
 let historyMap={};
@@ -996,9 +1039,11 @@ async function loadRows(){
     const numsId=currentNumbersId();
     const data=await apiSid(numsId,encodeURIComponent(agentId)+'!A6:F');
     rows=(data.values||[]).map((v,i)=>({row:6+i,number:v[0]||'',status:v[1]||'',valid:v[2]||'',remark1:v[3]||'',remark2:v[4]||'',others:v[5]||'',savedStatus:v[1]||'',savedValid:v[2]||''})).filter(r=>r.number||r.status||r.valid||r.remark1||r.remark2||r.others);
+if(isPartnerAdmin()){ try{ const pd=await apiSid(numsId,encodeURIComponent(PARTNER_AGENT_ID)+"!A6:F"); partnerRows=(pd.values||[]).map((v,i)=>({row:6+i,number:v[0]||""})).filter(r=>r.number); }catch(e){ partnerRows=[]; } } else { partnerRows=[]; }
+
     lastStatusMap={}; rows.forEach(r=>{lastStatusMap[(r.number||'').trim()]=(r.status||'')+'|'+(r.valid||'');});
     applyDrafts(); updateOutboxLine(); renderReminders();
-    render(); loadDayStats(); drainOutbox();
+    render(); loadDayStats(); drainOutbox(); refreshPartnerAssignCard();
     $('syncStatus').textContent='শিটের সাথে সংযুক্ত — '+rows.length+'টি রো'; dirty=false;
   }catch(e){$('syncStatus').textContent='লোড হয়নি, আবার চেষ্টা করুন।';}
 }
@@ -1433,9 +1478,9 @@ async function loadDayStats(){
     loadCommissionWeek();
     loadFtdUsers(); // dashboard quick tile-er total (qlFtdUsers) agei dekhabe
     let logs=[];
-    try{ logs=await readLogRowsForDate(day); lastLogs=logs; lastLogsDay=day; }catch(e){ $('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।'; calledRows=[]; if(tab==='done'&&!dirty) render(); return; }
+    try{ logs=await readLogRowsForDate(day); if(isPartnerAdmin()){ try{ logs=logs.concat(await readLogRowsForDateFor(day,PARTNER_AGENT_ID)); }catch(e){} } lastLogs=logs; lastLogsDay=day; }catch(e){ $('weekSummary').textContent='হিসাব লোড হয়নি, আবার চেষ্টা করুন।'; calledRows=[]; if(tab==='done'&&!dirty) render(); return; }
     let regs=[], ftds=[];
-    try{ const s=splitReportRows(await readReportRowsForDate(day)); regs=s.reg; ftds=s.ftd; }catch(e){}
+    try{ const s=splitReportRows(await readReportRowsForDate(day)); regs=s.reg; ftds=s.ftd; if(isPartnerAdmin()){ try{ const ps=splitReportRows(await readReportRowsForDateFor(day,PARTNER_AGENT_ID)); regs=regs.concat(ps.reg); ftds=ftds.concat(ps.ftd); }catch(e){} } }catch(e){}
     let conn=0, valid=0, notConn=0;
     logs.forEach(e=>{if(cellE(e,0)===day){if(cellE(e,2)==='call connected')conn++;if(cellE(e,2)==='not connected')notConn++;if(cellE(e,3)==='Yes')valid++;}});
     const inv=autoInvalidNumbers(logs,day).length, reg=regTotalCount(filterTodayE(regs,day));
@@ -1451,8 +1496,8 @@ async function loadDayStats(){
     setStatNum($('stConn'),conn); setStatNum($('stNotConn'),notConn); setStatNum($('stValid'),valid); setStatNum($('stInv'),inv); manReg=reg;
     var _rem=rows.filter(r=>!r.savedStatus).length;
     var _called=logs.filter(e=>cellE(e,0)===day).length;
-    setStatNum($('heroCalls'),_called); setStatNum($('heroNums'),rows.length); setStatNum($('heroRemain'),_rem);
-    setProgBar(null,_called,rows.length,$('heroPct'));
+    setStatNum($('heroCalls'),_called); setStatNum($('heroNums'),rows.length+partnerRows.length); setStatNum($('heroRemain'),_rem);
+    setProgBar(null,_called,rows.length+partnerRows.length,$('heroPct'));
     setProgBar(null,conn,conn+notConn,$('connPct'));
     const _qr=$('qlRemain'); if(_qr) setStatNum(_qr,_rem);
     const _blk=filterRangeE(logs,blockStart,blockEnd);
@@ -1526,7 +1571,7 @@ async function loadReportData(){
   try{
     await tryRefreshConfig();
     const day=reportDate;
-    const s=splitReportRows(await readReportRowsForDate(day));
+    const s=splitReportRows(await readReportRowsForDate(day)); if(isPartnerAdmin()){ try{ const ps=splitReportRows(await readReportRowsForDateFor(day,PARTNER_AGENT_ID)); s.reg=s.reg.concat(ps.reg); s.ftd=s.ftd.concat(ps.ftd); s.inv=s.inv.concat(ps.inv); s.prob=s.prob.concat(ps.prob); }catch(e){} }
     const regs=filterTodayE(s.reg,day), ftds=filterTodayE(s.ftd,day), probs=filterTodayE(s.prob,day);
     const past=day<dhakaToday();
     renderEntryList('regList',regs,e=>isRegCountRow(e)?esc(cellE(e,1))+'টা':esc(cellE(e,1)),!past);
@@ -1544,7 +1589,7 @@ async function loadReportData(){
     renderEntryList('ftdList',ftds,e=>'৳'+fmtAmt(parseFloat(cellE(e,2))||0),!past);
     renderEntryList('probList',probs,e=>esc(cellE(e,1)),!past);
     let autoInv=[];
-    try{ const lrows=await readLogRowsForDate(day); autoInv=autoInvalidNumbers(lrows,day); }catch(e){}
+    try{ let lrows=await readLogRowsForDate(day); if(isPartnerAdmin()){ try{ lrows=lrows.concat(await readLogRowsForDateFor(day,PARTNER_AGENT_ID)); }catch(e){} } autoInv=autoInvalidNumbers(lrows,day); }catch(e){}
     $('invAutoSummary').textContent=displayDay(day)+' — Invalid (অটো): '+autoInv.length+'টা';
     $('invAutoList').innerHTML='';
     window._rep={regs:regs,ftds:ftds,invs:s.inv,probs:probs,autoInv:autoInv,repDay:day,auto:null,headReg:headReg,headFtd:headFtd,headAmt:headAmt,manReg:manReg,manFtd:manFtd,manFtdSum:manFtdSum};
@@ -1607,7 +1652,7 @@ async function loadCommissionWeek(){
   
   let manByDate={};
   try{
-    const _s=splitReportRows(await readReportRowsForDate(dhakaToday()));
+    const _s=splitReportRows(await readReportRowsForDate(dhakaToday())); if(isPartnerAdmin()){ try{ const ps=splitReportRows(await readReportRowsForDateFor(dhakaToday(),PARTNER_AGENT_ID)); _s.ftd=_s.ftd.concat(ps.ftd); }catch(e){} }
     const _today=dhakaToday();
     for(let i=6;i>=0;i--){ const _d=addDays(_today,-i); manByDate[_d]=ftdTotalCount(filterTodayE(_s.ftd,_d)); }
   }catch(e){ manByDate={}; }
@@ -1665,7 +1710,7 @@ $('genBtn').onclick=async()=>{
   const r=window._rep||{regs:[],ftds:[],invs:[],probs:[],autoInv:[]};
   const now=dhakaNow();
   const day=r.repDay||reportDate;
-  const total=rows.filter(x=>x.status).length, conn=rows.filter(x=>x.status==='call connected').length;
+  let total=rows.filter(x=>x.status).length, conn=rows.filter(x=>x.status==='call connected').length; if(isPartnerAdmin()){ try{ const pl=await readLogRowsForDateFor(day,PARTNER_AGENT_ID); total+=pl.filter(e=>cellE(e,0)===day).length; conn+=pl.filter(e=>cellE(e,0)===day&&cellE(e,2)==='call connected').length; }catch(e){} }
   // headline: manual counts only (v7.9.5) - no auto Stats
   const headReg=(r.headReg===undefined||r.headReg===null)?regTotalCount(r.regs):r.headReg;
   const headFtd=(r.headFtd===undefined||r.headFtd===null)?ftdTotalCount(r.ftds):r.headFtd;

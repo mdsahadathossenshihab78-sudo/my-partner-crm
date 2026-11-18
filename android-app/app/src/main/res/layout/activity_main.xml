@@ -208,6 +208,17 @@
              (buildDigitalMeterBar), kintu dekhay na. -->
         <LinearLayout android:id="@+id/digitalMeterBar" android:layout_width="match_parent" android:layout_height="6dp" android:orientation="horizontal" android:layout_marginHorizontal="16dp" android:layout_marginTop="12dp" android:visibility="gone" />
         <!-- v6.19: 7-din FTD chart — boro card (v6.16 headline-FTD data: Stats row thakle AUTO, na hole manual) -->
+
+        <!-- My Partner CRM: admin (bdxsukuna03) theke partner (mypartner)-ke number assign - shudhu admin-er dashboard-e dekhabe. -->
+        <LinearLayout android:id="@+id/partnerAssignCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="15dp" android:layout_marginHorizontal="16dp" android:layout_marginTop="14dp" android:visibility="gone">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="পার্টনারকে নম্বর দিন" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/ink" />
+            <TextView android:id="@+id/partnerAssignCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="আপনার নম্বর: ০টি • পার্টনারের নম্বর: ০টি" android:textSize="13sp" android:textColor="@color/muted_warm" android:layout_marginTop="4dp" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="10dp" android:gravity="center_vertical">
+                <EditText android:id="@+id/partnerAssignAmount" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:hint="কতটি নম্বর? (যেমন ১০)" android:inputType="number" android:textSize="15sp" android:textColor="@color/ink" android:background="@drawable/glass_field" android:paddingHorizontal="12dp" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/partnerAssignButton" android:layout_width="wrap_content" android:layout_height="48dp" android:layout_marginStart="10dp" android:text="পার্টনারকে দিন" android:textSize="15sp" android:textColor="@android:color/white" app:backgroundTint="@color/d2_accent" app:cornerRadius="12dp" />
+            </LinearLayout>
+            <TextView android:id="@+id/partnerAssignStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="13sp" android:textColor="@color/muted_warm" android:layout_marginTop="8dp" />
+        </LinearLayout>
         <LinearLayout android:id="@+id/weekChartCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/glass_card" android:padding="10dp" android:layout_marginHorizontal="16dp" android:layout_marginTop="12dp">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                 <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="এই ৭ দিনের এফটিডি" android:textSize="17sp" android:textStyle="bold" android:textColor="@color/ink" />

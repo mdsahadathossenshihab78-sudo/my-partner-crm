@@ -68,7 +68,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:928168996366:android:48000ee258611792e9965f",
         "android_client_info": {
-          "package_name": "com.telesales.status"
+          "package_name": "com.telesales.partner"
         }
       },
       "oauth_client": [
@@ -76,7 +76,7 @@
           "client_id": "928168996366-tfq1de9fe4msh958db0n2f8nebal1frp.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.telesales.status",
+            "package_name": "com.telesales.partner",
             "certificate_hash": "936a40d1ca413fbffc080205bbab836a9f018de1"
           }
         },

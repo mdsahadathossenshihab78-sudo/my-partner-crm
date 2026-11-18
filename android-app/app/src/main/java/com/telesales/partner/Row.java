@@ -1,4 +1,4 @@
-package com.telesales.status;
+package com.telesales.partner;
 
 public class Row {
     public int row;

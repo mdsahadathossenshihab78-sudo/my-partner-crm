@@ -1,13 +1,13 @@
 plugins { id 'com.android.application'; id 'com.google.gms.google-services' }
 android {
-    namespace 'com.telesales.status'
+    namespace 'com.telesales.partner'
     compileSdk 34
     defaultConfig {
-        applicationId 'com.telesales.status'
+        applicationId 'com.telesales.partner'
         minSdk 24
         targetSdk 34
-        versionCode 106
-        versionName '7.9.8'
+        versionCode 1
+        versionName '1.0'
     }
     signingConfigs {
         debug {

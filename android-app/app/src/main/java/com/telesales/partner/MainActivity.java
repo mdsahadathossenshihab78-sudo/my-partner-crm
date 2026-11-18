@@ -1,4 +1,4 @@
-package com.telesales.status;
+package com.telesales.partner;
 
 import android.app.DatePickerDialog;
 import android.content.ClipData;
@@ -111,7 +111,18 @@ public class MainActivity extends AppCompatActivity {
      *  kono sheet access lage na). Login-e typed Gmail + Agent ID ei file-er
      *  sathe miliye dekha hoy; millei login hobe. */
 
-    private GoogleSignInClient signInClient;
+        
+    /** My Partner CRM: shudhu dui user - Shihab (admin, bdxsukuna03) + partner (mypartner). Assignment shudhu admin-er nijer bdxsukuna03 tab theke hobe; onno kono agent-er tab kokhono chhoa hobe na. */
+    static final String PARTNER_AGENT_ID = "mypartner";
+    static final String ADMIN_AGENT_ID = "bdxsukuna03";
+    private List<Row> partnerRows = new ArrayList<>();
+    private View partnerAssignCard;
+    private TextView partnerAssignCount;
+    private android.widget.EditText partnerAssignAmount;
+    private MaterialButton partnerAssignButton;
+    private TextView partnerAssignStatus;
+    private boolean isPartnerAdmin() { return ADMIN_AGENT_ID.equals(agentId); }
+private GoogleSignInClient signInClient;
     private String token;
     private String agentId;
     private String statusLogSheetId; private String statusLogTab = "Status Log"; static final String SHARED_STATUS_LOG_ID = "1t22IL9miZ_5QYWD3rJVioXZlKsGwlk6X8bW_TQCjbfQ";
@@ -278,7 +289,46 @@ public class MainActivity extends AppCompatActivity {
     /** v4.28: kono date-er report row — chain-er sob sheet theke, source sheet/order tag-soho (delete-er jonno). */
     private List<REntry> readReportRowsForDate(String date) throws Exception { lastReportPartialFail = false; List<String> ids = reportReadIds(date); if (agentId != null) { String w = writeSheetFor(currentConfig(), "REPORTS", date); if (w != null && !ensuredReportSheets.contains(w)) { try { SheetsClient.ensureReportTab(token, w, agentId); ensuredReportSheets.add(w); } catch (Exception ignored) {} } } List<REntry> out = new ArrayList<>(); Exception first = null; for (int si = 0; si < ids.size(); si++) { String id = ids.get(si); try { out.addAll(withRows(SheetsClient.getReportRows(token, id, agentId), id, si)); } catch (Exception e) { lastReportPartialFail = true; if (first == null) first = e; } } if (!out.isEmpty() || first == null) return out; throw first; }
     /** v4.28: shared log target hole oi date-er sob chain sheet theke, legacy hole sudhu legacy target theke muchbe. */
-    private void deleteLogRowsForTarget(StatusLogTarget t, String date, String number) throws Exception { if (t.shared) deleteLogRowsEverywhere(date, number, t.sheetId); else SheetsClient.deleteLogRowsForDateNumber(token, t.sheetId, t.tab, date, number); }
+        
+    /** Partner-er log row (shared log file-er partner tab theke) - shudhu admin-er combined dashboard/report-er jonno. */
+    private List<REntry> readLogRowsForDateFor(String date, String who) throws Exception {
+        List<String> ids = logReadIds(date);
+        if (who != null) {
+            String w = writeSheetFor(currentConfig(), "STATUS_LOG", date);
+            if (w != null) {
+                try { SheetsClient.ensureSheetTab(token, w, who); } catch (Exception ignored) { }
+            }
+        }
+        List<REntry> out = new ArrayList<>();
+        Exception first = null;
+        for (int si = 0; si < ids.size(); si++) {
+            String id = ids.get(si);
+            try { out.addAll(withRows(SheetsClient.getReportRows(token, id, who), id, si)); }
+            catch (Exception e) { if (first == null) first = e; }
+        }
+        if (!out.isEmpty() || first == null) return out;
+        throw first;
+    }
+    /** Partner-er report row (shared report file-er partner tab theke) - shudhu admin-er combined dashboard/report-er jonno. */
+    private List<REntry> readReportRowsForDateFor(String date, String who) throws Exception {
+        List<String> ids = reportReadIds(date);
+        if (who != null) {
+            String w = writeSheetFor(currentConfig(), "REPORTS", date);
+            if (w != null) {
+                try { SheetsClient.ensureReportTab(token, w, who); } catch (Exception ignored) { }
+            }
+        }
+        List<REntry> out = new ArrayList<>();
+        Exception first = null;
+        for (int si = 0; si < ids.size(); si++) {
+            String id = ids.get(si);
+            try { out.addAll(withRows(SheetsClient.getReportRows(token, id, who), id, si)); }
+            catch (Exception e) { if (first == null) first = e; }
+        }
+        if (!out.isEmpty() || first == null) return out;
+        throw first;
+    }
+private void deleteLogRowsForTarget(StatusLogTarget t, String date, String number) throws Exception { if (t.shared) deleteLogRowsEverywhere(date, number, t.sheetId); else SheetsClient.deleteLogRowsForDateNumber(token, t.sheetId, t.tab, date, number); }
     private void deleteLogRowsEverywhere(String date, String number, String primarySheetId) throws Exception { List<String> ids = logReadIds(date); if (primarySheetId != null && !ids.contains(primarySheetId)) { ids = new ArrayList<>(ids); ids.add(0, primarySheetId); } Exception primaryError = null; for (String id : ids) { try { SheetsClient.deleteLogRowsForDateNumber(token, id, agentId, date, number); } catch (Exception e) { if (id.equals(primarySheetId)) primaryError = e; } } if (primaryError != null) throw primaryError; }
     private List<REntry> regToday = new ArrayList<>(), ftdToday = new ArrayList<>(), invToday = new ArrayList<>(), probToday = new ArrayList<>();
     private final String[] reasons = {"কল ধরেনি", "নট কানেক্টেড", "বন্ধ", "ভুল নাম্বার"};
@@ -343,6 +393,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         dashboardView = findViewById(R.id.dashboardView);
+            wirePartnerAssignPanel();
+
         reminderListContainer = findViewById(R.id.reminderList);
         reminderSection = findViewById(R.id.reminderSection);
         reminderEmptyText = findViewById(R.id.reminderEmptyText);
@@ -2245,7 +2297,7 @@ public class MainActivity extends AppCompatActivity {
      *  file pora na gele exception (fail-closed, caller thik korbe). */
     private String lookupAgentIdForGmail(String email) throws Exception {
         String cb = "?t=" + (System.currentTimeMillis() / 60000);
-        String[] urls = { "https://telesales-status-app.vercel.app/agent-database.json" + cb, "https://telesales.asf.sale/agent-database.json" + cb };
+        String[] urls = { "https://raw.githubusercontent.com/mdsahadathossenshihab78-sudo/my-partner-crm/main/agent-database.json" + cb, "https://cdn.jsdelivr.net/gh/mdsahadathossenshihab78-sudo/my-partner-crm@main/agent-database.json" + cb };
         Exception lastError = null;
         for (String urlString : urls) {
             try {
@@ -2425,6 +2477,12 @@ public class MainActivity extends AppCompatActivity {
                 String resolvedNumbersId = resolveNumbersIdForAgent(agentId);
                 if (resolvedNumbersId != null && !resolvedNumbersId.isEmpty()) lastResolvedNumbersId = resolvedNumbersId;
                 List<Row> rows = SheetsClient.getRows(token, resolvedNumbersId, agentId);
+            // My Partner CRM: admin-er dashboard-er total-e partner-er number-o thakbe (combined).
+            partnerRows = new ArrayList<>();
+            if (isPartnerAdmin()) {
+                try { partnerRows = SheetsClient.getRows(token, resolvedNumbersId, PARTNER_AGENT_ID); } catch (Exception ignored) { }
+            }
+
                 // v5.8: stale-read guard — sheet-e save ekhono na uthle (write-er
                 // porpori read purono value dey) just-save kora row-er notun status-i
                 // rakha hobe; sheet-e notun value ele guard sorbe. Clear-save-er
@@ -2466,7 +2524,7 @@ public class MainActivity extends AppCompatActivity {
                     // aar draft thaka row filter-e pending theke gayeb hoye jeto.
                     lastStatusMap.clear();
                     for (Row r : rows) { r.savedStatus = r.status == null ? "" : r.status; lastStatusMap.put(r.number == null ? "" : r.number.trim(), (r.status == null ? "" : r.status) + "|" + (r.valid == null ? "" : r.valid)); }
-                    saveListScrollPosition(); applyDrafts(rows, false); adapter.setRows(rows); lastTotalNumDay = rows.size(); animateStatNumber(statTotalNumDay, rows.size()); refreshRemainingHero();
+                    saveListScrollPosition(); applyDrafts(rows, false); adapter.setRows(rows); int combinedTotalNum = rows.size() + (partnerRows == null ? 0 : partnerRows.size()); lastTotalNumDay = combinedTotalNum; animateStatNumber(statTotalNumDay, combinedTotalNum); refreshRemainingHero(); refreshPartnerAssignCard();
                     refreshQueuedCounter();
                     saveListScrollPosition(); adapter.filter(searchBox.getText() == null ? "" : searchBox.getText().toString()); restoreListScrollPosition();
                     rowsLoaded = true; maybeOpenPendingReminder();
@@ -2712,7 +2770,90 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void loadDayStats() {
+        
+    /** Partner assign panel: view bind + button listener (onCreate theke call hobe). */
+    private void wirePartnerAssignPanel() {
+        partnerAssignCard = findViewById(R.id.partnerAssignCard);
+        partnerAssignCount = findViewById(R.id.partnerAssignCount);
+        partnerAssignAmount = findViewById(R.id.partnerAssignAmount);
+        partnerAssignButton = findViewById(R.id.partnerAssignButton);
+        partnerAssignStatus = findViewById(R.id.partnerAssignStatus);
+        if (partnerAssignButton != null) partnerAssignButton.setOnClickListener(v -> assignNumbersToPartner());
+        refreshPartnerAssignCard();
+    }
+    /** Assign card: shudhu admin dekhbe; count text-e duijoner number dekhabe. */
+    private void refreshPartnerAssignCard() {
+        if (partnerAssignCard == null) return;
+        if (!isPartnerAdmin()) { partnerAssignCard.setVisibility(View.GONE); return; }
+        partnerAssignCard.setVisibility(View.VISIBLE);
+        if (partnerAssignCount != null) {
+            int prt = partnerRows == null ? 0 : partnerRows.size();
+            int own = lastTotalNumDay - prt;
+            if (own < 0) own = 0;
+            partnerAssignCount.setText("আপনার নম্বর: " + own + "টি • পার্টনারের নম্বর: " + prt + "টি");
+        }
+    }
+    
+    /** Number assignment (MOVE): admin-er nijer bdxsukuna03 tab theke prothom N-ti na-daka number partner-er mypartner tab-e jabe; source row khali kore dewa hobe. Onno kono agent-er tab chhoa hobe na. */
+    private void assignNumbersToPartner() {
+        if (!isPartnerAdmin()) return;
+        if (token == null || agentId == null) { showLogin(); return; }
+        int want = 10;
+        if (partnerAssignAmount != null) {
+            String raw = partnerAssignAmount.getText() == null ? "" : partnerAssignAmount.getText().toString().trim();
+            if (!raw.isEmpty()) {
+                try { want = Integer.parseInt(raw); } catch (Exception ignored) { want = 10; }
+            }
+        }
+        if (want <= 0) want = 10;
+        final int wantFinal = want;
+        if (partnerAssignButton != null) partnerAssignButton.setEnabled(false);
+        if (partnerAssignStatus != null) partnerAssignStatus.setText("নম্বর দেওয়া হচ্ছে...");
+        new Thread(() -> {
+            try {
+                String numbersId = resolveNumbersIdForAgent(agentId);
+                if (numbersId == null || numbersId.isEmpty()) numbersId = lastResolvedNumbersId;
+                if (numbersId == null || numbersId.isEmpty()) throw new Exception("নম্বরের শীট পাওয়া যায়নি");
+    
+                List<Row> mine = SheetsClient.getRows(token, numbersId, agentId);
+                List<Row> picked = new ArrayList<>();
+                for (Row r : mine) {
+                    if (picked.size() >= wantFinal) break;
+                    if (r == null || r.number == null || r.number.trim().isEmpty()) continue;
+                    if (r.status != null && !r.status.isEmpty()) continue;
+                    picked.add(r);
+                }
+                if (picked.isEmpty()) throw new Exception("দেওয়ার মতো না-ডাকা নম্বর নেই");
+                List<String> tabs = SheetsClient.getTabs(token, numbersId);
+                if (tabs == null || !tabs.contains(PARTNER_AGENT_ID)) {
+                    String[] header = null;
+                    try { header = SheetsClient.getHeaderRow5(token, numbersId, agentId); } catch (Exception ignored) { }
+                    if (header == null || header.length < 6) header = new String[]{"MOBILE NUMBER", "CALLING STATUS", "Valid Conversation", "1ST CALL REMARK", "2ND CALL REMARK", "Others number"};
+                    SheetsClient.ensureNumbersTab(token, numbersId, PARTNER_AGENT_ID, header);
+                }
+                List<String> nums = new ArrayList<>();
+                for (Row r : picked) nums.add(r.number.trim());
+                SheetsClient.appendNumbers(token, numbersId, PARTNER_AGENT_ID, nums);
+                for (Row r : picked) {
+                    SheetsClient.updateCells(token, numbersId, agentId + "!A" + r.row + ":F" + r.row, new String[][]{{"" , "", "", "", "", ""}});
+                }
+                int done = picked.size();
+                runOnUiThread(() -> {
+                    if (partnerAssignStatus != null) partnerAssignStatus.setText(done + "টি নম্বর পার্টনারকে দেওয়া হয়েছে");
+                    if (partnerAssignAmount != null) partnerAssignAmount.setText("");
+                    if (partnerAssignButton != null) partnerAssignButton.setEnabled(true);
+                    loadRows();
+                    loadDayStats();
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    if (partnerAssignStatus != null) partnerAssignStatus.setText("দেওয়া হয়নি: " + e.getMessage());
+                    if (partnerAssignButton != null) partnerAssignButton.setEnabled(true);
+                });
+            }
+        }).start();
+    }
+private void loadDayStats() {
         if (token == null || agentId == null) return;
         String day = selectedDate;
         final int seq = ++statsSeq;
@@ -2730,12 +2871,22 @@ public class MainActivity extends AppCompatActivity {
                     });
                     return;
                 }
-                // v4.28: report ekhon date-chain theke (switch diner dui sheet mile);
+                
+            // My Partner CRM: admin-er dashboard-e partner-er kaaj-o jog hobe.
+            if (isPartnerAdmin()) {
+                try { logs.addAll(readLogRowsForDateFor(day, PARTNER_AGENT_ID)); } catch (Exception ignored) { }
+            }
+// v4.28: report ekhon date-chain theke (switch diner dui sheet mile);
                 // report file na pele agekar motoi khali list (dashboard-er log tile atkabe na).
                 List<REntry> regs = new ArrayList<>(), ftds = new ArrayList<>();
                 try {
                     ReportSplit rs = splitReportRows(readReportRowsForDate(day));
                     regs = rs.reg; ftds = rs.ftd;
+                // My Partner CRM: admin-er dashboard-e partner-er registration/FTD-o jog hobe.
+                if (isPartnerAdmin()) {
+                    try { ReportSplit prs = splitReportRows(readReportRowsForDateFor(day, PARTNER_AGENT_ID)); regs.addAll(prs.reg); ftds.addAll(prs.ftd); } catch (Exception ignored) { }
+                }
+
                 } catch (Exception ignored) { }
                 int conn = 0, valid = 0, notConn = 0, totalCall = 0;
                 for (REntry e : logs) if (day.equals(cellE(e, 0))) { totalCall++; if ("call connected".equals(cellE(e, 2))) conn++;
@@ -2820,7 +2971,7 @@ public class MainActivity extends AppCompatActivity {
     /* v7.9.8: deposit help with REAL masked screenshots - instructions first, then the screenshots + in-app help form (never Chrome). */ private void showHelp() { showHelpPage(); } private void showHelpPage() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); ftdView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(5); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); websiteLoaded = false; if (websiteWeb != null) websiteWeb.loadUrl("file:///android_asset/help.html"); } private void showWebsite() { loginView.setVisibility(View.GONE); agentView.setVisibility(View.GONE); mainView.setVisibility(View.GONE); reportView.setVisibility(View.GONE); ftdView.setVisibility(View.GONE); adminView.setVisibility(View.GONE); updateMenuState(3); websiteView.setVisibility(View.VISIBLE); bottomMenuBar.setVisibility(View.VISIBLE); findViewById(R.id.menuDashboardBtn).setBackgroundResource(R.drawable.glass_field); findViewById(R.id.menuHomeBtn).setBackgroundResource(R.drawable.glass_field); if (!websiteLoaded) { websiteWeb.loadUrl("https://www.12bajeevip.com/m/member/home"); websiteLoaded = true; } }
 
     /** Notun version ele purono app-e update popup: Update chaple APK download + install prompt asbe. */
-    private JSONObject fetchVersionJson() throws Exception { String cb = "?t=" + (System.currentTimeMillis() / 60000); String[] urls = { "https://raw.githubusercontent.com/mdsahadathossenshihab1-lgtm/telesales-status-app/main/version.json" + cb, "https://telesales-status-app.vercel.app/version.json" + cb }; Exception lastError = null; for (String urlString : urls) { try { java.net.URL url = new java.net.URL(urlString); java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection(); c.setConnectTimeout(15000); c.setReadTimeout(15000); java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream())); StringBuilder sb = new StringBuilder(); String line; while ((line = br.readLine()) != null) sb.append(line); br.close(); return new JSONObject(sb.toString()); } catch (Exception e) { lastError = e; } } if (lastError != null) throw lastError; throw new Exception("version fetch failed"); } private void checkForUpdate() {
+    private JSONObject fetchVersionJson() throws Exception { String cb = "?t=" + (System.currentTimeMillis() / 60000); String[] urls = { "https://raw.githubusercontent.com/mdsahadathossenshihab78-sudo/my-partner-crm/main/version.json" + cb, "https://cdn.jsdelivr.net/gh/mdsahadathossenshihab78-sudo/my-partner-crm@main/version.json" + cb }; Exception lastError = null; for (String urlString : urls) { try { java.net.URL url = new java.net.URL(urlString); java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection(); c.setConnectTimeout(15000); c.setReadTimeout(15000); java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream())); StringBuilder sb = new StringBuilder(); String line; while ((line = br.readLine()) != null) sb.append(line); br.close(); return new JSONObject(sb.toString()); } catch (Exception e) { lastError = e; } } if (lastError != null) throw lastError; throw new Exception("version fetch failed"); } private void checkForUpdate() {
         
         
         new Thread(() -> {
@@ -3035,7 +3186,12 @@ public class MainActivity extends AppCompatActivity {
             try {
                 tryRefreshConfig(); String today = reportDate;
                 ReportSplit s = splitReportRows(readReportRowsForDate(today));
-                regToday = filterTodayE(s.reg, today);
+                    
+                // My Partner CRM: admin-er report-e partner-er registration/FTD-o jog hobe.
+                if (isPartnerAdmin()) {
+                    try { ReportSplit ps = splitReportRows(readReportRowsForDateFor(today, PARTNER_AGENT_ID)); s.reg.addAll(ps.reg); s.ftd.addAll(ps.ftd); s.inv.addAll(ps.inv); s.prob.addAll(ps.prob); } catch (Exception ignored) { }
+                }
+regToday = filterTodayE(s.reg, today);
                 ftdToday = filterTodayE(s.ftd, today);
                 invToday = filterTodayE(s.inv, today);
                 probToday = filterTodayE(s.prob, today);
@@ -3206,6 +3362,11 @@ public class MainActivity extends AppCompatActivity {
             try {
                 tryRefreshConfig();
                 List<REntry> logs = readLogRowsForDate(reportDate);
+            // My Partner CRM: admin-er report-e partner-er kaaj-o jog hobe.
+            if (isPartnerAdmin()) {
+                try { logs.addAll(readLogRowsForDateFor(reportDate, PARTNER_AGENT_ID)); } catch (Exception ignored) { }
+            }
+
                 int total = 0, conn = 0;
                 for (REntry e : logs) {
                     if (reportDate.equals(cellE(e, 0))) {
@@ -3215,7 +3376,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 String today = reportDate;
                 ReportSplit s = splitReportRows(readReportRowsForDate(today));
-                regToday = filterTodayE(s.reg, today);
+                    
+                // My Partner CRM: admin-er report-e partner-er registration/FTD-o jog hobe.
+                if (isPartnerAdmin()) {
+                    try { ReportSplit ps = splitReportRows(readReportRowsForDateFor(today, PARTNER_AGENT_ID)); s.reg.addAll(ps.reg); s.ftd.addAll(ps.ftd); s.inv.addAll(ps.inv); s.prob.addAll(ps.prob); } catch (Exception ignored) { }
+                }
+regToday = filterTodayE(s.reg, today);
                 ftdToday = filterTodayE(s.ftd, today);
                 invToday = filterTodayE(s.inv, today);
                 probToday = filterTodayE(s.prob, today);

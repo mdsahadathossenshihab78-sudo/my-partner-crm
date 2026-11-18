@@ -1,4 +1,4 @@
-package com.telesales.status;
+package com.telesales.partner;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
